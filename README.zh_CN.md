@@ -58,7 +58,7 @@ Qubit Argument 提供扩展 trait 和检查函数，用于校验函数参数、�
 
 ```toml
 [dependencies]
-qubit-argument = "0.1.0"
+qubit-argument = "0.2.0"
 ```
 
 ## 快速开始
