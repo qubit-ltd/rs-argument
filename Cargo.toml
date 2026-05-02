@@ -1,0 +1,31 @@
+[package]
+name = "qubit-argument"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+authors = ["Haixing Hu <starfish.hu@gmail.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/qubit-ltd/rs-argument"
+description = "Argument and state validation helpers for Rust applications"
+homepage = "https://github.com/qubit-ltd/rs-argument"
+documentation = "https://docs.rs/qubit-argument"
+readme = "README.md"
+keywords = ["argument", "validation", "utility", "qubit"]
+categories = ["development-tools", "rust-patterns"]
+exclude = [
+    "coverage.sh",
+    "COVERAGE.md",
+    "COVERAGE.zh_CN.md",
+    ".circleci/*",
+    "ci-check.sh",
+    ".llvm-cov.toml",
+    ".cargo-audit.toml.example",
+]
+
+[lib]
+name = "qubit_argument"
+doctest = true
+test = false
+
+[dependencies]
+regex = "1.0"
