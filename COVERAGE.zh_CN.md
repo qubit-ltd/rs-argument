@@ -70,11 +70,11 @@ cargo llvm-cov --cobertura --output-path target/llvm-cov/cobertura.xml
 如果只想测试特定的模块，可以使用：
 
 ```bash
-# 只测试 lang 模块
-cargo llvm-cov --html --open -- lang::
+# 只测试 argument 模块
+cargo llvm-cov --html --open -- argument::
 
 # 只测试特定的测试文件
-cargo llvm-cov --html --open --test lang_tests -- lang::argument
+cargo llvm-cov --html --open --test argument_tests -- argument
 ```
 
 ## 排除特定文件

@@ -14,14 +14,10 @@
 //!
 //! Haixing Hu
 
-pub mod lang;
-
 /// Argument validation traits, functions, and error types.
-pub mod argument {
-    pub use crate::lang::argument::*;
-}
+pub mod argument;
 
-pub use lang::argument::{
+pub use argument::{
     ArgumentError,
     ArgumentResult,
     CollectionArgument,

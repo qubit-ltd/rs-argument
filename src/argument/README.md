@@ -221,7 +221,7 @@ match validate_config(80, 30) {
 ## Testing
 
 ```bash
-cargo test --test lang_tests lang::argument
+cargo test --test argument_tests argument
 ```
 
 ## Documentation

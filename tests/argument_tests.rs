@@ -6,7 +6,7 @@
  *    All rights reserved.
  *
  ******************************************************************************/
-//! # Argument Module Tests
+//! # Argument Module Test Entry
 //!
 //! Tests for argument validation utilities.
 
