@@ -1,18 +1,16 @@
 /*******************************************************************************
  *
- *    Copyright (c) 2025 - 2026.
- *    Haixing Hu, Qubit Co. Ltd.
+ *    Copyright (c) 2025 - 2026 Haixing Hu.
  *
- *    All rights reserved.
+ *    SPDX-License-Identifier: Apache-2.0
+ *
+ *    Licensed under the Apache License, Version 2.0.
  *
  ******************************************************************************/
 //! # Numeric Argument Validation
 //!
 //! Provides validation functionality for numeric type arguments.
 //!
-//! # Author
-//!
-//! Haixing Hu
 
 use super::argument_error::{
     ArgumentError,
@@ -132,9 +130,6 @@ impl NumericValue for f64 {
 /// }
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 pub trait NumericArgument: Sized {
     /// Validate that value is zero
@@ -705,9 +700,6 @@ where
 /// assert!(result.is_err());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 #[inline]
 pub fn require_equal<T>(name1: &str, value1: T, name2: &str, value2: T) -> ArgumentResult<()>
 where
@@ -740,9 +732,6 @@ where
 /// assert!(result.is_ok());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 #[inline]
 pub fn require_not_equal<T>(name1: &str, value1: T, name2: &str, value2: T) -> ArgumentResult<()>
 where

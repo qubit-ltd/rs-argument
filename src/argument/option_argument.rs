@@ -1,18 +1,16 @@
 /*******************************************************************************
  *
- *    Copyright (c) 2025 - 2026.
- *    Haixing Hu, Qubit Co. Ltd.
+ *    Copyright (c) 2025 - 2026 Haixing Hu.
  *
- *    All rights reserved.
+ *    SPDX-License-Identifier: Apache-2.0
+ *
+ *    Licensed under the Apache License, Version 2.0.
  *
  ******************************************************************************/
 //! # Option Argument Validation
 //!
 //! Provides validation functionality for Option type arguments.
 //!
-//! # Author
-//!
-//! Haixing Hu
 
 use super::argument_error::{
     ArgumentError,
@@ -36,9 +34,6 @@ use super::argument_error::{
 /// - Configuration item checking
 /// - User input processing
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 /// # Examples
 ///
@@ -230,9 +225,6 @@ impl<T> OptionArgument<T> for Option<T> {
 /// assert!(result.is_ok());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn require_null_or<T, F>(

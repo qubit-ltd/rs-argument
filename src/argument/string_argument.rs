@@ -1,18 +1,16 @@
 /*******************************************************************************
  *
- *    Copyright (c) 2025 - 2026.
- *    Haixing Hu, Qubit Co. Ltd.
+ *    Copyright (c) 2025 - 2026 Haixing Hu.
  *
- *    All rights reserved.
+ *    SPDX-License-Identifier: Apache-2.0
+ *
+ *    Licensed under the Apache License, Version 2.0.
  *
  ******************************************************************************/
 //! # String Argument Validation
 //!
 //! Provides validation functionality for string type arguments.
 //!
-//! # Author
-//!
-//! Haixing Hu
 
 use super::argument_error::{
     ArgumentError,
@@ -37,9 +35,6 @@ use regex::Regex;
 /// - Configuration parameter checking
 /// - Text content validation
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 /// # Examples
 ///

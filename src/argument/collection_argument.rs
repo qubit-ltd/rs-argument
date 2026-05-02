@@ -1,18 +1,16 @@
 /*******************************************************************************
  *
- *    Copyright (c) 2025 - 2026.
- *    Haixing Hu, Qubit Co. Ltd.
+ *    Copyright (c) 2025 - 2026 Haixing Hu.
  *
- *    All rights reserved.
+ *    SPDX-License-Identifier: Apache-2.0
+ *
+ *    Licensed under the Apache License, Version 2.0.
  *
  ******************************************************************************/
 //! # Collection Argument Validation
 //!
 //! Provides validation functionality for collection type arguments.
 //!
-//! # Author
-//!
-//! Haixing Hu
 
 use super::argument_error::{
     ArgumentError,
@@ -65,9 +63,6 @@ use super::argument_error::{
 /// }
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 pub trait CollectionArgument {
     /// Validate that the collection is not empty
@@ -315,9 +310,6 @@ impl<T> CollectionArgument for Vec<T> {
 /// assert!(require_element_non_null("items", &items_with_none).is_err());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn require_element_non_null<T>(name: &str, collection: &[Option<T>]) -> ArgumentResult<()> {

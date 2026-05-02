@@ -1,18 +1,16 @@
 /*******************************************************************************
  *
- *    Copyright (c) 2025 - 2026.
- *    Haixing Hu, Qubit Co. Ltd.
+ *    Copyright (c) 2025 - 2026 Haixing Hu.
  *
- *    All rights reserved.
+ *    SPDX-License-Identifier: Apache-2.0
+ *
+ *    Licensed under the Apache License, Version 2.0.
  *
  ******************************************************************************/
 //! # Condition Argument Validation
 //!
 //! Provides general condition validation functionality.
 //!
-//! # Author
-//!
-//! Haixing Hu
 
 use super::argument_error::{
     ArgumentError,
@@ -41,9 +39,6 @@ use super::argument_error::{
 /// assert!(check_argument(age < 18).is_err());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn check_argument(condition: bool) -> ArgumentResult<()> {
@@ -77,9 +72,6 @@ pub fn check_argument(condition: bool) -> ArgumentResult<()> {
 /// assert!(result.is_ok());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn check_argument_with_message(condition: bool, message: &str) -> ArgumentResult<()> {
@@ -115,9 +107,6 @@ pub fn check_argument_with_message(condition: bool, message: &str) -> ArgumentRe
 /// assert!(result.is_err());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn check_argument_fmt(condition: bool, message: String) -> ArgumentResult<()> {
@@ -148,9 +137,6 @@ pub fn check_argument_fmt(condition: bool, message: String) -> ArgumentResult<()
 /// assert!(check_state(is_initialized).is_ok());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn check_state(condition: bool) -> ArgumentResult<()> {
@@ -184,9 +170,6 @@ pub fn check_state(condition: bool) -> ArgumentResult<()> {
 /// assert!(result.is_err());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn check_state_with_message(condition: bool, message: &str) -> ArgumentResult<()> {
@@ -220,9 +203,6 @@ pub fn check_state_with_message(condition: bool, message: &str) -> ArgumentResul
 /// assert!(check_bounds(90, 20, buffer_len).is_err());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn check_bounds(offset: usize, length: usize, total_length: usize) -> ArgumentResult<()> {
@@ -264,9 +244,6 @@ pub fn check_bounds(offset: usize, length: usize, total_length: usize) -> Argume
 /// assert!(check_element_index(10, list_size).is_err());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn check_element_index(index: usize, size: usize) -> ArgumentResult<usize> {
@@ -302,9 +279,6 @@ pub fn check_element_index(index: usize, size: usize) -> ArgumentResult<usize> {
 /// assert!(check_position_index(11, list_size).is_err());
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn check_position_index(index: usize, size: usize) -> ArgumentResult<usize> {
@@ -339,9 +313,6 @@ pub fn check_position_index(index: usize, size: usize) -> ArgumentResult<usize> 
 /// assert!(check_position_indexes(5, 2, list_size).is_err()); // start > end
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[inline]
 pub fn check_position_indexes(start: usize, end: usize, size: usize) -> ArgumentResult<()> {

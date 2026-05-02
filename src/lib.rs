@@ -1,18 +1,16 @@
 /*******************************************************************************
  *
- *    Copyright (c) 2025 - 2026.
- *    Haixing Hu, Qubit Co. Ltd.
+ *    Copyright (c) 2025 - 2026 Haixing Hu.
  *
- *    All rights reserved.
+ *    SPDX-License-Identifier: Apache-2.0
+ *
+ *    Licensed under the Apache License, Version 2.0.
  *
  ******************************************************************************/
 //! # Qubit Argument
 //!
 //! Provides argument and state validation helpers for Rust applications.
 //!
-//! # Author
-//!
-//! Haixing Hu
 
 /// Argument validation traits, functions, and error types.
 pub mod argument;

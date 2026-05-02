@@ -1,18 +1,16 @@
 /*******************************************************************************
  *
- *    Copyright (c) 2025 - 2026.
- *    Haixing Hu, Qubit Co. Ltd.
+ *    Copyright (c) 2025 - 2026 Haixing Hu.
  *
- *    All rights reserved.
+ *    SPDX-License-Identifier: Apache-2.0
+ *
+ *    Licensed under the Apache License, Version 2.0.
  *
  ******************************************************************************/
 //! # Argument Validation Errors
 //!
 //! Defines error types related to argument validation.
 //!
-//! # Author
-//!
-//! Haixing Hu
 
 use std::fmt;
 
@@ -35,9 +33,6 @@ use std::fmt;
 /// assert_eq!(error.message(), "Invalid argument");
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArgumentError {
@@ -116,8 +111,5 @@ impl From<&str> for ArgumentError {
 /// }
 /// ```
 ///
-/// # Author
-///
-/// Haixing Hu
 ///
 pub type ArgumentResult<T> = Result<T, ArgumentError>;
