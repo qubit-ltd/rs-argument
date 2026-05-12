@@ -1,6 +1,6 @@
 # Qubit Argument
 
-[![CircleCI](https://circleci.com/gh/qubit-ltd/rs-argument.svg?style=shield)](https://circleci.com/gh/qubit-ltd/rs-argument)
+[![Rust CI](https://github.com/qubit-ltd/rs-argument/actions/workflows/ci.yml/badge.svg)](https://github.com/qubit-ltd/rs-argument/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/qubit-ltd/rs-argument/badge.svg?branch=main)](https://coveralls.io/github/qubit-ltd/rs-argument?branch=main)
 [![Crates.io](https://img.shields.io/crates/v/qubit-argument.svg?color=blue)](https://crates.io/crates/qubit-argument)
 [![Rust](https://img.shields.io/badge/rust-1.94+-blue.svg?logo=rust)](https://www.rust-lang.org)
