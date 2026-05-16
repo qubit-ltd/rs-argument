@@ -61,7 +61,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-qubit-argument = "0.3.2"
+qubit-argument = "0.3"
 ```
 
 ## Quick Start
