@@ -1,12 +1,10 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 use qubit_argument::{
     NumericArgument,
     require_equal,
@@ -204,13 +202,29 @@ fn f32_covers_numeric_value_impl_and_nan_checks() {
 
     assert!(0.5f32.require_in_left_open_range("f", 0.0, 1.0).is_ok());
     assert!(f32::NAN.require_in_left_open_range("f", 0.0, 1.0).is_err());
-    assert!(0.5f32.require_in_left_open_range("f", f32::NAN, 1.0).is_err());
-    assert!(0.5f32.require_in_left_open_range("f", 0.0, f32::NAN).is_err());
+    assert!(
+        0.5f32
+            .require_in_left_open_range("f", f32::NAN, 1.0)
+            .is_err()
+    );
+    assert!(
+        0.5f32
+            .require_in_left_open_range("f", 0.0, f32::NAN)
+            .is_err()
+    );
 
     assert!(0.5f32.require_in_right_open_range("f", 0.0, 1.0).is_ok());
     assert!(f32::NAN.require_in_right_open_range("f", 0.0, 1.0).is_err());
-    assert!(0.5f32.require_in_right_open_range("f", f32::NAN, 1.0).is_err());
-    assert!(0.5f32.require_in_right_open_range("f", 0.0, f32::NAN).is_err());
+    assert!(
+        0.5f32
+            .require_in_right_open_range("f", f32::NAN, 1.0)
+            .is_err()
+    );
+    assert!(
+        0.5f32
+            .require_in_right_open_range("f", 0.0, f32::NAN)
+            .is_err()
+    );
 
     assert!(0.5f32.require_less("f", 1.0).is_ok());
     assert!(f32::NAN.require_less("f", 1.0).is_err());
@@ -248,15 +262,35 @@ fn f64_covers_remaining_range_and_comparison_branches() {
     assert!(0.0f64.require_in_left_open_range("f", 0.0, 1.0).is_err());
     assert!(1.5f64.require_in_left_open_range("f", 0.0, 1.0).is_err());
     assert!(0.5f64.require_in_left_open_range("f", 2.0, 1.0).is_err());
-    assert!(0.5f64.require_in_left_open_range("f", f64::NAN, 1.0).is_err());
-    assert!(0.5f64.require_in_left_open_range("f", 0.0, f64::NAN).is_err());
+    assert!(
+        0.5f64
+            .require_in_left_open_range("f", f64::NAN, 1.0)
+            .is_err()
+    );
+    assert!(
+        0.5f64
+            .require_in_left_open_range("f", 0.0, f64::NAN)
+            .is_err()
+    );
 
     assert!(0.5f64.require_in_right_open_range("f", 0.0, 1.0).is_ok());
-    assert!((-0.5f64).require_in_right_open_range("f", 0.0, 1.0).is_err());
+    assert!(
+        (-0.5f64)
+            .require_in_right_open_range("f", 0.0, 1.0)
+            .is_err()
+    );
     assert!(1.0f64.require_in_right_open_range("f", 0.0, 1.0).is_err());
     assert!(0.5f64.require_in_right_open_range("f", 2.0, 1.0).is_err());
-    assert!(0.5f64.require_in_right_open_range("f", f64::NAN, 1.0).is_err());
-    assert!(0.5f64.require_in_right_open_range("f", 0.0, f64::NAN).is_err());
+    assert!(
+        0.5f64
+            .require_in_right_open_range("f", f64::NAN, 1.0)
+            .is_err()
+    );
+    assert!(
+        0.5f64
+            .require_in_right_open_range("f", 0.0, f64::NAN)
+            .is_err()
+    );
 
     assert!(0.5f64.require_less("f", 1.0).is_ok());
     assert!(1.0f64.require_less("f", 1.0).is_err());

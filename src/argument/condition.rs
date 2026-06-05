@@ -1,16 +1,13 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 //! # Condition Argument Validation
 //!
 //! Provides general condition validation functionality.
-//!
 
 use super::argument_error::{
     ArgumentError,
@@ -19,7 +16,8 @@ use super::argument_error::{
 
 /// Check if an argument condition is true
 ///
-/// This is the most basic validation function for checking arbitrary boolean conditions.
+/// This is the most basic validation function for checking arbitrary boolean
+/// conditions.
 ///
 /// # Parameters
 ///
@@ -38,8 +36,6 @@ use super::argument_error::{
 /// assert!(check_argument(age >= 18).is_ok());
 /// assert!(check_argument(age < 18).is_err());
 /// ```
-///
-///
 #[inline]
 pub fn check_argument(condition: bool) -> ArgumentResult<()> {
     if !condition {
@@ -57,7 +53,8 @@ pub fn check_argument(condition: bool) -> ArgumentResult<()> {
 ///
 /// # Returns
 ///
-/// Returns `Ok(())` if the condition is true, otherwise returns an error with custom message
+/// Returns `Ok(())` if the condition is true, otherwise returns an error with
+/// custom message
 ///
 /// # Examples
 ///
@@ -71,10 +68,11 @@ pub fn check_argument(condition: bool) -> ArgumentResult<()> {
 /// );
 /// assert!(result.is_ok());
 /// ```
-///
-///
 #[inline]
-pub fn check_argument_with_message(condition: bool, message: &str) -> ArgumentResult<()> {
+pub fn check_argument_with_message(
+    condition: bool,
+    message: &str,
+) -> ArgumentResult<()> {
     if !condition {
         return Err(ArgumentError::new(message));
     }
@@ -91,7 +89,8 @@ pub fn check_argument_with_message(condition: bool, message: &str) -> ArgumentRe
 ///
 /// # Returns
 ///
-/// Returns `Ok(())` if the condition is true, otherwise returns formatted error message
+/// Returns `Ok(())` if the condition is true, otherwise returns formatted error
+/// message
 ///
 /// # Examples
 ///
@@ -106,10 +105,11 @@ pub fn check_argument_with_message(condition: bool, message: &str) -> ArgumentRe
 /// );
 /// assert!(result.is_err());
 /// ```
-///
-///
 #[inline]
-pub fn check_argument_fmt(condition: bool, message: String) -> ArgumentResult<()> {
+pub fn check_argument_fmt(
+    condition: bool,
+    message: String,
+) -> ArgumentResult<()> {
     if !condition {
         return Err(ArgumentError::new(message));
     }
@@ -118,7 +118,8 @@ pub fn check_argument_fmt(condition: bool, message: String) -> ArgumentResult<()
 
 /// Check if a state condition is true
 ///
-/// Used to validate the state of an object or system. Similar to `check_argument` but semantically for state checking.
+/// Used to validate the state of an object or system. Similar to
+/// `check_argument` but semantically for state checking.
 ///
 /// # Parameters
 ///
@@ -136,8 +137,6 @@ pub fn check_argument_fmt(condition: bool, message: String) -> ArgumentResult<()
 /// let is_initialized = true;
 /// assert!(check_state(is_initialized).is_ok());
 /// ```
-///
-///
 #[inline]
 pub fn check_state(condition: bool) -> ArgumentResult<()> {
     if !condition {
@@ -155,7 +154,8 @@ pub fn check_state(condition: bool) -> ArgumentResult<()> {
 ///
 /// # Returns
 ///
-/// Returns `Ok(())` if the condition is true, otherwise returns an error with custom message
+/// Returns `Ok(())` if the condition is true, otherwise returns an error with
+/// custom message
 ///
 /// # Examples
 ///
@@ -169,10 +169,11 @@ pub fn check_state(condition: bool) -> ArgumentResult<()> {
 /// );
 /// assert!(result.is_err());
 /// ```
-///
-///
 #[inline]
-pub fn check_state_with_message(condition: bool, message: &str) -> ArgumentResult<()> {
+pub fn check_state_with_message(
+    condition: bool,
+    message: &str,
+) -> ArgumentResult<()> {
     if !condition {
         return Err(ArgumentError::new(message));
     }
@@ -181,7 +182,8 @@ pub fn check_state_with_message(condition: bool, message: &str) -> ArgumentResul
 
 /// Check boundary conditions
 ///
-/// Validates that offset and length are within valid range to prevent array bounds errors.
+/// Validates that offset and length are within valid range to prevent array
+/// bounds errors.
 ///
 /// # Parameters
 ///
@@ -202,10 +204,12 @@ pub fn check_state_with_message(condition: bool, message: &str) -> ArgumentResul
 /// assert!(check_bounds(10, 20, buffer_len).is_ok());
 /// assert!(check_bounds(90, 20, buffer_len).is_err());
 /// ```
-///
-///
 #[inline]
-pub fn check_bounds(offset: usize, length: usize, total_length: usize) -> ArgumentResult<()> {
+pub fn check_bounds(
+    offset: usize,
+    length: usize,
+    total_length: usize,
+) -> ArgumentResult<()> {
     if offset > total_length {
         return Err(ArgumentError::new(format!(
             "Offset {} exceeds total length {}",
@@ -243,8 +247,6 @@ pub fn check_bounds(offset: usize, length: usize, total_length: usize) -> Argume
 /// assert_eq!(check_element_index(5, list_size).unwrap(), 5);
 /// assert!(check_element_index(10, list_size).is_err());
 /// ```
-///
-///
 #[inline]
 pub fn check_element_index(index: usize, size: usize) -> ArgumentResult<usize> {
     if index >= size {
@@ -278,10 +280,11 @@ pub fn check_element_index(index: usize, size: usize) -> ArgumentResult<usize> {
 /// assert_eq!(check_position_index(10, list_size).unwrap(), 10); // Can equal size
 /// assert!(check_position_index(11, list_size).is_err());
 /// ```
-///
-///
 #[inline]
-pub fn check_position_index(index: usize, size: usize) -> ArgumentResult<usize> {
+pub fn check_position_index(
+    index: usize,
+    size: usize,
+) -> ArgumentResult<usize> {
     if index > size {
         return Err(ArgumentError::new(format!(
             "Position index {} out of range [0, {}]",
@@ -312,10 +315,12 @@ pub fn check_position_index(index: usize, size: usize) -> ArgumentResult<usize> 
 /// assert!(check_position_indexes(2, 5, list_size).is_ok());
 /// assert!(check_position_indexes(5, 2, list_size).is_err()); // start > end
 /// ```
-///
-///
 #[inline]
-pub fn check_position_indexes(start: usize, end: usize, size: usize) -> ArgumentResult<()> {
+pub fn check_position_indexes(
+    start: usize,
+    end: usize,
+    size: usize,
+) -> ArgumentResult<()> {
     if start > end {
         return Err(ArgumentError::new(format!(
             "Start index {} is greater than end index {}",

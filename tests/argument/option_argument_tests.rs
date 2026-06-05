@@ -1,12 +1,10 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 use qubit_argument::{
     ArgumentError,
     ArgumentResult,
@@ -48,24 +46,34 @@ fn test_named_function_instantiations_cover_all_option_branches() {
     assert_eq!(error.to_string(), "Parameter 'value' cannot be null");
 
     assert_eq!(
-        Some(2).validate_if_present("value", validate_positive).unwrap(),
+        Some(2)
+            .validate_if_present("value", validate_positive)
+            .unwrap(),
         Some(2)
     );
-    let error = Some(0).validate_if_present("value", validate_positive).unwrap_err();
+    let error = Some(0)
+        .validate_if_present("value", validate_positive)
+        .unwrap_err();
     assert_eq!(error.to_string(), "must be positive");
     assert_eq!(
-        None::<i32>.validate_if_present("value", validate_positive).unwrap(),
+        None::<i32>
+            .validate_if_present("value", validate_positive)
+            .unwrap(),
         None
     );
 
     assert_eq!(
-        require_null_or("value", Some(3), is_positive, "must be positive").unwrap(),
+        require_null_or("value", Some(3), is_positive, "must be positive")
+            .unwrap(),
         Some(3)
     );
-    let error = require_null_or("value", Some(0), is_positive, "must be positive").unwrap_err();
+    let error =
+        require_null_or("value", Some(0), is_positive, "must be positive")
+            .unwrap_err();
     assert_eq!(error.to_string(), "Parameter 'value' must be positive");
     assert_eq!(
-        require_null_or("value", None::<i32>, is_positive, "must be positive").unwrap(),
+        require_null_or("value", None::<i32>, is_positive, "must be positive")
+            .unwrap(),
         None
     );
 }
@@ -76,13 +84,21 @@ fn require_non_null_and_and_validate_if_present() {
     assert_eq!(v.require_non_null("v").unwrap(), 10);
 
     let v = Some(18);
-    let ok = v.require_non_null_and("age", |&a| a >= 18, "Must be at least 18 years old");
+    let ok = v.require_non_null_and(
+        "age",
+        |&a| a >= 18,
+        "Must be at least 18 years old",
+    );
     assert!(ok.is_ok());
     assert_eq!(ok.unwrap(), 18);
 
     let v = Some(16);
     let err = v
-        .require_non_null_and("age", |&a| a >= 18, "Must be at least 18 years old")
+        .require_non_null_and(
+            "age",
+            |&a| a >= 18,
+            "Must be at least 18 years old",
+        )
         .unwrap_err();
     assert!(err.to_string().contains("Must be at least 18 years old"));
 
@@ -115,10 +131,14 @@ fn require_non_null_and_and_validate_if_present() {
             }
         })
         .unwrap_err();
-    assert!(err2.to_string().contains("Port must be greater than or equal to 1024"));
+    assert!(
+        err2.to_string()
+            .contains("Port must be greater than or equal to 1024")
+    );
 
     let none2: Option<u16> = None;
-    let res2: ArgumentResult<Option<u16>> = none2.validate_if_present("port", |p| Ok(*p));
+    let res2: ArgumentResult<Option<u16>> =
+        none2.validate_if_present("port", |p| Ok(*p));
     assert!(res2.is_ok());
     assert_eq!(res2.unwrap(), None);
 }
@@ -175,17 +195,24 @@ fn test_require_non_null_and_edge_cases() {
 
     // Test maximum and minimum values
     let max: Option<i32> = Some(i32::MAX);
-    assert!(max.require_non_null_and("max", |&v| v > 0, "Must be positive").is_ok());
+    assert!(
+        max.require_non_null_and("max", |&v| v > 0, "Must be positive")
+            .is_ok()
+    );
 
     let min: Option<i32> = Some(i32::MIN);
-    assert!(min.require_non_null_and("min", |&v| v < 0, "Must be negative").is_ok());
+    assert!(
+        min.require_non_null_and("min", |&v| v < 0, "Must be negative")
+            .is_ok()
+    );
 }
 
 #[test]
 fn test_validate_if_present_none() {
     // Test None case
     let none: Option<i32> = None;
-    let result = none.validate_if_present("none", |_| Err("Should not be called".into()));
+    let result = none
+        .validate_if_present("none", |_| Err("Should not be called".into()));
     assert_eq!(result.unwrap(), None);
 }
 
@@ -219,11 +246,25 @@ fn test_require_null_or_with_different_predicates() {
     let value: Option<i32> = Some(5);
 
     // Range check
-    assert!(require_null_or("value", value, |&v| (1..=10).contains(&v), "Must be between 1-10").is_ok());
+    assert!(
+        require_null_or(
+            "value",
+            value,
+            |&v| (1..=10).contains(&v),
+            "Must be between 1-10"
+        )
+        .is_ok()
+    );
 
     // Even number check
-    assert!(require_null_or("value", Some(4), |&v| v % 2 == 0, "Must be even").is_ok());
-    assert!(require_null_or("value", Some(3), |&v| v % 2 == 0, "Must be even").is_err());
+    assert!(
+        require_null_or("value", Some(4), |&v| v % 2 == 0, "Must be even")
+            .is_ok()
+    );
+    assert!(
+        require_null_or("value", Some(3), |&v| v % 2 == 0, "Must be even")
+            .is_err()
+    );
 }
 
 #[test]
@@ -244,12 +285,20 @@ fn test_chaining_option_validation() {
 fn test_require_non_null_and_success_branch() {
     // Ensure success branch is covered
     let value: Option<i32> = Some(20);
-    let result = value.require_non_null_and("age", |&v| v >= 18, "Must be at least 18 years old");
+    let result = value.require_non_null_and(
+        "age",
+        |&v| v >= 18,
+        "Must be at least 18 years old",
+    );
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), 20);
 
     let value2: Option<String> = Some("hello".to_string());
-    let result2 = value2.require_non_null_and("text", |s| !s.is_empty(), "Cannot be empty");
+    let result2 = value2.require_non_null_and(
+        "text",
+        |s| !s.is_empty(),
+        "Cannot be empty",
+    );
     assert!(result2.is_ok());
 }
 
@@ -274,7 +323,8 @@ fn test_validate_if_present_uses_validator_output_value() {
     assert_eq!(result.unwrap(), Some(15));
 
     let text: Option<String> = Some("  hello  ".to_string());
-    let result2 = text.validate_if_present("text", |s| Ok(s.trim().to_uppercase()));
+    let result2 =
+        text.validate_if_present("text", |s| Ok(s.trim().to_uppercase()));
     assert_eq!(result2.unwrap(), Some("HELLO".to_string()));
 }
 
@@ -282,13 +332,15 @@ fn test_validate_if_present_uses_validator_output_value() {
 fn test_require_null_or_success_with_value() {
     // Test Some value that satisfies the condition
     let value: Option<i32> = Some(50);
-    let result = require_null_or("value", value, |&v| v > 0, "Must be positive");
+    let result =
+        require_null_or("value", value, |&v| v > 0, "Must be positive");
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), Some(50));
 
     // Test boundary values
     let value2: Option<i32> = Some(0);
-    let result2 = require_null_or("value", value2, |&v| v >= 0, "Must be non-negative");
+    let result2 =
+        require_null_or("value", value2, |&v| v >= 0, "Must be non-negative");
     assert!(result2.is_ok());
     let val2 = result2.unwrap();
     assert_eq!(val2, Some(0));
@@ -333,7 +385,13 @@ fn test_validate_if_present_validator_return() {
 
     // Test validator returning error
     let value2: Option<i32> = Some(5);
-    let result2 = value2.validate_if_present("value", |v| if *v < 10 { Err("too small".into()) } else { Ok(*v) });
+    let result2 = value2.validate_if_present("value", |v| {
+        if *v < 10 {
+            Err("too small".into())
+        } else {
+            Ok(*v)
+        }
+    });
     assert!(result2.is_err());
 }
 
@@ -347,13 +405,19 @@ fn test_all_error_message_formats() {
 
     let value: Option<i32> = Some(5);
     let err2 = value
-        .require_non_null_and("age", |&v| v >= 18, "Must be at least 18 years old")
+        .require_non_null_and(
+            "age",
+            |&v| v >= 18,
+            "Must be at least 18 years old",
+        )
         .unwrap_err();
     assert!(err2.to_string().contains("age"));
     assert!(err2.to_string().contains("Must be at least 18 years old"));
 
     let value3: Option<i32> = Some(-5);
-    let err3 = require_null_or("number", value3, |&v| v > 0, "Must be positive").unwrap_err();
+    let err3 =
+        require_null_or("number", value3, |&v| v > 0, "Must be positive")
+            .unwrap_err();
     assert!(err3.to_string().contains("number"));
     assert!(err3.to_string().contains("Must be positive"));
 }
@@ -362,7 +426,8 @@ fn test_all_error_message_formats() {
 fn test_require_non_null_and_with_none() {
     // Test case where require_non_null returns error in require_non_null_and
     let none: Option<i32> = None;
-    let result = none.require_non_null_and("param", |&v| v > 0, "Must be positive");
+    let result =
+        none.require_non_null_and("param", |&v| v > 0, "Must be positive");
     assert!(result.is_err());
     let err = result.unwrap_err();
     assert!(err.to_string().contains("param"));
@@ -373,21 +438,30 @@ fn test_require_non_null_and_with_none() {
 fn test_require_non_null_and_ok_value() {
     // Ensure Ok(value) branch of require_non_null_and is covered
     let some: Option<i32> = Some(100);
-    let result = some.require_non_null_and("value", |&v| v > 0, "Must be positive");
+    let result =
+        some.require_non_null_and("value", |&v| v > 0, "Must be positive");
     assert!(result.is_ok());
     let val = result.unwrap();
     assert_eq!(val, 100);
 
     // Test different types
     let some_str: Option<String> = Some("test".to_string());
-    let result2 = some_str.require_non_null_and("text", |s| !s.is_empty(), "Cannot be empty");
+    let result2 = some_str.require_non_null_and(
+        "text",
+        |s| !s.is_empty(),
+        "Cannot be empty",
+    );
     assert!(result2.is_ok());
     let val2 = result2.unwrap();
     assert_eq!(val2, "test");
 
     // Test boundary values
     let some_zero: Option<i32> = Some(0);
-    let result3 = some_zero.require_non_null_and("zero", |&v| v >= 0, "Must be non-negative");
+    let result3 = some_zero.require_non_null_and(
+        "zero",
+        |&v| v >= 0,
+        "Must be non-negative",
+    );
     assert!(result3.is_ok());
     let val3 = result3.unwrap();
     assert_eq!(val3, 0);
@@ -432,8 +506,14 @@ fn test_require_non_null_error_branch() {
         error_msg.contains("my_param"),
         "Error message should contain parameter name"
     );
-    assert!(error_msg.contains("null"), "Error message should contain 'null'");
-    assert!(error_msg.contains("cannot"), "Error message should contain 'cannot'");
+    assert!(
+        error_msg.contains("null"),
+        "Error message should contain 'null'"
+    );
+    assert!(
+        error_msg.contains("cannot"),
+        "Error message should contain 'cannot'"
+    );
     assert_eq!(error_msg, "Parameter 'my_param' cannot be null");
 
     // Test different parameter names
@@ -446,11 +526,14 @@ fn test_require_non_null_error_branch() {
 
 #[test]
 fn test_require_non_null_and_error_propagation() {
-    // Test error propagation of let value = self.require_non_null(name)? in require_non_null_and
+    // Test error propagation of let value = self.require_non_null(name)? in
+    // require_non_null_and
     let none: Option<i32> = None;
 
-    // When require_non_null returns error, ? operator should propagate this error
-    let result = none.require_non_null_and("param_name", |&v| v > 0, "Must be positive");
+    // When require_non_null returns error, ? operator should propagate this
+    // error
+    let result =
+        none.require_non_null_and("param_name", |&v| v > 0, "Must be positive");
 
     assert!(result.is_err());
     let error = result.unwrap_err();
@@ -462,7 +545,11 @@ fn test_require_non_null_and_error_propagation() {
 
     // Test different types
     let none_str: Option<String> = None;
-    let result2 = none_str.require_non_null_and("text_param", |s| !s.is_empty(), "Cannot be empty");
+    let result2 = none_str.require_non_null_and(
+        "text_param",
+        |s| !s.is_empty(),
+        "Cannot be empty",
+    );
     assert!(result2.is_err());
     assert!(result2.unwrap_err().to_string().contains("text_param"));
 }
@@ -520,7 +607,12 @@ fn test_require_non_null_closure_execution() {
     let none2: Option<String> = None;
     let result2 = none2.require_non_null("another_param_name");
     assert!(result2.is_err());
-    assert!(result2.unwrap_err().to_string().contains("another_param_name"));
+    assert!(
+        result2
+            .unwrap_err()
+            .to_string()
+            .contains("another_param_name")
+    );
 
     let none3: Option<f64> = None;
     let result3 = none3.require_non_null("x");
@@ -530,12 +622,14 @@ fn test_require_non_null_closure_execution() {
 
 #[test]
 fn test_require_non_null_and_none_error_propagation() {
-    // Test error propagation when require_non_null returns error in require_non_null_and
-    // This ensures the ? operator and error path in line 165 are covered
+    // Test error propagation when require_non_null returns error in
+    // require_non_null_and This ensures the ? operator and error path in
+    // line 165 are covered
     let none: Option<i32> = None;
 
     // This should trigger the error in require_non_null and propagate it
-    let result = none.require_non_null_and("value", |&v| v > 0, "must be positive");
+    let result =
+        none.require_non_null_and("value", |&v| v > 0, "must be positive");
 
     assert!(result.is_err());
     let error = result.unwrap_err();
@@ -547,12 +641,20 @@ fn test_require_non_null_and_none_error_propagation() {
 
     // Test with different types
     let none_str: Option<String> = None;
-    let result2 = none_str.require_non_null_and("text", |s| !s.is_empty(), "cannot be empty");
+    let result2 = none_str.require_non_null_and(
+        "text",
+        |s| !s.is_empty(),
+        "cannot be empty",
+    );
     assert!(result2.is_err());
     assert!(result2.unwrap_err().to_string().contains("cannot be null"));
 
     let none_vec: Option<Vec<i32>> = None;
-    let result3 = none_vec.require_non_null_and("items", |v| !v.is_empty(), "must have items");
+    let result3 = none_vec.require_non_null_and(
+        "items",
+        |v| !v.is_empty(),
+        "must have items",
+    );
     assert!(result3.is_err());
     assert!(result3.unwrap_err().to_string().contains("cannot be null"));
 }
@@ -580,7 +682,9 @@ fn test_validate_if_present_error_propagation() {
     let some2: Option<String> = Some("ab".to_string());
     let result2 = some2.validate_if_present("text", |s| {
         if s.len() < 5 {
-            Err(ArgumentError::new("String length must be at least 5".to_string()))
+            Err(ArgumentError::new(
+                "String length must be at least 5".to_string(),
+            ))
         } else {
             Ok(s.clone())
         }
@@ -605,7 +709,12 @@ fn test_validate_if_present_error_propagation() {
     });
 
     assert!(result3.is_err());
-    assert!(result3.unwrap_err().to_string().contains("Count cannot be zero"));
+    assert!(
+        result3
+            .unwrap_err()
+            .to_string()
+            .contains("Count cannot be zero")
+    );
 }
 
 #[test]
@@ -614,7 +723,8 @@ fn test_require_non_null_and_predicate_false_branch() {
     let some: Option<i32> = Some(5);
 
     // Predicate returns false, should hit line 167
-    let result = some.require_non_null_and("age", |&v| v >= 18, "must be at least 18");
+    let result =
+        some.require_non_null_and("age", |&v| v >= 18, "must be at least 18");
 
     assert!(result.is_err());
     let error = result.unwrap_err();
@@ -625,7 +735,11 @@ fn test_require_non_null_and_predicate_false_branch() {
 
     // Test with different predicates
     let some2: Option<String> = Some("".to_string());
-    let result2 = some2.require_non_null_and("name", |s| !s.is_empty(), "cannot be empty");
+    let result2 = some2.require_non_null_and(
+        "name",
+        |s| !s.is_empty(),
+        "cannot be empty",
+    );
     assert!(result2.is_err());
     assert!(result2.unwrap_err().to_string().contains("cannot be empty"));
 }
@@ -636,19 +750,25 @@ fn test_require_non_null_and_predicate_true_branch() {
     let some: Option<i32> = Some(25);
 
     // Predicate returns true, should return Ok(value)
-    let result = some.require_non_null_and("age", |&v| v >= 18, "must be at least 18");
+    let result =
+        some.require_non_null_and("age", |&v| v >= 18, "must be at least 18");
 
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), 25);
 
     // Test with different valid values
     let some2: Option<String> = Some("hello".to_string());
-    let result2 = some2.require_non_null_and("text", |s| !s.is_empty(), "cannot be empty");
+    let result2 = some2.require_non_null_and(
+        "text",
+        |s| !s.is_empty(),
+        "cannot be empty",
+    );
     assert!(result2.is_ok());
     assert_eq!(result2.unwrap(), "hello");
 
     let some3: Option<f64> = Some(2.71);
-    let result3 = some3.require_non_null_and("pi", |&v| v > 0.0, "must be positive");
+    let result3 =
+        some3.require_non_null_and("pi", |&v| v > 0.0, "must be positive");
     assert!(result3.is_ok());
     assert_eq!(result3.unwrap(), 2.71);
 }
@@ -695,7 +815,12 @@ fn test_require_null_or_none_branch() {
 
     // Test with different types
     let none2: Option<String> = None;
-    let result2 = require_null_or("text", none2, |s: &String| !s.is_empty(), "cannot be empty");
+    let result2 = require_null_or(
+        "text",
+        none2,
+        |s: &String| !s.is_empty(),
+        "cannot be empty",
+    );
     assert!(result2.is_ok());
     assert_eq!(result2.unwrap(), None);
 }
@@ -711,7 +836,8 @@ fn test_require_null_or_some_success_branch() {
 
     // Test with different valid values
     let some2: Option<String> = Some("hello".to_string());
-    let result2 = require_null_or("text", some2, |s| !s.is_empty(), "cannot be empty");
+    let result2 =
+        require_null_or("text", some2, |s| !s.is_empty(), "cannot be empty");
     assert!(result2.is_ok());
     assert_eq!(result2.unwrap(), Some("hello".to_string()));
 }
@@ -731,14 +857,20 @@ fn test_require_null_or_some_failure_branch() {
 
     // Test with different failing predicates
     let some2: Option<String> = Some("".to_string());
-    let result2 = require_null_or("text", some2, |s: &String| !s.is_empty(), "cannot be empty");
+    let result2 = require_null_or(
+        "text",
+        some2,
+        |s: &String| !s.is_empty(),
+        "cannot be empty",
+    );
     assert!(result2.is_err());
     assert!(result2.unwrap_err().to_string().contains("cannot be empty"));
 }
 
 #[test]
 fn test_comprehensive_type_coverage() {
-    // Test with various types to ensure all code paths work with different types
+    // Test with various types to ensure all code paths work with different
+    // types
 
     // Test with Vec
     let vec_opt: Option<Vec<i32>> = Some(vec![1, 2, 3]);
@@ -777,9 +909,18 @@ fn test_multiple_error_scenarios() {
 
     // Error from require_non_null_and predicate
     let some_val = Some(5);
-    let result = some_val.require_non_null_and("val", |&v| v > 10, "must be greater than 10");
+    let result = some_val.require_non_null_and(
+        "val",
+        |&v| v > 10,
+        "must be greater than 10",
+    );
     assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("must be greater than 10"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("must be greater than 10")
+    );
 
     // Error from validate_if_present validator
     let some_val2 = Some(3);
@@ -795,7 +936,8 @@ fn test_multiple_error_scenarios() {
 
     // Error from require_null_or
     let some_val3 = Some(0);
-    let result3 = require_null_or("zero", some_val3, |&v| v != 0, "cannot be zero");
+    let result3 =
+        require_null_or("zero", some_val3, |&v| v != 0, "cannot be zero");
     assert!(result3.is_err());
     assert!(result3.unwrap_err().to_string().contains("cannot be zero"));
 }
@@ -803,7 +945,9 @@ fn test_multiple_error_scenarios() {
 #[test]
 fn test_require_non_null_with_explicit_error_check() {
     // Test multiple None values with different names
-    for name in &["a", "b", "c", "param1", "param2", "value", "test", "x", "y", "z"] {
+    for name in &[
+        "a", "b", "c", "param1", "param2", "value", "test", "x", "y", "z",
+    ] {
         let none: Option<i32> = None;
         match none.require_non_null(name) {
             Ok(_) => panic!("Expected error"),
@@ -895,7 +1039,9 @@ fn test_validate_if_present_with_explicit_branches() {
         let some: Option<i32> = Some(i);
         let name = format!("val_{}", i);
         let error_msg = format!("error_{}", i);
-        match some.validate_if_present(&name, |_v| Err(ArgumentError::new(error_msg.clone()))) {
+        match some.validate_if_present(&name, |_v| {
+            Err(ArgumentError::new(error_msg.clone()))
+        }) {
             Ok(_) => panic!("Expected error"),
             Err(err) => {
                 assert!(err.to_string().contains(&error_msg));
@@ -944,7 +1090,8 @@ fn test_require_null_or_with_explicit_branches() {
 
 #[test]
 fn test_all_functions_with_various_types_and_names() {
-    // Test with many different types to ensure generic implementations are covered
+    // Test with many different types to ensure generic implementations are
+    // covered
 
     // Test require_non_null with different types
     Some(42i32).require_non_null("i32").unwrap();
@@ -954,7 +1101,9 @@ fn test_all_functions_with_various_types_and_names() {
     Some(2.71f32).require_non_null("f32").unwrap();
     Some(2.71f64).require_non_null("f64").unwrap();
     Some("str").require_non_null("str").unwrap();
-    Some(String::from("string")).require_non_null("string").unwrap();
+    Some(String::from("string"))
+        .require_non_null("string")
+        .unwrap();
     Some(true).require_non_null("bool").unwrap();
     Some('c').require_non_null("char").unwrap();
     Some(vec![1, 2, 3]).require_non_null("vec").unwrap();

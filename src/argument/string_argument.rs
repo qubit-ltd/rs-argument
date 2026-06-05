@@ -1,16 +1,13 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 //! # String Argument Validation
 //!
 //! Provides validation functionality for string type arguments.
-//!
 
 use super::argument_error::{
     ArgumentError,
@@ -20,7 +17,8 @@ use regex::Regex;
 
 /// String argument validation trait
 ///
-/// Provides length, content, and format validation functionality for string types.
+/// Provides length, content, and format validation functionality for string
+/// types.
 ///
 /// # Features
 ///
@@ -114,7 +112,11 @@ pub trait StringArgument {
     /// let wrong_length = "ABC";
     /// assert!(wrong_length.require_length_be("code", 5).is_err());
     /// ```
-    fn require_length_be(&self, name: &str, length: usize) -> ArgumentResult<&Self>;
+    fn require_length_be(
+        &self,
+        name: &str,
+        length: usize,
+    ) -> ArgumentResult<&Self>;
 
     /// Validate that string length is at least the specified value
     ///
@@ -125,7 +127,8 @@ pub trait StringArgument {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if length is not less than minimum, otherwise returns an error
+    /// Returns `Ok(self)` if length is not less than minimum, otherwise returns
+    /// an error
     ///
     /// # Examples
     ///
@@ -135,7 +138,11 @@ pub trait StringArgument {
     /// let password = "secret123";
     /// assert!(password.require_length_at_least("password", 8).is_ok());
     /// ```
-    fn require_length_at_least(&self, name: &str, min_length: usize) -> ArgumentResult<&Self>;
+    fn require_length_at_least(
+        &self,
+        name: &str,
+        min_length: usize,
+    ) -> ArgumentResult<&Self>;
 
     /// Validate that string length is at most the specified value
     ///
@@ -146,7 +153,8 @@ pub trait StringArgument {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if length is not greater than maximum, otherwise returns an error
+    /// Returns `Ok(self)` if length is not greater than maximum, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -156,7 +164,11 @@ pub trait StringArgument {
     /// let description = "Short text";
     /// assert!(description.require_length_at_most("description", 100).is_ok());
     /// ```
-    fn require_length_at_most(&self, name: &str, max_length: usize) -> ArgumentResult<&Self>;
+    fn require_length_at_most(
+        &self,
+        name: &str,
+        max_length: usize,
+    ) -> ArgumentResult<&Self>;
 
     /// Validate that string length is within the specified range
     ///
@@ -178,7 +190,12 @@ pub trait StringArgument {
     /// let username = "alice";
     /// assert!(username.require_length_in_range("username", 3, 20).is_ok());
     /// ```
-    fn require_length_in_range(&self, name: &str, min_length: usize, max_length: usize) -> ArgumentResult<&Self>;
+    fn require_length_in_range(
+        &self,
+        name: &str,
+        min_length: usize,
+        max_length: usize,
+    ) -> ArgumentResult<&Self>;
 
     /// Validate that string matches regular expression
     ///
@@ -201,7 +218,11 @@ pub trait StringArgument {
     /// let pattern = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
     /// assert!(email.require_match("email", &pattern).is_ok());
     /// ```
-    fn require_match(&self, name: &str, pattern: &Regex) -> ArgumentResult<&Self>;
+    fn require_match(
+        &self,
+        name: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<&Self>;
 
     /// Validate that string does not match regular expression
     ///
@@ -224,7 +245,11 @@ pub trait StringArgument {
     /// let pattern = Regex::new(r"\d+").unwrap();
     /// assert!(text.require_not_match("text", &pattern).is_ok());
     /// ```
-    fn require_not_match(&self, name: &str, pattern: &Regex) -> ArgumentResult<&Self>;
+    fn require_not_match(
+        &self,
+        name: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<&Self>;
 }
 
 impl StringArgument for str {
@@ -240,7 +265,11 @@ impl StringArgument for str {
     }
 
     #[inline]
-    fn require_length_be(&self, name: &str, length: usize) -> ArgumentResult<&Self> {
+    fn require_length_be(
+        &self,
+        name: &str,
+        length: usize,
+    ) -> ArgumentResult<&Self> {
         let actual_length = self.len();
         if actual_length != length {
             return Err(ArgumentError::new(format!(
@@ -252,7 +281,11 @@ impl StringArgument for str {
     }
 
     #[inline]
-    fn require_length_at_least(&self, name: &str, min_length: usize) -> ArgumentResult<&Self> {
+    fn require_length_at_least(
+        &self,
+        name: &str,
+        min_length: usize,
+    ) -> ArgumentResult<&Self> {
         let actual_length = self.len();
         if actual_length < min_length {
             return Err(ArgumentError::new(format!(
@@ -264,7 +297,11 @@ impl StringArgument for str {
     }
 
     #[inline]
-    fn require_length_at_most(&self, name: &str, max_length: usize) -> ArgumentResult<&Self> {
+    fn require_length_at_most(
+        &self,
+        name: &str,
+        max_length: usize,
+    ) -> ArgumentResult<&Self> {
         let actual_length = self.len();
         if actual_length > max_length {
             return Err(ArgumentError::new(format!(
@@ -276,7 +313,12 @@ impl StringArgument for str {
     }
 
     #[inline]
-    fn require_length_in_range(&self, name: &str, min_length: usize, max_length: usize) -> ArgumentResult<&Self> {
+    fn require_length_in_range(
+        &self,
+        name: &str,
+        min_length: usize,
+        max_length: usize,
+    ) -> ArgumentResult<&Self> {
         let actual_length = self.len();
         if actual_length < min_length || actual_length > max_length {
             return Err(ArgumentError::new(format!(
@@ -288,7 +330,11 @@ impl StringArgument for str {
     }
 
     #[inline]
-    fn require_match(&self, name: &str, pattern: &Regex) -> ArgumentResult<&Self> {
+    fn require_match(
+        &self,
+        name: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<&Self> {
         if !pattern.is_match(self) {
             return Err(ArgumentError::new(format!(
                 "Parameter '{}' must match pattern '{}'",
@@ -300,7 +346,11 @@ impl StringArgument for str {
     }
 
     #[inline]
-    fn require_not_match(&self, name: &str, pattern: &Regex) -> ArgumentResult<&Self> {
+    fn require_not_match(
+        &self,
+        name: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<&Self> {
         if pattern.is_match(self) {
             return Err(ArgumentError::new(format!(
                 "Parameter '{}' cannot match pattern '{}'",
@@ -319,34 +369,63 @@ impl StringArgument for String {
     }
 
     #[inline]
-    fn require_length_be(&self, name: &str, length: usize) -> ArgumentResult<&Self> {
+    fn require_length_be(
+        &self,
+        name: &str,
+        length: usize,
+    ) -> ArgumentResult<&Self> {
         self.as_str().require_length_be(name, length).map(|_| self)
     }
 
     #[inline]
-    fn require_length_at_least(&self, name: &str, min_length: usize) -> ArgumentResult<&Self> {
-        self.as_str().require_length_at_least(name, min_length).map(|_| self)
+    fn require_length_at_least(
+        &self,
+        name: &str,
+        min_length: usize,
+    ) -> ArgumentResult<&Self> {
+        self.as_str()
+            .require_length_at_least(name, min_length)
+            .map(|_| self)
     }
 
     #[inline]
-    fn require_length_at_most(&self, name: &str, max_length: usize) -> ArgumentResult<&Self> {
-        self.as_str().require_length_at_most(name, max_length).map(|_| self)
+    fn require_length_at_most(
+        &self,
+        name: &str,
+        max_length: usize,
+    ) -> ArgumentResult<&Self> {
+        self.as_str()
+            .require_length_at_most(name, max_length)
+            .map(|_| self)
     }
 
     #[inline]
-    fn require_length_in_range(&self, name: &str, min_length: usize, max_length: usize) -> ArgumentResult<&Self> {
+    fn require_length_in_range(
+        &self,
+        name: &str,
+        min_length: usize,
+        max_length: usize,
+    ) -> ArgumentResult<&Self> {
         self.as_str()
             .require_length_in_range(name, min_length, max_length)
             .map(|_| self)
     }
 
     #[inline]
-    fn require_match(&self, name: &str, pattern: &Regex) -> ArgumentResult<&Self> {
+    fn require_match(
+        &self,
+        name: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<&Self> {
         self.as_str().require_match(name, pattern).map(|_| self)
     }
 
     #[inline]
-    fn require_not_match(&self, name: &str, pattern: &Regex) -> ArgumentResult<&Self> {
+    fn require_not_match(
+        &self,
+        name: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<&Self> {
         self.as_str().require_not_match(name, pattern).map(|_| self)
     }
 }

@@ -1,16 +1,13 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 //! # Argument Validation Errors
 //!
 //! Defines error types related to argument validation.
-//!
 
 use std::fmt;
 
@@ -32,8 +29,6 @@ use std::fmt;
 /// let error = ArgumentError::new("Invalid argument");
 /// assert_eq!(error.message(), "Invalid argument");
 /// ```
-///
-///
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArgumentError {
     message: String,
@@ -110,6 +105,4 @@ impl From<&str> for ArgumentError {
 ///     }
 /// }
 /// ```
-///
-///
 pub type ArgumentResult<T> = Result<T, ArgumentError>;

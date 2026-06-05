@@ -1,15 +1,14 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 //! # Argument Validation
 //!
-//! Provides argument validation functionality similar to Java's `Argument` class, but with a design more suitable for Rust conventions.
+//! Provides argument validation functionality similar to Java's `Argument`
+//! class, but with a design more suitable for Rust conventions.
 //!
 //! # Module Organization
 //!
@@ -22,8 +21,9 @@
 //!
 //! # Design Philosophy
 //!
-//! This module uses Rust's trait extension pattern to provide validation methods for various types.
-//! Compared to Java's static methods, this approach is more idiomatic in Rust and supports method chaining.
+//! This module uses Rust's trait extension pattern to provide validation
+//! methods for various types. Compared to Java's static methods, this approach
+//! is more idiomatic in Rust and supports method chaining.
 //!
 //! # Usage Examples
 //!
@@ -56,7 +56,6 @@
 //!     Ok(())
 //! }
 //! ```
-//!
 
 pub mod argument_error;
 pub mod collection_argument;

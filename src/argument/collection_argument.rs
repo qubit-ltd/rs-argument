@@ -1,16 +1,13 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 //! # Collection Argument Validation
 //!
 //! Provides validation functionality for collection type arguments.
-//!
 
 use super::argument_error::{
     ArgumentError,
@@ -19,7 +16,8 @@ use super::argument_error::{
 
 /// # Collection Argument Validation Trait
 ///
-/// Provides length and content validation functionality for collection types like slices, Vec, arrays, etc.
+/// Provides length and content validation functionality for collection types
+/// like slices, Vec, arrays, etc.
 ///
 /// # Features
 ///
@@ -62,8 +60,6 @@ use super::argument_error::{
 ///     Ok(())
 /// }
 /// ```
-///
-///
 pub trait CollectionArgument {
     /// Validate that the collection is not empty
     ///
@@ -73,7 +69,8 @@ pub trait CollectionArgument {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if the collection is not empty, otherwise returns an error
+    /// Returns `Ok(self)` if the collection is not empty, otherwise returns an
+    /// error
     ///
     /// # Examples
     ///
@@ -107,7 +104,11 @@ pub trait CollectionArgument {
     /// let coordinates = vec![1, 2, 3];
     /// assert!(coordinates.require_length_be("coordinates", 3).is_ok());
     /// ```
-    fn require_length_be(&self, name: &str, length: usize) -> ArgumentResult<&Self>;
+    fn require_length_be(
+        &self,
+        name: &str,
+        length: usize,
+    ) -> ArgumentResult<&Self>;
 
     /// Validate that the collection length is at least the specified value
     ///
@@ -118,7 +119,8 @@ pub trait CollectionArgument {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if the length is not less than the minimum, otherwise returns an error
+    /// Returns `Ok(self)` if the length is not less than the minimum, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -128,7 +130,11 @@ pub trait CollectionArgument {
     /// let items = vec![1, 2, 3, 4, 5];
     /// assert!(items.require_length_at_least("items", 3).is_ok());
     /// ```
-    fn require_length_at_least(&self, name: &str, min_length: usize) -> ArgumentResult<&Self>;
+    fn require_length_at_least(
+        &self,
+        name: &str,
+        min_length: usize,
+    ) -> ArgumentResult<&Self>;
 
     /// Validate that the collection length is at most the specified value
     ///
@@ -139,7 +145,8 @@ pub trait CollectionArgument {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if the length is not greater than the maximum, otherwise returns an error
+    /// Returns `Ok(self)` if the length is not greater than the maximum,
+    /// otherwise returns an error
     ///
     /// # Examples
     ///
@@ -149,7 +156,11 @@ pub trait CollectionArgument {
     /// let items = vec![1, 2, 3];
     /// assert!(items.require_length_at_most("items", 10).is_ok());
     /// ```
-    fn require_length_at_most(&self, name: &str, max_length: usize) -> ArgumentResult<&Self>;
+    fn require_length_at_most(
+        &self,
+        name: &str,
+        max_length: usize,
+    ) -> ArgumentResult<&Self>;
 
     /// Validate that the collection length is within the specified range
     ///
@@ -161,7 +172,8 @@ pub trait CollectionArgument {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if the length is within range, otherwise returns an error
+    /// Returns `Ok(self)` if the length is within range, otherwise returns an
+    /// error
     ///
     /// # Examples
     ///
@@ -171,20 +183,32 @@ pub trait CollectionArgument {
     /// let items = vec![1, 2, 3];
     /// assert!(items.require_length_in_range("items", 1, 10).is_ok());
     /// ```
-    fn require_length_in_range(&self, name: &str, min_length: usize, max_length: usize) -> ArgumentResult<&Self>;
+    fn require_length_in_range(
+        &self,
+        name: &str,
+        min_length: usize,
+        max_length: usize,
+    ) -> ArgumentResult<&Self>;
 }
 
 impl<T> CollectionArgument for [T] {
     #[inline]
     fn require_non_empty(&self, name: &str) -> ArgumentResult<&Self> {
         if self.is_empty() {
-            return Err(ArgumentError::new(format!("Collection '{}' cannot be empty", name)));
+            return Err(ArgumentError::new(format!(
+                "Collection '{}' cannot be empty",
+                name
+            )));
         }
         Ok(self)
     }
 
     #[inline]
-    fn require_length_be(&self, name: &str, length: usize) -> ArgumentResult<&Self> {
+    fn require_length_be(
+        &self,
+        name: &str,
+        length: usize,
+    ) -> ArgumentResult<&Self> {
         let actual_length = self.len();
         if actual_length != length {
             return Err(ArgumentError::new(format!(
@@ -196,7 +220,11 @@ impl<T> CollectionArgument for [T] {
     }
 
     #[inline]
-    fn require_length_at_least(&self, name: &str, min_length: usize) -> ArgumentResult<&Self> {
+    fn require_length_at_least(
+        &self,
+        name: &str,
+        min_length: usize,
+    ) -> ArgumentResult<&Self> {
         let actual_length = self.len();
         if actual_length < min_length {
             return Err(ArgumentError::new(format!(
@@ -208,7 +236,11 @@ impl<T> CollectionArgument for [T] {
     }
 
     #[inline]
-    fn require_length_at_most(&self, name: &str, max_length: usize) -> ArgumentResult<&Self> {
+    fn require_length_at_most(
+        &self,
+        name: &str,
+        max_length: usize,
+    ) -> ArgumentResult<&Self> {
         let actual_length = self.len();
         if actual_length > max_length {
             return Err(ArgumentError::new(format!(
@@ -220,7 +252,12 @@ impl<T> CollectionArgument for [T] {
     }
 
     #[inline]
-    fn require_length_in_range(&self, name: &str, min_length: usize, max_length: usize) -> ArgumentResult<&Self> {
+    fn require_length_in_range(
+        &self,
+        name: &str,
+        min_length: usize,
+        max_length: usize,
+    ) -> ArgumentResult<&Self> {
         let actual_length = self.len();
         if actual_length < min_length || actual_length > max_length {
             return Err(ArgumentError::new(format!(
@@ -239,22 +276,45 @@ impl<T> CollectionArgument for Vec<T> {
     }
 
     #[inline]
-    fn require_length_be(&self, name: &str, length: usize) -> ArgumentResult<&Self> {
-        self.as_slice().require_length_be(name, length).map(|_| self)
+    fn require_length_be(
+        &self,
+        name: &str,
+        length: usize,
+    ) -> ArgumentResult<&Self> {
+        self.as_slice()
+            .require_length_be(name, length)
+            .map(|_| self)
     }
 
     #[inline]
-    fn require_length_at_least(&self, name: &str, min_length: usize) -> ArgumentResult<&Self> {
-        self.as_slice().require_length_at_least(name, min_length).map(|_| self)
+    fn require_length_at_least(
+        &self,
+        name: &str,
+        min_length: usize,
+    ) -> ArgumentResult<&Self> {
+        self.as_slice()
+            .require_length_at_least(name, min_length)
+            .map(|_| self)
     }
 
     #[inline]
-    fn require_length_at_most(&self, name: &str, max_length: usize) -> ArgumentResult<&Self> {
-        self.as_slice().require_length_at_most(name, max_length).map(|_| self)
+    fn require_length_at_most(
+        &self,
+        name: &str,
+        max_length: usize,
+    ) -> ArgumentResult<&Self> {
+        self.as_slice()
+            .require_length_at_most(name, max_length)
+            .map(|_| self)
     }
 
     #[inline]
-    fn require_length_in_range(&self, name: &str, min_length: usize, max_length: usize) -> ArgumentResult<&Self> {
+    fn require_length_in_range(
+        &self,
+        name: &str,
+        min_length: usize,
+        max_length: usize,
+    ) -> ArgumentResult<&Self> {
         self.as_slice()
             .require_length_in_range(name, min_length, max_length)
             .map(|_| self)
@@ -272,7 +332,8 @@ impl<T> CollectionArgument for Vec<T> {
 ///
 /// # Returns
 ///
-/// Returns `Ok(())` if all elements are non-null, otherwise returns an error containing the index of the first null element
+/// Returns `Ok(())` if all elements are non-null, otherwise returns an error
+/// containing the index of the first null element
 ///
 /// # Examples
 ///
@@ -285,10 +346,11 @@ impl<T> CollectionArgument for Vec<T> {
 /// let items_with_none = vec![Some(1), None, Some(3)];
 /// assert!(require_element_non_null("items", &items_with_none).is_err());
 /// ```
-///
-///
 #[inline]
-pub fn require_element_non_null<T>(name: &str, collection: &[Option<T>]) -> ArgumentResult<()> {
+pub fn require_element_non_null<T>(
+    name: &str,
+    collection: &[Option<T>],
+) -> ArgumentResult<()> {
     for (index, item) in collection.iter().enumerate() {
         if item.is_none() {
             return Err(ArgumentError::new(format!(

@@ -1,16 +1,13 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 //! # Numeric Argument Validation
 //!
 //! Provides validation functionality for numeric type arguments.
-//!
 
 use super::argument_error::{
     ArgumentError,
@@ -57,7 +54,10 @@ impl NumericValue for f32 {
     #[inline]
     fn reject_nan(self, name: &str) -> ArgumentResult<()> {
         if self.is_nan() {
-            return Err(ArgumentError::new(format!("Parameter '{}' must not be NaN", name)));
+            return Err(ArgumentError::new(format!(
+                "Parameter '{}' must not be NaN",
+                name
+            )));
         }
         Ok(())
     }
@@ -72,7 +72,10 @@ impl NumericValue for f64 {
     #[inline]
     fn reject_nan(self, name: &str) -> ArgumentResult<()> {
         if self.is_nan() {
-            return Err(ArgumentError::new(format!("Parameter '{}' must not be NaN", name)));
+            return Err(ArgumentError::new(format!(
+                "Parameter '{}' must not be NaN",
+                name
+            )));
         }
         Ok(())
     }
@@ -80,7 +83,8 @@ impl NumericValue for f64 {
 
 /// Numeric argument validation trait
 ///
-/// Provides validation methods for all sortable numeric types, supporting method chaining.
+/// Provides validation methods for all sortable numeric types, supporting
+/// method chaining.
 ///
 /// # Features
 ///
@@ -123,8 +127,6 @@ impl NumericValue for f64 {
 ///     Ok(())
 /// }
 /// ```
-///
-///
 pub trait NumericArgument: Sized {
     /// Validate that value is zero
     ///
@@ -180,7 +182,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is greater than zero, otherwise returns an error
+    /// Returns `Ok(self)` if value is greater than zero, otherwise returns an
+    /// error
     ///
     /// # Examples
     ///
@@ -226,7 +229,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is less than zero, otherwise returns an error
+    /// Returns `Ok(self)` if value is less than zero, otherwise returns an
+    /// error
     ///
     /// # Examples
     ///
@@ -249,7 +253,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is less than or equal to zero, otherwise returns an error
+    /// Returns `Ok(self)` if value is less than or equal to zero, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -277,7 +282,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is within [min, max] range, otherwise returns an error
+    /// Returns `Ok(self)` if value is within [min, max] range, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -290,7 +296,12 @@ pub trait NumericArgument: Sized {
     /// let out_of_range = 150;
     /// assert!(out_of_range.require_in_closed_range("value", 0, 100).is_err());
     /// ```
-    fn require_in_closed_range(self, name: &str, min: Self, max: Self) -> ArgumentResult<Self>;
+    fn require_in_closed_range(
+        self,
+        name: &str,
+        min: Self,
+        max: Self,
+    ) -> ArgumentResult<Self>;
 
     /// Validate that value is within open interval
     ///
@@ -302,7 +313,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is within (min, max) range, otherwise returns an error
+    /// Returns `Ok(self)` if value is within (min, max) range, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -315,7 +327,12 @@ pub trait NumericArgument: Sized {
     /// let boundary = 0;
     /// assert!(boundary.require_in_open_range("value", 0, 100).is_err());
     /// ```
-    fn require_in_open_range(self, name: &str, min: Self, max: Self) -> ArgumentResult<Self>;
+    fn require_in_open_range(
+        self,
+        name: &str,
+        min: Self,
+        max: Self,
+    ) -> ArgumentResult<Self>;
 
     /// Validate that value is within left-open right-closed interval
     ///
@@ -327,7 +344,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is within (min, max] range, otherwise returns an error
+    /// Returns `Ok(self)` if value is within (min, max] range, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -340,7 +358,12 @@ pub trait NumericArgument: Sized {
     /// let min_boundary = 0;
     /// assert!(min_boundary.require_in_left_open_range("value", 0, 100).is_err());
     /// ```
-    fn require_in_left_open_range(self, name: &str, min: Self, max: Self) -> ArgumentResult<Self>;
+    fn require_in_left_open_range(
+        self,
+        name: &str,
+        min: Self,
+        max: Self,
+    ) -> ArgumentResult<Self>;
 
     /// Validate that value is within left-closed right-open interval
     ///
@@ -352,7 +375,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is within [min, max) range, otherwise returns an error
+    /// Returns `Ok(self)` if value is within [min, max) range, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -365,7 +389,12 @@ pub trait NumericArgument: Sized {
     /// let max_boundary = 100;
     /// assert!(max_boundary.require_in_right_open_range("value", 0, 100).is_err());
     /// ```
-    fn require_in_right_open_range(self, name: &str, min: Self, max: Self) -> ArgumentResult<Self>;
+    fn require_in_right_open_range(
+        self,
+        name: &str,
+        min: Self,
+        max: Self,
+    ) -> ArgumentResult<Self>;
 
     /// Validate that value is less than specified value
     ///
@@ -400,7 +429,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is less than or equal to max, otherwise returns an error
+    /// Returns `Ok(self)` if value is less than or equal to max, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -424,7 +454,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is greater than min, otherwise returns an error
+    /// Returns `Ok(self)` if value is greater than min, otherwise returns an
+    /// error
     ///
     /// # Examples
     ///
@@ -448,7 +479,8 @@ pub trait NumericArgument: Sized {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(self)` if value is greater than or equal to min, otherwise returns an error
+    /// Returns `Ok(self)` if value is greater than or equal to min, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -461,7 +493,11 @@ pub trait NumericArgument: Sized {
     /// let under = -1;
     /// assert!(under.require_greater_equal("value", 0).is_err());
     /// ```
-    fn require_greater_equal(self, name: &str, min: Self) -> ArgumentResult<Self>;
+    fn require_greater_equal(
+        self,
+        name: &str,
+        min: Self,
+    ) -> ArgumentResult<Self>;
 }
 
 /// Implement numeric argument validation for all ordered displayable types
@@ -489,7 +525,10 @@ where
     fn require_non_zero(self, name: &str) -> ArgumentResult<Self> {
         self.reject_nan(name)?;
         if self == T::zero() {
-            return Err(ArgumentError::new(format!("Parameter '{}' cannot be zero", name)));
+            return Err(ArgumentError::new(format!(
+                "Parameter '{}' cannot be zero",
+                name
+            )));
         }
         Ok(self)
     }
@@ -543,7 +582,12 @@ where
     }
 
     #[inline]
-    fn require_in_closed_range(self, name: &str, min: Self, max: Self) -> ArgumentResult<Self> {
+    fn require_in_closed_range(
+        self,
+        name: &str,
+        min: Self,
+        max: Self,
+    ) -> ArgumentResult<Self> {
         self.reject_nan(name)?;
         min.reject_nan("min")?;
         max.reject_nan("max")?;
@@ -563,7 +607,12 @@ where
     }
 
     #[inline]
-    fn require_in_open_range(self, name: &str, min: Self, max: Self) -> ArgumentResult<Self> {
+    fn require_in_open_range(
+        self,
+        name: &str,
+        min: Self,
+        max: Self,
+    ) -> ArgumentResult<Self> {
         self.reject_nan(name)?;
         min.reject_nan("min")?;
         max.reject_nan("max")?;
@@ -583,7 +632,12 @@ where
     }
 
     #[inline]
-    fn require_in_left_open_range(self, name: &str, min: Self, max: Self) -> ArgumentResult<Self> {
+    fn require_in_left_open_range(
+        self,
+        name: &str,
+        min: Self,
+        max: Self,
+    ) -> ArgumentResult<Self> {
         self.reject_nan(name)?;
         min.reject_nan("min")?;
         max.reject_nan("max")?;
@@ -603,7 +657,12 @@ where
     }
 
     #[inline]
-    fn require_in_right_open_range(self, name: &str, min: Self, max: Self) -> ArgumentResult<Self> {
+    fn require_in_right_open_range(
+        self,
+        name: &str,
+        min: Self,
+        max: Self,
+    ) -> ArgumentResult<Self> {
         self.reject_nan(name)?;
         min.reject_nan("min")?;
         max.reject_nan("max")?;
@@ -662,7 +721,11 @@ where
     }
 
     #[inline]
-    fn require_greater_equal(self, name: &str, min: Self) -> ArgumentResult<Self> {
+    fn require_greater_equal(
+        self,
+        name: &str,
+        min: Self,
+    ) -> ArgumentResult<Self> {
         self.reject_nan(name)?;
         min.reject_nan("min")?;
         if self < min {
@@ -690,9 +753,13 @@ where
 /// let result = require_equal("width", 100, "height", 200);
 /// assert!(result.is_err());
 /// ```
-///
 #[inline]
-pub fn require_equal<T>(name1: &str, value1: T, name2: &str, value2: T) -> ArgumentResult<()>
+pub fn require_equal<T>(
+    name1: &str,
+    value1: T,
+    name2: &str,
+    value2: T,
+) -> ArgumentResult<()>
 where
     T: PartialEq + Display,
 {
@@ -722,9 +789,13 @@ where
 /// let result = require_not_equal("min", 0, "max", 100);
 /// assert!(result.is_ok());
 /// ```
-///
 #[inline]
-pub fn require_not_equal<T>(name1: &str, value1: T, name2: &str, value2: T) -> ArgumentResult<()>
+pub fn require_not_equal<T>(
+    name1: &str,
+    value1: T,
+    name2: &str,
+    value2: T,
+) -> ArgumentResult<()>
 where
     T: PartialEq + Display,
 {

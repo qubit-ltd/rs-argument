@@ -1,16 +1,13 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 //! # Option Argument Validation
 //!
 //! Provides validation functionality for Option type arguments.
-//!
 
 use super::argument_error::{
     ArgumentError,
@@ -96,7 +93,8 @@ pub trait OptionArgument<T> {
     ///
     /// # Returns
     ///
-    /// Returns value if Some(value) and condition is satisfied, otherwise returns an error
+    /// Returns value if Some(value) and condition is satisfied, otherwise
+    /// returns an error
     ///
     /// # Examples
     ///
@@ -111,7 +109,12 @@ pub trait OptionArgument<T> {
     /// );
     /// assert!(result.is_ok());
     /// ```
-    fn require_non_null_and<F>(self, name: &str, predicate: F, error_msg: &str) -> ArgumentResult<T>
+    fn require_non_null_and<F>(
+        self,
+        name: &str,
+        predicate: F,
+        error_msg: &str,
+    ) -> ArgumentResult<T>
     where
         F: FnOnce(&T) -> bool;
 
@@ -141,7 +144,11 @@ pub trait OptionArgument<T> {
     /// });
     /// assert!(result.is_ok());
     /// ```
-    fn validate_if_present<F>(self, name: &str, validator: F) -> ArgumentResult<Option<T>>
+    fn validate_if_present<F>(
+        self,
+        name: &str,
+        validator: F,
+    ) -> ArgumentResult<Option<T>>
     where
         F: FnOnce(&T) -> ArgumentResult<T>;
 }
@@ -159,7 +166,12 @@ impl<T> OptionArgument<T> for Option<T> {
     }
 
     #[inline]
-    fn require_non_null_and<F>(self, name: &str, predicate: F, error_msg: &str) -> ArgumentResult<T>
+    fn require_non_null_and<F>(
+        self,
+        name: &str,
+        predicate: F,
+        error_msg: &str,
+    ) -> ArgumentResult<T>
     where
         F: FnOnce(&T) -> bool,
     {
@@ -180,7 +192,11 @@ impl<T> OptionArgument<T> for Option<T> {
     }
 
     #[inline]
-    fn validate_if_present<F>(self, _name: &str, validator: F) -> ArgumentResult<Option<T>>
+    fn validate_if_present<F>(
+        self,
+        _name: &str,
+        validator: F,
+    ) -> ArgumentResult<Option<T>>
     where
         F: FnOnce(&T) -> ArgumentResult<T>,
     {
@@ -204,7 +220,8 @@ impl<T> OptionArgument<T> for Option<T> {
 ///
 /// # Returns
 ///
-/// Returns `Ok(value)` if None or condition is satisfied, otherwise returns an error
+/// Returns `Ok(value)` if None or condition is satisfied, otherwise returns an
+/// error
 ///
 /// # Examples
 ///
@@ -219,10 +236,13 @@ impl<T> OptionArgument<T> for Option<T> {
 /// let result = require_null_or("value", none_value, |&v| v > 0, "Must be positive");
 /// assert!(result.is_ok());
 /// ```
-///
-///
 #[inline]
-pub fn require_null_or<T, F>(name: &str, value: Option<T>, predicate: F, error_msg: &str) -> ArgumentResult<Option<T>>
+pub fn require_null_or<T, F>(
+    name: &str,
+    value: Option<T>,
+    predicate: F,
+    error_msg: &str,
+) -> ArgumentResult<Option<T>>
 where
     F: FnOnce(&T) -> bool,
 {
@@ -230,7 +250,10 @@ where
         None => Ok(None),
         Some(ref v) => {
             if !predicate(v) {
-                return Err(ArgumentError::new(format!("Parameter '{}' {}", name, error_msg)));
+                return Err(ArgumentError::new(format!(
+                    "Parameter '{}' {}",
+                    name, error_msg
+                )));
             }
             Ok(value)
         }

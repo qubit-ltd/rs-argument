@@ -1,12 +1,10 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 use qubit_argument::StringArgument;
 use regex::Regex;
 
@@ -88,7 +86,8 @@ fn length_checks_and_range() {
     let err4a = "ab".require_length_in_range("s", 3, 5);
     assert!(err4a.is_err());
 
-    // require_length_in_range error cases - greater than max (this is important!)
+    // require_length_in_range error cases - greater than max (this is
+    // important!)
     let err4b = "abcdef".require_length_in_range("s", 3, 5);
     assert!(err4b.is_err());
     let err_msg4b = err4b.unwrap_err();
@@ -101,7 +100,9 @@ fn length_checks_and_range() {
 
 #[test]
 fn regex_match_and_not_match() {
-    let email_re = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
+    let email_re =
+        Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+            .unwrap();
     let r1 = "user@example.com".require_match("email", &email_re);
     assert!(r1.is_ok());
     assert_eq!(r1.unwrap(), "user@example.com");
@@ -288,7 +289,10 @@ fn test_all_success_branches_for_str() {
     // require_not_match success
     let digit_pattern = Regex::new(r"\d").unwrap();
     assert!(text.require_not_match("text", &digit_pattern).is_ok());
-    assert_eq!(text.require_not_match("text", &digit_pattern).unwrap(), "hello");
+    assert_eq!(
+        text.require_not_match("text", &digit_pattern).unwrap(),
+        "hello"
+    );
 }
 
 #[test]
@@ -328,7 +332,10 @@ fn test_all_success_branches_for_string() {
     // require_not_match success
     let digit_pattern = Regex::new(r"\d").unwrap();
     assert!(text.require_not_match("text", &digit_pattern).is_ok());
-    assert_eq!(text.require_not_match("text", &digit_pattern).unwrap(), "world");
+    assert_eq!(
+        text.require_not_match("text", &digit_pattern).unwrap(),
+        "world"
+    );
 }
 
 #[test]

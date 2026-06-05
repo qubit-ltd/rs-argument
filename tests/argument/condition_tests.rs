@@ -1,12 +1,10 @@
-/*******************************************************************************
- *
- *    Copyright (c) 2025 - 2026 Haixing Hu.
- *
- *    SPDX-License-Identifier: Apache-2.0
- *
- *    Licensed under the Apache License, Version 2.0.
- *
- ******************************************************************************/
+// =============================================================================
+//    Copyright (c) 2025 - 2026 Haixing Hu.
+//
+//    SPDX-License-Identifier: Apache-2.0
+//
+//    Licensed under the Apache License, Version 2.0.
+// =============================================================================
 use qubit_argument::{
     check_argument,
     check_argument_fmt,
@@ -26,15 +24,21 @@ fn basic_argument_and_state_checks() {
     assert!(check_state(true).is_ok());
     assert!(check_state(false).is_err());
 
-    let err = check_argument_with_message(false, "Count must be positive").unwrap_err();
+    let err = check_argument_with_message(false, "Count must be positive")
+        .unwrap_err();
     assert!(err.to_string().contains("Count must be positive"));
 
     let msg = format!("Value {} exceeds maximum value {}", 150, 100);
     let err2 = check_argument_fmt(false, msg.clone()).unwrap_err();
     assert_eq!(err2.to_string(), msg);
 
-    let err3 = check_state_with_message(false, "Connection must be established first").unwrap_err();
-    assert!(err3.to_string().contains("Connection must be established first"));
+    let err3 =
+        check_state_with_message(false, "Connection must be established first")
+            .unwrap_err();
+    assert!(
+        err3.to_string()
+            .contains("Connection must be established first")
+    );
 }
 
 #[test]
@@ -144,8 +148,15 @@ fn test_state_checks_different_scenarios() {
     assert!(check_state(is_initialized).is_err());
 
     let has_permission = false;
-    let err = check_state_with_message(has_permission, "Administrator privileges required").unwrap_err();
-    assert!(err.to_string().contains("Administrator privileges required"));
+    let err = check_state_with_message(
+        has_permission,
+        "Administrator privileges required",
+    )
+    .unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("Administrator privileges required")
+    );
 }
 
 #[test]
