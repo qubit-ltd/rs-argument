@@ -111,12 +111,7 @@ pub trait OptionArgument<T> {
     /// );
     /// assert!(result.is_ok());
     /// ```
-    fn require_non_null_and<F>(
-        self,
-        name: &str,
-        predicate: F,
-        error_msg: &str,
-    ) -> ArgumentResult<T>
+    fn require_non_null_and<F>(self, name: &str, predicate: F, error_msg: &str) -> ArgumentResult<T>
     where
         F: FnOnce(&T) -> bool;
 
@@ -227,12 +222,7 @@ impl<T> OptionArgument<T> for Option<T> {
 ///
 ///
 #[inline]
-pub fn require_null_or<T, F>(
-    name: &str,
-    value: Option<T>,
-    predicate: F,
-    error_msg: &str,
-) -> ArgumentResult<Option<T>>
+pub fn require_null_or<T, F>(name: &str, value: Option<T>, predicate: F, error_msg: &str) -> ArgumentResult<Option<T>>
 where
     F: FnOnce(&T) -> bool,
 {
@@ -240,10 +230,7 @@ where
         None => Ok(None),
         Some(ref v) => {
             if !predicate(v) {
-                return Err(ArgumentError::new(format!(
-                    "Parameter '{}' {}",
-                    name, error_msg
-                )));
+                return Err(ArgumentError::new(format!("Parameter '{}' {}", name, error_msg)));
             }
             Ok(value)
         }

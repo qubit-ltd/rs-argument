@@ -34,10 +34,7 @@ fn basic_argument_and_state_checks() {
     assert_eq!(err2.to_string(), msg);
 
     let err3 = check_state_with_message(false, "Connection must be established first").unwrap_err();
-    assert!(
-        err3.to_string()
-            .contains("Connection must be established first")
-    );
+    assert!(err3.to_string().contains("Connection must be established first"));
 }
 
 #[test]
@@ -147,12 +144,8 @@ fn test_state_checks_different_scenarios() {
     assert!(check_state(is_initialized).is_err());
 
     let has_permission = false;
-    let err =
-        check_state_with_message(has_permission, "Administrator privileges required").unwrap_err();
-    assert!(
-        err.to_string()
-            .contains("Administrator privileges required")
-    );
+    let err = check_state_with_message(has_permission, "Administrator privileges required").unwrap_err();
+    assert!(err.to_string().contains("Administrator privileges required"));
 }
 
 #[test]

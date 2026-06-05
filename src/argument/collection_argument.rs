@@ -171,22 +171,14 @@ pub trait CollectionArgument {
     /// let items = vec![1, 2, 3];
     /// assert!(items.require_length_in_range("items", 1, 10).is_ok());
     /// ```
-    fn require_length_in_range(
-        &self,
-        name: &str,
-        min_length: usize,
-        max_length: usize,
-    ) -> ArgumentResult<&Self>;
+    fn require_length_in_range(&self, name: &str, min_length: usize, max_length: usize) -> ArgumentResult<&Self>;
 }
 
 impl<T> CollectionArgument for [T] {
     #[inline]
     fn require_non_empty(&self, name: &str) -> ArgumentResult<&Self> {
         if self.is_empty() {
-            return Err(ArgumentError::new(format!(
-                "Collection '{}' cannot be empty",
-                name
-            )));
+            return Err(ArgumentError::new(format!("Collection '{}' cannot be empty", name)));
         }
         Ok(self)
     }
@@ -228,12 +220,7 @@ impl<T> CollectionArgument for [T] {
     }
 
     #[inline]
-    fn require_length_in_range(
-        &self,
-        name: &str,
-        min_length: usize,
-        max_length: usize,
-    ) -> ArgumentResult<&Self> {
+    fn require_length_in_range(&self, name: &str, min_length: usize, max_length: usize) -> ArgumentResult<&Self> {
         let actual_length = self.len();
         if actual_length < min_length || actual_length > max_length {
             return Err(ArgumentError::new(format!(
@@ -253,32 +240,21 @@ impl<T> CollectionArgument for Vec<T> {
 
     #[inline]
     fn require_length_be(&self, name: &str, length: usize) -> ArgumentResult<&Self> {
-        self.as_slice()
-            .require_length_be(name, length)
-            .map(|_| self)
+        self.as_slice().require_length_be(name, length).map(|_| self)
     }
 
     #[inline]
     fn require_length_at_least(&self, name: &str, min_length: usize) -> ArgumentResult<&Self> {
-        self.as_slice()
-            .require_length_at_least(name, min_length)
-            .map(|_| self)
+        self.as_slice().require_length_at_least(name, min_length).map(|_| self)
     }
 
     #[inline]
     fn require_length_at_most(&self, name: &str, max_length: usize) -> ArgumentResult<&Self> {
-        self.as_slice()
-            .require_length_at_most(name, max_length)
-            .map(|_| self)
+        self.as_slice().require_length_at_most(name, max_length).map(|_| self)
     }
 
     #[inline]
-    fn require_length_in_range(
-        &self,
-        name: &str,
-        min_length: usize,
-        max_length: usize,
-    ) -> ArgumentResult<&Self> {
+    fn require_length_in_range(&self, name: &str, min_length: usize, max_length: usize) -> ArgumentResult<&Self> {
         self.as_slice()
             .require_length_in_range(name, min_length, max_length)
             .map(|_| self)

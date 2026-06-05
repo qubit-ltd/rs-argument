@@ -57,10 +57,7 @@ impl NumericValue for f32 {
     #[inline]
     fn reject_nan(self, name: &str) -> ArgumentResult<()> {
         if self.is_nan() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must not be NaN",
-                name
-            )));
+            return Err(ArgumentError::new(format!("Parameter '{}' must not be NaN", name)));
         }
         Ok(())
     }
@@ -75,10 +72,7 @@ impl NumericValue for f64 {
     #[inline]
     fn reject_nan(self, name: &str) -> ArgumentResult<()> {
         if self.is_nan() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must not be NaN",
-                name
-            )));
+            return Err(ArgumentError::new(format!("Parameter '{}' must not be NaN", name)));
         }
         Ok(())
     }
@@ -495,10 +489,7 @@ where
     fn require_non_zero(self, name: &str) -> ArgumentResult<Self> {
         self.reject_nan(name)?;
         if self == T::zero() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' cannot be zero",
-                name
-            )));
+            return Err(ArgumentError::new(format!("Parameter '{}' cannot be zero", name)));
         }
         Ok(self)
     }

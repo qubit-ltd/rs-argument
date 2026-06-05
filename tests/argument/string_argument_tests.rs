@@ -288,10 +288,7 @@ fn test_all_success_branches_for_str() {
     // require_not_match success
     let digit_pattern = Regex::new(r"\d").unwrap();
     assert!(text.require_not_match("text", &digit_pattern).is_ok());
-    assert_eq!(
-        text.require_not_match("text", &digit_pattern).unwrap(),
-        "hello"
-    );
+    assert_eq!(text.require_not_match("text", &digit_pattern).unwrap(), "hello");
 }
 
 #[test]
@@ -331,10 +328,7 @@ fn test_all_success_branches_for_string() {
     // require_not_match success
     let digit_pattern = Regex::new(r"\d").unwrap();
     assert!(text.require_not_match("text", &digit_pattern).is_ok());
-    assert_eq!(
-        text.require_not_match("text", &digit_pattern).unwrap(),
-        "world"
-    );
+    assert_eq!(text.require_not_match("text", &digit_pattern).unwrap(), "world");
 }
 
 #[test]
