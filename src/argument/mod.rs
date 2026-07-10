@@ -20,7 +20,7 @@
 //! - `collection_argument`: Collection argument validation
 //! - `constraint`: Reusable constraint vocabulary
 //! - `option_argument`: Option argument validation
-//! - `condition`: Condition and state validation
+//! - `bounds`: Bounds and custom argument validation
 //!
 //! # Design Philosophy
 //!
@@ -67,8 +67,8 @@
 pub mod argument_error;
 mod argument_path;
 mod argument_value;
+pub mod bounds;
 pub mod collection_argument;
-pub mod condition;
 mod constraint;
 pub mod numeric_argument;
 pub mod option_argument;
@@ -82,20 +82,16 @@ pub use argument_error::{
 };
 pub use argument_path::ArgumentPath;
 pub use argument_value::ArgumentValue;
-pub use collection_argument::{
-    CollectionArgument,
-    require_element_non_null,
-};
-pub use condition::{
-    check_argument,
-    check_argument_fmt,
-    check_argument_with_message,
+pub use bounds::{
     check_bounds,
     check_element_index,
     check_position_index,
-    check_position_indexes,
-    check_state,
-    check_state_with_message,
+    check_position_range,
+    require_that,
+};
+pub use collection_argument::{
+    CollectionArgument,
+    require_element_non_null,
 };
 pub use constraint::{
     ArgumentBound,
