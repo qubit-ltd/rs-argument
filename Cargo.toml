@@ -31,5 +31,9 @@ name = "qubit_argument"
 doctest = true
 test = true
 
+[features]
+default = []
+regex = ["dep:regex"]
+
 [dependencies]
-regex = "1.12"
+regex = { version = "1.12", optional = true }
