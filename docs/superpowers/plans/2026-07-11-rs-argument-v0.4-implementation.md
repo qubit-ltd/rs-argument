@@ -20,7 +20,7 @@
 - Do not use unchecked `offset + length` arithmetic in bounds validation.
 - Do not expose raw validated string contents through `ArgumentError`, `Debug`, or `Display`.
 - The final default feature set is empty; `regex` is optional and disabled by default.
-- Do not run `git add`, `git commit`, or `git push`; the user has not authorized repository writes beyond working-tree files.
+- Local `git add` and `git commit` are authorized for task-sized commits; never run `git push`.
 - Use `git --no-pager diff --check` as the review checkpoint after each task.
 - Final verification order is exactly `./align-ci.sh` followed by `./ci-check.sh`.
 
@@ -274,6 +274,13 @@ git --no-pager diff --check
 
 Expected: all three focused test groups pass and `diff --check` reports no whitespace errors.
 
+- [ ] **Step 8: Commit Task 1**
+
+```bash
+git add src/argument src/lib.rs tests/argument tests/argument_tests.rs
+git commit -m 'feat(错误模型): 添加参数路径和值约束类型'
+```
+
 ---
 
 ### Task 2: Replace the message-only error with `ArgumentError { path, kind }`
@@ -405,6 +412,13 @@ git --no-pager diff --check
 
 Expected: structured-error tests pass; untouched v0.3 tests continue compiling through the temporary legacy constructor.
 
+- [ ] **Step 6: Commit Task 2**
+
+```bash
+git add src/argument/argument_error.rs src/argument/mod.rs src/lib.rs tests/argument/argument_error_tests.rs tests/argument/domain_error_conversion_tests.rs
+git commit -m 'feat(错误模型): 引入结构化参数错误'
+```
+
 ---
 
 ### Task 3: Rebuild numeric validation around structured comparisons and `RangeBounds`
@@ -532,6 +546,13 @@ git --no-pager diff --check
 
 Expected: numeric tests pass. Remaining old string, collection, option, and condition tests still pass through their existing APIs.
 
+- [ ] **Step 6: Commit Task 3**
+
+```bash
+git add src/argument/numeric_argument.rs tests/argument/numeric_argument_tests.rs
+git commit -m 'refactor(数值校验): 统一比较与区间API'
+```
+
 ---
 
 ### Task 4: Make string validation ownership-preserving and feature-gate regex
@@ -641,6 +662,13 @@ git --no-pager diff --check
 ```
 
 Expected: both feature modes pass and the default build does not require regex APIs.
+
+- [ ] **Step 6: Commit Task 4**
+
+```bash
+git add Cargo.toml Cargo.lock src/argument/string_argument.rs tests/argument/string_argument_tests.rs
+git commit -m 'refactor(字符串校验): 区分长度语义并可选正则'
+```
 
 ---
 
@@ -766,6 +794,13 @@ git --no-pager diff --check
 
 Expected: focused and full integration tests pass with substantially fewer Option tests than v0.3.
 
+- [ ] **Step 7: Commit Task 5**
+
+```bash
+git add src/argument/collection_argument.rs src/argument/option_argument.rs tests/argument/collection_argument_tests.rs tests/argument/option_argument_tests.rs
+git commit -m 'refactor(集合与选项): 保留校验值所有权'
+```
+
 ---
 
 ### Task 6: Replace condition and state helpers with bounds and custom argument validation
@@ -880,6 +915,14 @@ git --no-pager diff --check
 
 Expected: bounds tests and all integration tests pass.
 
+- [ ] **Step 6: Commit Task 6**
+
+```bash
+git add src/argument/bounds.rs src/argument/mod.rs src/lib.rs tests/argument/bounds_tests.rs tests/argument/mod.rs
+git add -u src/argument/condition.rs tests/argument/condition_tests.rs
+git commit -m 'refactor(边界校验): 移除状态检查'
+```
+
 ---
 
 ### Task 7: Finalize the public API, remove transitional compatibility, and bump v0.4
@@ -971,6 +1014,13 @@ git --no-pager diff --check
 
 Expected: all commands succeed with no compatibility API remaining.
 
+- [ ] **Step 7: Commit Task 7**
+
+```bash
+git add Cargo.toml Cargo.lock src tests
+git commit -m 'refactor(API): 完成0.4破坏性接口'
+```
+
 ---
 
 ### Task 8: Rewrite user-facing documentation for v0.4
@@ -1038,6 +1088,13 @@ git --no-pager diff --check
 
 Expected: doctests and the version checker pass; the final search has no matches.
 
+- [ ] **Step 5: Commit Task 8**
+
+```bash
+git add README.md README.zh_CN.md src
+git commit -m 'docs(用法): 更新0.4参数校验文档'
+```
+
 ---
 
 ### Task 9: Run project alignment and the complete CI gate
@@ -1093,4 +1150,15 @@ git --no-pager diff --check
 rg -n '(TBD|TODO|todo!\(|unimplemented!\()' src tests README.md README.zh_CN.md
 ```
 
-Expected: only `rs-argument` files from this plan are modified, whitespace checks pass, and no placeholders remain. Do not commit or push.
+Expected: only `rs-argument` files from this plan are modified, whitespace checks pass, and no placeholders remain. Never push.
+
+- [ ] **Step 5: Commit final CI-alignment changes when present**
+
+If `git status --short` is non-empty after the final checks, review the diff and commit only CI alignment or final verification fixes:
+
+```bash
+git add -u
+git commit -m 'chore(CI): 对齐参数校验重构检查'
+```
+
+If the working tree is already clean, skip this commit. Do not create an empty commit.
