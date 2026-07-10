@@ -57,7 +57,7 @@
 //!     // Collection validation (chaining)
 //!     let tags = tags
 //!         .require_non_empty("tags")?
-//!         .require_length_at_most("tags", 10)?;
+//!         .require_len_at_most("tags", 10)?;
 //!
 //!     println!("Age: {}, Username: {}, Tag count: {}", age, username, tags.len());
 //!     Ok(())
