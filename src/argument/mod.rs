@@ -5,64 +5,39 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-//! # Argument Validation
+//! Argument validation implementation.
 //!
-//! Provides argument validation functionality similar to Java's `Argument`
-//! class, but with a design more suitable for Rust conventions.
+//! This module is private. Its public items are re-exported directly from
+//! `qubit_argument`, which is the only supported import path.
 //!
-//! # Module Organization
+//! # Validation API
 //!
-//! - `argument_error`: Error type definitions
-//! - `argument_path`: Structured argument paths
-//! - `argument_value`: Lossless primitive numeric values
-//! - `numeric_argument`: Numeric argument validation
-//! - `string_argument`: String argument validation
-//! - `collection_argument`: Collection argument validation
-//! - `constraint`: Reusable constraint vocabulary
-//! - `option_argument`: Option argument validation
-//! - `bounds`: Bounds and custom argument validation
+//! - [`NumericArgument`] validates primitive integers and floats, including
+//!   comparison and standard `RangeBounds` checks.
+//! - [`StringArgument`] distinguishes UTF-8 byte length from Unicode scalar
+//!   count. With the `regex` feature, it also provides unanchored
+//!   `Regex::is_match` validation.
+//! - [`CollectionArgument`] validates `Vec<T>`, `&[T]`, and arrays.
+//! - [`OptionArgument`] extracts required values or validates present values
+//!   by shared borrow.
+//! - [`require_that`] applies a caller-defined predicate.
+//! - [`check_bounds`], [`check_element_index`], [`check_position_index`], and
+//!   [`check_position_range`] validate slice-style bounds and indexes.
 //!
-//! # Design Philosophy
+//! Ownership-preserving methods return the original value or borrow on
+//! success without cloning it. Every failure is an [`ArgumentError`] with an
+//! [`ArgumentPath`] and a structured [`ArgumentErrorKind`]. String validation
+//! errors never retain the inspected input string.
 //!
-//! This module uses Rust's trait extension pattern to provide validation
-//! methods for various types. Compared to Java's static methods, this approach
-//! is more idiomatic in Rust and supports method chaining.
+//! # Error and constraint vocabulary
 //!
-//! # Usage Examples
-//!
-//! ```rust
-//! use qubit_argument::{
-//!     NumericArgument, StringArgument, CollectionArgument, ArgumentResult
-//! };
-//! #[cfg(feature = "regex")]
-//! use regex::Regex;
-//!
-//! fn process_user_input(
-//!     age: i32,
-//!     username: &str,
-//!     tags: &[String],
-//! ) -> ArgumentResult<()> {
-//!     // Numeric validation
-//!     let age = age.require_in_range("age", 0..=150)?;
-//!
-//!     // String validation, with optional regex validation when enabled
-//!     let username = username.require_non_blank("username")?;
-//!     #[cfg(feature = "regex")]
-//!     let username = {
-//!         let username_pattern = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_]{2,19}$")
-//!             .expect("username pattern is valid");
-//!         username.require_match("username", &username_pattern)?
-//!     };
-//!
-//!     // Collection validation (chaining)
-//!     let tags = tags
-//!         .require_non_empty("tags")?
-//!         .require_len_at_most("tags", 10)?;
-//!
-//!     println!("Age: {}, Username: {}, Tag count: {}", age, username, tags.len());
-//!     Ok(())
-//! }
-//! ```
+//! [`ArgumentError::path`], [`ArgumentError::kind`], and
+//! [`ArgumentError::into_parts`] expose a failure without parsing its display
+//! text. [`ArgumentValue`] losslessly captures primitive numeric values.
+//! [`LengthConstraint`], [`ComparisonConstraint`], [`ArgumentBound`], and
+//! [`RangeConstraint`] describe failed constraints. [`IndexRole`] distinguishes
+//! element indexes from boundary positions, while [`PatternExpectation`]
+//! distinguishes required regex matches from required non-matches.
 
 mod argument_error;
 mod argument_path;
@@ -74,7 +49,6 @@ mod numeric_argument;
 mod option_argument;
 mod string_argument;
 
-// Re-export main types and traits
 pub use argument_error::{ArgumentError, ArgumentErrorKind, ArgumentResult};
 pub use argument_path::ArgumentPath;
 pub use argument_value::ArgumentValue;

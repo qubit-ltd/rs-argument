@@ -112,62 +112,77 @@ impl NumericValue for f64 {
 pub trait NumericArgument: Sized {
     /// Requires this value to equal zero.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `EqualTo(0)` comparison error at `path`.
+    /// Success returns the original value without cloning. A nonzero value
+    /// returns [`ArgumentErrorKind::Comparison`] with an `EqualTo(0)`
+    /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
     fn require_zero(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value not to equal zero.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `NotEqualTo(0)` comparison error at `path`.
+    /// Success returns the original value without cloning. Zero returns
+    /// [`ArgumentErrorKind::Comparison`] with a `NotEqualTo(0)` constraint at
+    /// `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
     fn require_non_zero(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be strictly greater than zero.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `GreaterThan(0)` comparison error at `path`.
+    /// Success returns the original value without cloning. A value that is not
+    /// positive returns [`ArgumentErrorKind::Comparison`] with a
+    /// `GreaterThan(0)` constraint at `path`; NaN returns
+    /// [`ArgumentErrorKind::NotANumber`].
     fn require_positive(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be greater than or equal to zero.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `AtLeast(0)` comparison error at `path`.
+    /// Success returns the original value without cloning. A negative value
+    /// returns [`ArgumentErrorKind::Comparison`] with an `AtLeast(0)`
+    /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
     fn require_non_negative(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be strictly less than zero.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `LessThan(0)` comparison error at `path`.
+    /// Success returns the original value without cloning. A value that is not
+    /// negative returns [`ArgumentErrorKind::Comparison`] with a `LessThan(0)`
+    /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
     fn require_negative(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be less than or equal to zero.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `AtMost(0)` comparison error at `path`.
+    /// Success returns the original value without cloning. A positive value
+    /// returns [`ArgumentErrorKind::Comparison`] with an `AtMost(0)`
+    /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
     fn require_non_positive(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be strictly less than `bound`.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `LessThan` comparison error at `path`.
+    /// Success returns the original value without cloning. An unsatisfied
+    /// comparison returns [`ArgumentErrorKind::Comparison`] with a `LessThan`
+    /// constraint at `path`; a NaN value or bound returns
+    /// [`ArgumentErrorKind::NotANumber`].
     fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this value to be less than or equal to `bound`.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `AtMost` comparison error at `path`.
+    /// Success returns the original value without cloning. An unsatisfied
+    /// comparison returns [`ArgumentErrorKind::Comparison`] with an `AtMost`
+    /// constraint at `path`; a NaN value or bound returns
+    /// [`ArgumentErrorKind::NotANumber`].
     fn require_at_most(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this value to be strictly greater than `bound`.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `GreaterThan` comparison error at `path`.
+    /// Success returns the original value without cloning. An unsatisfied
+    /// comparison returns [`ArgumentErrorKind::Comparison`] with a
+    /// `GreaterThan` constraint at `path`; a NaN value or bound returns
+    /// [`ArgumentErrorKind::NotANumber`].
     fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this value to be greater than or equal to `bound`.
     ///
-    /// Returns the original value on success. Otherwise, returns a structured
-    /// `AtLeast` comparison error at `path`.
+    /// Success returns the original value without cloning. An unsatisfied
+    /// comparison returns [`ArgumentErrorKind::Comparison`] with an `AtLeast`
+    /// constraint at `path`; a NaN value or bound returns
+    /// [`ArgumentErrorKind::NotANumber`].
     fn require_at_least(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this value to lie within `range`.
@@ -175,9 +190,10 @@ pub trait NumericArgument: Sized {
     /// Standard inclusive, exclusive, and unbounded [`RangeBounds`] are
     /// supported. The range structure is validated before this value: reversed
     /// endpoints and equal endpoints with either endpoint excluded return
-    /// `InvalidRangeConstraint`. NaN endpoints or values return `NotANumber`.
-    /// An otherwise out-of-range value returns a structured `Range` error.
-    /// Successful validation returns the original value.
+    /// [`ArgumentErrorKind::InvalidRangeConstraint`]. NaN endpoints or values
+    /// return [`ArgumentErrorKind::NotANumber`].
+    /// An otherwise out-of-range value returns [`ArgumentErrorKind::Range`].
+    /// Successful validation returns the original value without cloning.
     fn require_in_range<R>(self, path: &str, range: R) -> ArgumentResult<Self>
     where
         R: RangeBounds<Self>;

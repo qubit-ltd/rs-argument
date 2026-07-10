@@ -1,229 +1,180 @@
-# Argument Validation Module
+# Argument Validation Guide
 
 Author: Haixing Hu
 
-## Overview
+## Purpose
 
-This module provides argument validation functionality with a design that follows Rust idioms. Through trait extension patterns, it provides validation methods for various types and supports method chaining.
+Qubit Argument validates values at API and configuration boundaries without
+changing their ownership shape. Public items are imported directly from
+`qubit_argument`; the implementation modules are private.
 
-## Module Structure
+Every validation function returns `ArgumentResult<T>`, an alias for
+`Result<T, ArgumentError>`. An `ArgumentError` contains an `ArgumentPath` and a
+non-exhaustive `ArgumentErrorKind`, allowing downstream code to match failures
+without parsing diagnostic text.
 
-```
-argument/
-├── argument_error.rs       ## Error type definitions
-├── numeric_argument.rs     ## Numeric argument validation
-├── string_argument.rs      ## String argument validation
-├── collection_argument.rs  ## Collection argument validation
-├── option_argument.rs      ## Option argument validation
-├── condition.rs            ## Condition and state validation
-└── mod.rs                  ## Module entry point
-```
+## Error Model and Constraint Types
 
-## Core Features
+All error-model types are also exported from the crate root:
 
-### 1. Numeric Validation (`NumericArgument`)
+| API | Purpose |
+| --- | --- |
+| `ArgumentError::new`, `path`, `kind`, `into_parts` | Construct or inspect an owned structured failure |
+| `ArgumentPath::new`, `as_str` | Store and borrow an argument or nested-field path |
+| `ArgumentErrorKind` | Match `Missing`, `Blank`, `Empty`, `Length`, `Comparison`, `Range`, invalid-constraint, NaN, index, bounds, pattern, and custom failures |
+| `ArgumentValue` | Preserve signed, unsigned, `f32`, or `f64` values without numeric loss |
+| `LengthConstraint`, `ComparisonConstraint` | Describe length and numeric-comparison requirements |
+| `ArgumentBound`, `RangeConstraint::new`, `lower`, `upper`, `into_bounds` | Describe inclusive, exclusive, or unbounded numeric ranges |
+| `IndexRole`, `PatternExpectation` | Distinguish index domains and regex match expectations |
 
-Supports the built-in numeric types implemented by this crate: signed integers
-(`i8`, `i16`, `i32`, `i64`, `i128`, `isize`), unsigned integers (`u8`, `u16`,
-`u32`, `u64`, `u128`, `usize`), and floats (`f32`, `f64`). Floating-point
-validations reject `NaN`.
+`ArgumentError` owns this context and implements `std::error::Error`. Its
+`Display` output is diagnostic text rather than a stable parsing protocol.
 
-```rust
-use qubit_argument::argument::NumericArgument;
+## Ownership-Preserving Chains
 
-// Validate non-negative
-let count = 10;
-let count = count.require_non_negative("count")?;
-
-// Validate range
-let volume = 50;
-let volume = volume.require_in_closed_range("volume", 0, 100)?;
-
-// Method chaining
-let age = 25;
-let age = age
-    .require_non_negative("age")
-    .and_then(|a| a.require_in_closed_range("age", 0, 150))?;
-```
-
-**Available methods:**
-- `require_zero()` - Validate zero
-- `require_non_zero()` - Validate non-zero
-- `require_positive()` - Validate positive
-- `require_non_negative()` - Validate non-negative
-- `require_negative()` - Validate negative
-- `require_non_positive()` - Validate non-positive
-- `require_in_closed_range()` - Closed interval [min, max]
-- `require_in_open_range()` - Open interval (min, max)
-- `require_in_left_open_range()` - Left-open, right-closed (min, max]
-- `require_in_right_open_range()` - Left-closed, right-open [min, max)
-- `require_less()` - Less than
-- `require_less_equal()` - Less than or equal
-- `require_greater()` - Greater than
-- `require_greater_equal()` - Greater than or equal
-
-### 2. String Validation (`StringArgument`)
-
-Supports `&str` and `String` types.
+Extension-trait methods consume and return `Self`. Owned values remain owned,
+borrowed values remain borrowed, and successful validation does not clone the
+input.
 
 ```rust
-use qubit_argument::argument::StringArgument;
+use qubit_argument::{ArgumentResult, NumericArgument, StringArgument};
 
-// Validate non-blank
-let username = "alice";
-let username = username.require_non_blank("username")?;
-
-// Validate length
-let password = "secret123";
-let password = password
-    .require_length_at_least("password", 8)
-    .and_then(|p| p.require_length_at_most("password", 20))?;
-
-// Regex matching
-use regex::Regex;
-let email = "user@example.com";
-let pattern = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")?;
-let email = email.require_match("email", &pattern)?;
+fn validate_user(age: u8, name: String) -> ArgumentResult<(u8, String)> {
+    let age = age.require_in_range("age", 0..=150)?;
+    let name = name
+        .require_non_blank("name")?
+        .require_char_count_in("name", 3, 32)?;
+    Ok((age, name))
+}
 ```
 
-**Available methods:**
-- `require_non_blank()` - Validate non-blank
-- `require_length_be()` - Length equals
-- `require_length_at_least()` - Minimum length
-- `require_length_at_most()` - Maximum length
-- `require_length_in_range()` - Length range
-- `require_match()` - Regex match
-- `require_not_match()` - Regex not match
-
-### 3. Collection Validation (`CollectionArgument`)
-
-Supports `&[T]` and `Vec<T>` types.
+## Structured Errors and Downstream Conversion
 
 ```rust
-use qubit_argument::argument::CollectionArgument;
+use qubit_argument::{ArgumentError, NumericArgument};
 
-// Validate non-empty
-let items = vec![1, 2, 3];
-let items = items.require_non_empty("items")?;
+#[derive(Debug)]
+enum DomainError {
+    InvalidArgument(ArgumentError),
+}
 
-// Validate length
-let tags = vec!["rust", "programming"];
-let tags = tags
-    .require_non_empty("tags")
-    .and_then(|t| t.require_length_at_most("tags", 10))?;
-```
-
-**Available methods:**
-- `require_non_empty()` - Validate non-empty
-- `require_length_be()` - Length equals
-- `require_length_at_least()` - Minimum length
-- `require_length_at_most()` - Maximum length
-- `require_length_in_range()` - Length range
-
-### 4. Option Validation (`OptionArgument`)
-
-Supports `Option<T>` types.
-
-```rust
-use qubit_argument::argument::OptionArgument;
-
-// Validate non-null
-let timeout: Option<u64> = Some(30);
-let timeout = timeout.require_non_null("timeout")?;
-
-// Validate non-null and condition
-let port: Option<u16> = Some(8080);
-let port = port.require_non_null_and(
-    "port",
-    |&p| p >= 1024,
-    "Must be greater than or equal to 1024"
-)?;
-
-// Optional validation
-let max_conn: Option<usize> = Some(100);
-let max_conn = max_conn.validate_if_present("max_connections", |c| {
-    if *c > 10000 {
-        Err("Too many connections".into())
-    } else {
-        Ok(*c)
+impl From<ArgumentError> for DomainError {
+    fn from(error: ArgumentError) -> Self {
+        Self::InvalidArgument(error)
     }
-})?;
-```
-
-**Available methods:**
-- `require_non_null()` - Validate non-None
-- `require_non_null_and()` - Validate non-None and condition
-- `validate_if_present()` - Validate if present
-
-### 5. Condition Validation
-
-General condition and state validation functions.
-
-```rust
-use qubit_argument::argument::{check_argument, check_state, check_bounds};
-
-// Basic condition check
-let is_valid = true;
-check_argument(is_valid)?;
-
-// Check with message
-check_argument_with_message(count > 0, "Count must be positive")?;
-
-// State check
-check_state(is_initialized)?;
-
-// Bounds check
-check_bounds(offset, length, total_length)?;
-
-// Index check
-let index = check_element_index(5, list_size)?;
-```
-
-**Available functions:**
-- `check_argument()` - Check argument condition
-- `check_argument_with_message()` - Argument check with message
-- `check_argument_fmt()` - Argument check with formatted message
-- `check_state()` - Check state condition
-- `check_state_with_message()` - State check with message
-- `check_bounds()` - Bounds check
-- `check_element_index()` - Element index check
-- `check_position_index()` - Position index check
-- `check_position_indexes()` - Position index range check
-
-## Error Handling
-
-All validation methods return `ArgumentResult<T>`, which is a type alias for `Result<T, ArgumentError>`.
-
-```rust
-use qubit_argument::argument::{ArgumentError, ArgumentResult};
-
-fn validate_config(port: u16, timeout: u64) -> ArgumentResult<()> {
-    port.require_in_closed_range("port", 1024, 65535)?;
-    timeout.require_positive("timeout")?;
-    Ok(())
 }
 
-// Error handling
-match validate_config(80, 30) {
-    Ok(_) => println!("Configuration is valid"),
-    Err(e) => eprintln!("Configuration error: {}", e.message()),
+fn validate_workers(workers: usize) -> Result<usize, DomainError> {
+    let workers = workers.require_positive("workers")?;
+    Ok(workers)
 }
 ```
 
-## Design Philosophy
+The conversion preserves the complete structured error and lets `?` propagate
+it naturally. Inspect `error.path()` and `error.kind()` for program logic;
+reserve `Display` for human-readable diagnostics.
 
-1. **Type Safety**: Leverage Rust's type system for compile-time safety
-2. **Zero-cost Abstractions**: Same performance as manual checks after compilation
-3. **Method Chaining**: Return `Result<Self>` to support elegant chained validation
-4. **Clear Errors**: Provide friendly error messages with parameter names and values
-5. **Idiomatic**: Follow Rust's design philosophy and best practices
+For a value that is guaranteed by program construction, the caller may
+explicitly escalate a validation error with a documented `expect`:
 
-## Testing
+```rust
+use qubit_argument::NumericArgument;
+
+let workers = 4_usize
+    .require_positive("workers")
+    .expect("the compiled-in worker count is a positive internal invariant");
+assert_eq!(workers, 4);
+```
+
+## Numeric Validation
+
+`NumericArgument` supports all primitive integer types, `f32`, and `f64`.
+Successful methods return the original numeric value without cloning.
+
+| Methods | Failure kinds |
+| --- | --- |
+| `require_zero`, `require_non_zero`, `require_positive`, `require_non_negative`, `require_negative`, `require_non_positive` | `Comparison`; `NotANumber` for NaN |
+| `require_less_than`, `require_at_most`, `require_greater_than`, `require_at_least` | `Comparison`; `NotANumber` when the value or bound is NaN |
+| `require_in_range` | `Range`, `InvalidRangeConstraint`, or `NotANumber` |
+
+`require_in_range` accepts standard `RangeBounds`, including inclusive,
+exclusive, and unbounded endpoints. Reversed bounds and equal endpoints with an
+excluded side produce `InvalidRangeConstraint`.
+
+## String Validation
+
+`StringArgument` is implemented for `String` and `&str`. Every successful
+method returns the original string value or borrow without cloning, and no
+string-validation error stores the original inspected string.
+
+| Methods | Measurement | Failure kinds |
+| --- | --- | --- |
+| `require_non_blank` | Unicode whitespace | `Blank` |
+| `require_byte_len`, `require_byte_len_at_least`, `require_byte_len_at_most` | UTF-8 bytes | `Length` |
+| `require_byte_len_in` | UTF-8 bytes | `Length` or `InvalidLengthConstraint` |
+| `require_char_count`, `require_char_count_at_least`, `require_char_count_at_most` | Unicode scalar values | `Length` |
+| `require_char_count_in` | Unicode scalar values | `Length` or `InvalidLengthConstraint` |
+| `require_match`, `require_not_match` (`regex` feature) | `Regex::is_match` | `Pattern` |
+
+Byte length and Unicode scalar count are not interchangeable. `"汉😀"` has a
+byte length of seven and a scalar count of two. Scalar values are also not
+grapheme clusters.
+
+The regex methods are available only with the optional `regex` feature. They
+use `Regex::is_match` directly, so matching is not implicitly anchored. Use
+anchors in the pattern when whole-string matching is required.
+
+## Collection Validation
+
+`CollectionArgument` is implemented for `Vec<T>`, `&[T]`, and `[T; N]`.
+Successful validation returns the original collection without cloning its
+elements.
+
+| Method | Failure kinds |
+| --- | --- |
+| `require_non_empty` | `Empty` |
+| `require_len`, `require_len_at_least`, `require_len_at_most` | `Length` |
+| `require_len_in` | `Length` or `InvalidLengthConstraint` |
+
+## Option Validation
+
+`OptionArgument::require_some` moves a present value out without cloning and
+returns `Missing` for `None`. `validate_if_some` borrows a present value for a
+caller-supplied validator and returns the original option without cloning. It
+does not call the validator for `None` and propagates the validator's
+`ArgumentError` unchanged.
+
+## Custom and Bounds Validation
+
+| Function | Success value | Failure kind |
+| --- | --- | --- |
+| `require_that` | Original value, without cloning | `Custom` |
+| `check_bounds` | `()` | `Bounds` |
+| `check_element_index` | Original index | `Index` with `IndexRole::Element` |
+| `check_position_index` | Original index | `Index` with `IndexRole::Position` |
+| `check_position_range` | Validated `start..end` | `IndexRange` |
+
+`check_bounds` compares before subtracting, avoiding unchecked
+`offset + length` arithmetic. `require_that` copies the caller-provided path,
+code, and message only on failure; callers must keep custom messages free of
+sensitive data.
+
+## Features
+
+The default feature set is empty. Enable regex validation only when needed:
+
+```toml
+[dependencies]
+qubit-argument = "0.4"
+
+# Enable only when regex validation is needed.
+qubit-argument = { version = "0.4", features = ["regex"] }
+```
+
+## Verification
 
 ```bash
-cargo test --test argument_tests argument
+cargo test --doc --no-default-features
+cargo test --doc --all-features
+RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --all-features
 ```
-
-## Documentation
-
-Run `cargo doc --open` to view the complete API documentation.

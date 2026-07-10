@@ -17,16 +17,17 @@ use crate::argument::{ArgumentError, ArgumentErrorKind, ArgumentResult};
 pub trait OptionArgument<T>: Sized {
     /// Requires this option to contain a value.
     ///
-    /// A present value is moved out and returned. An absent value returns
-    /// [`ArgumentErrorKind::Missing`] at `path`.
+    /// A present value is moved out and returned without cloning. An absent
+    /// value returns [`ArgumentErrorKind::Missing`] at `path`.
     fn require_some(self, path: &str) -> ArgumentResult<T>;
 
     /// Validates a present value by temporary borrow.
     ///
     /// `validator` receives a shared reference when this option is present. A
     /// successful validator returns the original option without cloning its
-    /// value; a validator error is propagated unchanged. An absent option is
-    /// returned without executing `validator`.
+    /// value; it introduces no failure kind of its own and propagates any
+    /// [`ArgumentErrorKind`] returned by `validator` unchanged. An absent
+    /// option is returned without executing `validator`.
     fn validate_if_some<F>(self, validator: F) -> ArgumentResult<Self>
     where
         F: FnOnce(&T) -> ArgumentResult<()>;

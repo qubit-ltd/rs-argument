@@ -23,27 +23,27 @@ use regex::Regex;
 pub trait StringArgument: Sized {
     /// Requires this string to contain at least one non-whitespace character.
     ///
-    /// Returns the original value on success. Empty strings and strings whose
-    /// Unicode scalar values are all whitespace return
+    /// Success returns the original value without cloning. Empty strings and
+    /// strings whose Unicode scalar values are all whitespace return
     /// [`ArgumentErrorKind::Blank`] at `path`.
     fn require_non_blank(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this string to contain exactly `expected` UTF-8 bytes.
     ///
-    /// Returns the original value on success. A different byte length returns
-    /// a structured [`ArgumentErrorKind::Length`] error at `path`.
+    /// Success returns the original value without cloning. A different byte
+    /// length returns [`ArgumentErrorKind::Length`] at `path`.
     fn require_byte_len(self, path: &str, expected: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at least `min` UTF-8 bytes.
     ///
-    /// Returns the original value on success. A smaller byte length returns a
-    /// structured [`ArgumentErrorKind::Length`] error at `path`.
+    /// Success returns the original value without cloning. A smaller byte
+    /// length returns [`ArgumentErrorKind::Length`] at `path`.
     fn require_byte_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at most `max` UTF-8 bytes.
     ///
-    /// Returns the original value on success. A larger byte length returns a
-    /// structured [`ArgumentErrorKind::Length`] error at `path`.
+    /// Success returns the original value without cloning. A larger byte
+    /// length returns [`ArgumentErrorKind::Length`] at `path`.
     fn require_byte_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this string's UTF-8 byte length to lie in `min..=max`.
@@ -51,25 +51,26 @@ pub trait StringArgument: Sized {
     /// The range is validated before the string length. If `min > max`, this
     /// returns [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`;
     /// otherwise, an out-of-range length returns
-    /// [`ArgumentErrorKind::Length`]. Success returns the original value.
+    /// [`ArgumentErrorKind::Length`]. Success returns the original value
+    /// without cloning.
     fn require_byte_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain exactly `expected` Unicode scalar values.
     ///
-    /// Returns the original value on success. A different character count
-    /// returns a structured [`ArgumentErrorKind::Length`] error at `path`.
+    /// Success returns the original value without cloning. A different scalar
+    /// count returns [`ArgumentErrorKind::Length`] at `path`.
     fn require_char_count(self, path: &str, expected: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at least `min` Unicode scalar values.
     ///
-    /// Returns the original value on success. A smaller character count
-    /// returns a structured [`ArgumentErrorKind::Length`] error at `path`.
+    /// Success returns the original value without cloning. A smaller scalar
+    /// count returns [`ArgumentErrorKind::Length`] at `path`.
     fn require_char_count_at_least(self, path: &str, min: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at most `max` Unicode scalar values.
     ///
-    /// Returns the original value on success. A larger character count returns
-    /// a structured [`ArgumentErrorKind::Length`] error at `path`.
+    /// Success returns the original value without cloning. A larger scalar
+    /// count returns [`ArgumentErrorKind::Length`] at `path`.
     fn require_char_count_at_most(self, path: &str, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this string's Unicode scalar count to lie in `min..=max`.
@@ -77,13 +78,13 @@ pub trait StringArgument: Sized {
     /// The range is validated before the character count. If `min > max`, this
     /// returns [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`;
     /// otherwise, an out-of-range count returns [`ArgumentErrorKind::Length`].
-    /// Success returns the original value.
+    /// Success returns the original value without cloning.
     fn require_char_count_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to match `pattern`.
     ///
     /// Matching uses [`Regex::is_match`] without implicit anchoring. Success
-    /// returns the original value; failure returns
+    /// returns the original value without cloning; failure returns
     /// [`ArgumentErrorKind::Pattern`] at `path` without capturing the input.
     #[cfg(feature = "regex")]
     fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self>;
@@ -91,7 +92,7 @@ pub trait StringArgument: Sized {
     /// Requires this string not to match `pattern`.
     ///
     /// Matching uses [`Regex::is_match`] without implicit anchoring. Success
-    /// returns the original value; failure returns
+    /// returns the original value without cloning; failure returns
     /// [`ArgumentErrorKind::Pattern`] at `path` without capturing the input.
     #[cfg(feature = "regex")]
     fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self>;
