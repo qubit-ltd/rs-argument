@@ -5,15 +5,6 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-//! # Argument Module Test Entry
-//!
-//! Tests for argument validation utilities.
+//! Integration tests for argument validation.
 
-mod argument {
-    pub(crate) mod argument_error_tests;
-    pub(crate) mod collection_argument_tests;
-    pub(crate) mod condition_tests;
-    pub(crate) mod numeric_argument_tests;
-    pub(crate) mod option_argument_tests;
-    pub(crate) mod string_argument_tests;
-}
+mod argument;

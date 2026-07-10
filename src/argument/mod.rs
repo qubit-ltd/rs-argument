@@ -13,9 +13,12 @@
 //! # Module Organization
 //!
 //! - `argument_error`: Error type definitions
+//! - `argument_path`: Structured argument paths
+//! - `argument_value`: Lossless primitive numeric values
 //! - `numeric_argument`: Numeric argument validation
 //! - `string_argument`: String argument validation
 //! - `collection_argument`: Collection argument validation
+//! - `constraint`: Reusable constraint vocabulary
 //! - `option_argument`: Option argument validation
 //! - `condition`: Condition and state validation
 //!
@@ -58,8 +61,11 @@
 //! ```
 
 pub mod argument_error;
+mod argument_path;
+mod argument_value;
 pub mod collection_argument;
 pub mod condition;
+mod constraint;
 pub mod numeric_argument;
 pub mod option_argument;
 pub mod string_argument;
@@ -69,6 +75,8 @@ pub use argument_error::{
     ArgumentError,
     ArgumentResult,
 };
+pub use argument_path::ArgumentPath;
+pub use argument_value::ArgumentValue;
 pub use collection_argument::{
     CollectionArgument,
     require_element_non_null,
@@ -83,6 +91,14 @@ pub use condition::{
     check_position_indexes,
     check_state,
     check_state_with_message,
+};
+pub use constraint::{
+    ArgumentBound,
+    ComparisonConstraint,
+    IndexRole,
+    LengthConstraint,
+    PatternExpectation,
+    RangeConstraint,
 };
 pub use numeric_argument::{
     NumericArgument,
