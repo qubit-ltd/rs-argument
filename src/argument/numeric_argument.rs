@@ -5,761 +5,501 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-//! # Numeric Argument Validation
-//!
-//! Provides validation functionality for numeric type arguments.
+//! Ownership-preserving validation for primitive numeric arguments.
 
-use super::argument_error::{
-    ArgumentError,
-    ArgumentResult,
-};
+use std::cmp::Ordering;
 use std::fmt::Display;
+use std::ops::{Bound, RangeBounds};
 
-/// Internal trait that restricts `NumericArgument` to actual numeric types.
-trait NumericValue: PartialOrd + Display + Copy {
-    /// Returns the additive identity (zero) of the numeric type.
+use crate::argument::{
+    ArgumentBound, ArgumentError, ArgumentErrorKind, ArgumentResult, ArgumentValue,
+    ComparisonConstraint, RangeConstraint,
+};
+
+/// Restricts numeric validation to supported primitive numeric values.
+///
+/// Implementations provide the type's zero value, an exact structured error
+/// representation, and NaN detection. The trait is private so arbitrary
+/// partially ordered caller types cannot opt into numeric validation.
+trait NumericValue: Copy + PartialOrd {
+    /// Returns the zero value for this primitive numeric type.
     fn zero() -> Self;
 
-    /// Rejects NaN values when the numeric type supports NaN.
+    /// Captures this value without losing integer magnitude or floating bits.
+    fn to_argument_value(self) -> ArgumentValue;
+
+    /// Returns whether this value is a floating-point NaN.
     ///
-    /// Non-floating-point types always pass this check.
-    #[inline]
-    fn reject_nan(self, _name: &str) -> ArgumentResult<()> {
-        Ok(())
-    }
+    /// Integer implementations always return `false`.
+    fn is_nan(self) -> bool;
 }
 
-macro_rules! impl_numeric_value_for_int {
-    ($($t:ty),+ $(,)?) => {
+/// Implements primitive numeric conversion and non-NaN behavior for integers.
+macro_rules! impl_numeric_value_for_integer {
+    ($($numeric_type:ty),+ $(,)?) => {
         $(
-            impl NumericValue for $t {
+            impl NumericValue for $numeric_type {
+                /// Returns integer zero.
                 #[inline]
                 fn zero() -> Self {
                     0
+                }
+
+                /// Captures the integer without losing its value.
+                #[inline]
+                fn to_argument_value(self) -> ArgumentValue {
+                    ArgumentValue::from(self)
+                }
+
+                /// Reports that an integer can never be NaN.
+                #[inline]
+                fn is_nan(self) -> bool {
+                    false
                 }
             }
         )+
     };
 }
 
-impl_numeric_value_for_int!(i8, i16, i32, i64, i128, isize);
-impl_numeric_value_for_int!(u8, u16, u32, u64, u128, usize);
+impl_numeric_value_for_integer!(i8, i16, i32, i64, i128, isize);
+impl_numeric_value_for_integer!(u8, u16, u32, u64, u128, usize);
 
 impl NumericValue for f32 {
+    /// Returns positive floating-point zero.
     #[inline]
     fn zero() -> Self {
         0.0
     }
 
+    /// Captures the exact IEEE 754 bit pattern of this value.
     #[inline]
-    fn reject_nan(self, name: &str) -> ArgumentResult<()> {
-        if self.is_nan() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must not be NaN",
-                name
-            )));
-        }
-        Ok(())
+    fn to_argument_value(self) -> ArgumentValue {
+        ArgumentValue::from(self)
+    }
+
+    /// Returns whether this value is NaN.
+    #[inline]
+    fn is_nan(self) -> bool {
+        self.is_nan()
     }
 }
 
 impl NumericValue for f64 {
+    /// Returns positive floating-point zero.
     #[inline]
     fn zero() -> Self {
         0.0
     }
 
+    /// Captures the exact IEEE 754 bit pattern of this value.
     #[inline]
-    fn reject_nan(self, name: &str) -> ArgumentResult<()> {
-        if self.is_nan() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must not be NaN",
-                name
-            )));
-        }
-        Ok(())
+    fn to_argument_value(self) -> ArgumentValue {
+        ArgumentValue::from(self)
+    }
+
+    /// Returns whether this value is NaN.
+    #[inline]
+    fn is_nan(self) -> bool {
+        self.is_nan()
     }
 }
 
-/// Numeric argument validation trait
+/// Validates primitive numeric arguments while preserving their values.
 ///
-/// Provides validation methods for all sortable numeric types, supporting
-/// method chaining.
-///
-/// # Features
-///
-/// - Zero-cost abstraction: Same performance as manual checks after compilation
-/// - Method chaining: Can perform multiple validations in sequence
-/// - Type safety: Leverages Rust's type system to ensure correctness
-/// - Clear errors: Provides friendly error messages
-///
-/// # Use Cases
-///
-/// - Validating function parameter validity
-/// - Configuration value range checking
-/// - User input numeric validation
-///
-/// # Examples
-///
-/// Basic usage (returns `ArgumentResult`):
-///
-/// ```rust
-/// use qubit_argument::argument::{NumericArgument, ArgumentResult};
-///
-/// fn set_volume(volume: i32) -> ArgumentResult<()> {
-///     let volume = volume.require_in_closed_range("volume", 0, 100)?;
-///     println!("Volume: {}", volume);
-///     Ok(())
-/// }
-/// ```
-///
-/// Converting to other error types:
-///
-/// ```rust
-/// use qubit_argument::argument::NumericArgument;
-///
-/// fn set_volume(volume: i32) -> Result<(), String> {
-///     let volume = volume
-///         .require_non_negative("volume")
-///         .and_then(|v| v.require_in_closed_range("volume", 0, 100))
-///         .map_err(|e| e.to_string())?;
-///     println!("Volume: {}", volume);
-///     Ok(())
-/// }
-/// ```
+/// Every successful method returns the original value without conversion or
+/// normalization. Failures contain structured comparison or range data, and
+/// every method rejects floating-point NaN values with
+/// [`ArgumentErrorKind::NotANumber`].
 pub trait NumericArgument: Sized {
-    /// Validate that value is zero
+    /// Requires this value to equal zero.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name for error message generation
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is zero, otherwise returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value: i32 = 0;
-    /// assert!(value.require_zero("value").is_ok());
-    ///
-    /// let non_zero: i32 = 5;
-    /// assert!(non_zero.require_zero("value").is_err());
-    /// ```
-    fn require_zero(self, name: &str) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `EqualTo(0)` comparison error at `path`.
+    fn require_zero(self, path: &str) -> ArgumentResult<Self>;
 
-    /// Validate that value is non-zero
+    /// Requires this value not to equal zero.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is non-zero, otherwise returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value: i32 = 10;
-    /// assert!(value.require_non_zero("value").is_ok());
-    ///
-    /// let zero: i32 = 0;
-    /// assert!(zero.require_non_zero("value").is_err());
-    /// ```
-    fn require_non_zero(self, name: &str) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `NotEqualTo(0)` comparison error at `path`.
+    fn require_non_zero(self, path: &str) -> ArgumentResult<Self>;
 
-    /// Validate that value is positive
+    /// Requires this value to be strictly greater than zero.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is greater than zero, otherwise returns an
-    /// error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value: i32 = 10;
-    /// assert!(value.require_positive("value").is_ok());
-    ///
-    /// let zero: i32 = 0;
-    /// assert!(zero.require_positive("value").is_err());
-    /// ```
-    fn require_positive(self, name: &str) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `GreaterThan(0)` comparison error at `path`.
+    fn require_positive(self, path: &str) -> ArgumentResult<Self>;
 
-    /// Validate that value is non-negative
+    /// Requires this value to be greater than or equal to zero.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is non-negative, otherwise returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value: i32 = 0;
-    /// assert!(value.require_non_negative("value").is_ok());
-    ///
-    /// let negative: i32 = -5;
-    /// assert!(negative.require_non_negative("value").is_err());
-    /// ```
-    fn require_non_negative(self, name: &str) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `AtLeast(0)` comparison error at `path`.
+    fn require_non_negative(self, path: &str) -> ArgumentResult<Self>;
 
-    /// Validate that value is negative
+    /// Requires this value to be strictly less than zero.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is less than zero, otherwise returns an
-    /// error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value: i32 = -5;
-    /// assert!(value.require_negative("value").is_ok());
-    ///
-    /// let positive: i32 = 5;
-    /// assert!(positive.require_negative("value").is_err());
-    /// ```
-    fn require_negative(self, name: &str) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `LessThan(0)` comparison error at `path`.
+    fn require_negative(self, path: &str) -> ArgumentResult<Self>;
 
-    /// Validate that value is non-positive
+    /// Requires this value to be less than or equal to zero.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is less than or equal to zero, otherwise
-    /// returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value: i32 = 0;
-    /// assert!(value.require_non_positive("value").is_ok());
-    ///
-    /// let negative: i32 = -5;
-    /// assert!(negative.require_non_positive("value").is_ok());
-    ///
-    /// let positive: i32 = 5;
-    /// assert!(positive.require_non_positive("value").is_err());
-    /// ```
-    fn require_non_positive(self, name: &str) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `AtMost(0)` comparison error at `path`.
+    fn require_non_positive(self, path: &str) -> ArgumentResult<Self>;
 
-    /// Validate that value is within closed interval
+    /// Requires this value to be strictly less than `bound`.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    /// * `min` - Minimum value (inclusive)
-    /// * `max` - Maximum value (inclusive)
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is within [min, max] range, otherwise
-    /// returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value = 50;
-    /// assert!(value.require_in_closed_range("value", 0, 100).is_ok());
-    ///
-    /// let out_of_range = 150;
-    /// assert!(out_of_range.require_in_closed_range("value", 0, 100).is_err());
-    /// ```
-    fn require_in_closed_range(
-        self,
-        name: &str,
-        min: Self,
-        max: Self,
-    ) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `LessThan` comparison error at `path`.
+    fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
-    /// Validate that value is within open interval
+    /// Requires this value to be less than or equal to `bound`.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    /// * `min` - Minimum value (exclusive)
-    /// * `max` - Maximum value (exclusive)
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is within (min, max) range, otherwise
-    /// returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value = 50;
-    /// assert!(value.require_in_open_range("value", 0, 100).is_ok());
-    ///
-    /// let boundary = 0;
-    /// assert!(boundary.require_in_open_range("value", 0, 100).is_err());
-    /// ```
-    fn require_in_open_range(
-        self,
-        name: &str,
-        min: Self,
-        max: Self,
-    ) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `AtMost` comparison error at `path`.
+    fn require_at_most(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
-    /// Validate that value is within left-open right-closed interval
+    /// Requires this value to be strictly greater than `bound`.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    /// * `min` - Minimum value (exclusive)
-    /// * `max` - Maximum value (inclusive)
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is within (min, max] range, otherwise
-    /// returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value = 100;
-    /// assert!(value.require_in_left_open_range("value", 0, 100).is_ok());
-    ///
-    /// let min_boundary = 0;
-    /// assert!(min_boundary.require_in_left_open_range("value", 0, 100).is_err());
-    /// ```
-    fn require_in_left_open_range(
-        self,
-        name: &str,
-        min: Self,
-        max: Self,
-    ) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `GreaterThan` comparison error at `path`.
+    fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
-    /// Validate that value is within left-closed right-open interval
+    /// Requires this value to be greater than or equal to `bound`.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    /// * `min` - Minimum value (inclusive)
-    /// * `max` - Maximum value (exclusive)
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is within [min, max) range, otherwise
-    /// returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value = 0;
-    /// assert!(value.require_in_right_open_range("value", 0, 100).is_ok());
-    ///
-    /// let max_boundary = 100;
-    /// assert!(max_boundary.require_in_right_open_range("value", 0, 100).is_err());
-    /// ```
-    fn require_in_right_open_range(
-        self,
-        name: &str,
-        min: Self,
-        max: Self,
-    ) -> ArgumentResult<Self>;
+    /// Returns the original value on success. Otherwise, returns a structured
+    /// `AtLeast` comparison error at `path`.
+    fn require_at_least(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
-    /// Validate that value is less than specified value
+    /// Requires this value to lie within `range`.
     ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    /// * `max` - Maximum value (exclusive)
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is less than max, otherwise returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value = 50;
-    /// assert!(value.require_less("value", 100).is_ok());
-    ///
-    /// let boundary = 100;
-    /// assert!(boundary.require_less("value", 100).is_err());
-    /// ```
-    fn require_less(self, name: &str, max: Self) -> ArgumentResult<Self>;
-
-    /// Validate that value is less than or equal to specified value
-    ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    /// * `max` - Maximum value (inclusive)
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is less than or equal to max, otherwise
-    /// returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value = 100;
-    /// assert!(value.require_less_equal("value", 100).is_ok());
-    ///
-    /// let over = 101;
-    /// assert!(over.require_less_equal("value", 100).is_err());
-    /// ```
-    fn require_less_equal(self, name: &str, max: Self) -> ArgumentResult<Self>;
-
-    /// Validate that value is greater than specified value
-    ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    /// * `min` - Minimum value (exclusive)
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is greater than min, otherwise returns an
-    /// error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value = 50;
-    /// assert!(value.require_greater("value", 0).is_ok());
-    ///
-    /// let boundary = 0;
-    /// assert!(boundary.require_greater("value", 0).is_err());
-    /// ```
-    fn require_greater(self, name: &str, min: Self) -> ArgumentResult<Self>;
-
-    /// Validate that value is greater than or equal to specified value
-    ///
-    /// # Parameters
-    ///
-    /// * `name` - Parameter name
-    /// * `min` - Minimum value (inclusive)
-    ///
-    /// # Returns
-    ///
-    /// Returns `Ok(self)` if value is greater than or equal to min, otherwise
-    /// returns an error
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use qubit_argument::argument::NumericArgument;
-    ///
-    /// let value = 0;
-    /// assert!(value.require_greater_equal("value", 0).is_ok());
-    ///
-    /// let under = -1;
-    /// assert!(under.require_greater_equal("value", 0).is_err());
-    /// ```
-    fn require_greater_equal(
-        self,
-        name: &str,
-        min: Self,
-    ) -> ArgumentResult<Self>;
+    /// Standard inclusive, exclusive, and unbounded [`RangeBounds`] are
+    /// supported. The range structure is validated before this value: reversed
+    /// endpoints and equal endpoints with either endpoint excluded return
+    /// `InvalidRangeConstraint`. NaN endpoints or values return `NotANumber`.
+    /// An otherwise out-of-range value returns a structured `Range` error.
+    /// Successful validation returns the original value.
+    fn require_in_range<R>(self, path: &str, range: R) -> ArgumentResult<Self>
+    where
+        R: RangeBounds<Self>;
 }
 
-/// Implement numeric argument validation for all ordered displayable types
-///
-/// Automatically provides validation functionality for all standard numeric
-/// types: i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize,
-/// f32, and f64.
 impl<T> NumericArgument for T
 where
     T: NumericValue,
 {
+    /// Requires equality with zero and preserves the original value.
     #[inline]
-    fn require_zero(self, name: &str) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        if self != T::zero() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be zero but was: {}",
-                name, self
-            )));
-        }
-        Ok(self)
+    fn require_zero(self, path: &str) -> ArgumentResult<Self> {
+        let zero = T::zero();
+        validate_comparison(
+            self,
+            path,
+            zero,
+            ComparisonConstraint::EqualTo(zero.to_argument_value()),
+            |actual, bound| actual == bound,
+        )
     }
 
+    /// Requires inequality with zero and preserves the original value.
     #[inline]
-    fn require_non_zero(self, name: &str) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        if self == T::zero() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' cannot be zero",
-                name
-            )));
-        }
-        Ok(self)
+    fn require_non_zero(self, path: &str) -> ArgumentResult<Self> {
+        let zero = T::zero();
+        validate_comparison(
+            self,
+            path,
+            zero,
+            ComparisonConstraint::NotEqualTo(zero.to_argument_value()),
+            |actual, bound| actual != bound,
+        )
     }
 
+    /// Requires a value strictly greater than zero.
     #[inline]
-    fn require_positive(self, name: &str) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        if self <= T::zero() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be positive but was: {}",
-                name, self
-            )));
-        }
-        Ok(self)
+    fn require_positive(self, path: &str) -> ArgumentResult<Self> {
+        let zero = T::zero();
+        validate_comparison(
+            self,
+            path,
+            zero,
+            ComparisonConstraint::GreaterThan(zero.to_argument_value()),
+            |actual, bound| actual > bound,
+        )
     }
 
+    /// Requires a value greater than or equal to zero.
     #[inline]
-    fn require_non_negative(self, name: &str) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        if self < T::zero() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be non-negative but was: {}",
-                name, self
-            )));
-        }
-        Ok(self)
+    fn require_non_negative(self, path: &str) -> ArgumentResult<Self> {
+        let zero = T::zero();
+        validate_comparison(
+            self,
+            path,
+            zero,
+            ComparisonConstraint::AtLeast(zero.to_argument_value()),
+            |actual, bound| actual >= bound,
+        )
     }
 
+    /// Requires a value strictly less than zero.
     #[inline]
-    fn require_negative(self, name: &str) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        if self >= T::zero() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be negative but was: {}",
-                name, self
-            )));
-        }
-        Ok(self)
+    fn require_negative(self, path: &str) -> ArgumentResult<Self> {
+        let zero = T::zero();
+        validate_comparison(
+            self,
+            path,
+            zero,
+            ComparisonConstraint::LessThan(zero.to_argument_value()),
+            |actual, bound| actual < bound,
+        )
     }
 
+    /// Requires a value less than or equal to zero.
     #[inline]
-    fn require_non_positive(self, name: &str) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        if self > T::zero() {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be non-positive but was: {}",
-                name, self
-            )));
-        }
-        Ok(self)
+    fn require_non_positive(self, path: &str) -> ArgumentResult<Self> {
+        let zero = T::zero();
+        validate_comparison(
+            self,
+            path,
+            zero,
+            ComparisonConstraint::AtMost(zero.to_argument_value()),
+            |actual, bound| actual <= bound,
+        )
     }
 
+    /// Requires a value strictly less than the supplied bound.
     #[inline]
-    fn require_in_closed_range(
-        self,
-        name: &str,
-        min: Self,
-        max: Self,
-    ) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        min.reject_nan("min")?;
-        max.reject_nan("max")?;
-        if min > max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' has invalid range: min {} is greater than max {}",
-                name, min, max
-            )));
-        }
-        if self < min || self > max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be in range [{}, {}] but was: {}",
-                name, min, max, self
-            )));
-        }
-        Ok(self)
+    fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self> {
+        validate_comparison(
+            self,
+            path,
+            bound,
+            ComparisonConstraint::LessThan(bound.to_argument_value()),
+            |actual, bound| actual < bound,
+        )
     }
 
+    /// Requires a value less than or equal to the supplied bound.
     #[inline]
-    fn require_in_open_range(
-        self,
-        name: &str,
-        min: Self,
-        max: Self,
-    ) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        min.reject_nan("min")?;
-        max.reject_nan("max")?;
-        if min >= max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' has invalid range: min {} must be less than max {}",
-                name, min, max
-            )));
-        }
-        if self <= min || self >= max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be in range ({}, {}) but was: {}",
-                name, min, max, self
-            )));
-        }
-        Ok(self)
+    fn require_at_most(self, path: &str, bound: Self) -> ArgumentResult<Self> {
+        validate_comparison(
+            self,
+            path,
+            bound,
+            ComparisonConstraint::AtMost(bound.to_argument_value()),
+            |actual, bound| actual <= bound,
+        )
     }
 
+    /// Requires a value strictly greater than the supplied bound.
     #[inline]
-    fn require_in_left_open_range(
-        self,
-        name: &str,
-        min: Self,
-        max: Self,
-    ) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        min.reject_nan("min")?;
-        max.reject_nan("max")?;
-        if min > max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' has invalid range: min {} is greater than max {}",
-                name, min, max
-            )));
-        }
-        if self <= min || self > max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be in range ({}, {}] but was: {}",
-                name, min, max, self
-            )));
-        }
-        Ok(self)
+    fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self> {
+        validate_comparison(
+            self,
+            path,
+            bound,
+            ComparisonConstraint::GreaterThan(bound.to_argument_value()),
+            |actual, bound| actual > bound,
+        )
     }
 
+    /// Requires a value greater than or equal to the supplied bound.
     #[inline]
-    fn require_in_right_open_range(
-        self,
-        name: &str,
-        min: Self,
-        max: Self,
-    ) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        min.reject_nan("min")?;
-        max.reject_nan("max")?;
-        if min > max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' has invalid range: min {} is greater than max {}",
-                name, min, max
-            )));
-        }
-        if self < min || self >= max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be in range [{}, {}) but was: {}",
-                name, min, max, self
-            )));
-        }
-        Ok(self)
+    fn require_at_least(self, path: &str, bound: Self) -> ArgumentResult<Self> {
+        validate_comparison(
+            self,
+            path,
+            bound,
+            ComparisonConstraint::AtLeast(bound.to_argument_value()),
+            |actual, bound| actual >= bound,
+        )
     }
 
+    /// Validates the range structure before checking and returning this value.
     #[inline]
-    fn require_less(self, name: &str, max: Self) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        max.reject_nan("max")?;
-        if self >= max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be less than {} but was: {}",
-                name, max, self
-            )));
+    fn require_in_range<R>(self, path: &str, range: R) -> ArgumentResult<Self>
+    where
+        R: RangeBounds<Self>,
+    {
+        let constraint = capture_range_constraint(&range);
+        validate_range_structure(path, &range, &constraint)?;
+        validate_not_nan(path, self)?;
+        if range_contains(&range, self) {
+            Ok(self)
+        } else {
+            Err(ArgumentError::structured(
+                path,
+                ArgumentErrorKind::Range {
+                    actual: self.to_argument_value(),
+                    constraint,
+                },
+            ))
         }
-        Ok(self)
-    }
-
-    #[inline]
-    fn require_less_equal(self, name: &str, max: Self) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        max.reject_nan("max")?;
-        if self > max {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be less than or equal to {} but was: {}",
-                name, max, self
-            )));
-        }
-        Ok(self)
-    }
-
-    #[inline]
-    fn require_greater(self, name: &str, min: Self) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        min.reject_nan("min")?;
-        if self <= min {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be greater than {} but was: {}",
-                name, min, self
-            )));
-        }
-        Ok(self)
-    }
-
-    #[inline]
-    fn require_greater_equal(
-        self,
-        name: &str,
-        min: Self,
-    ) -> ArgumentResult<Self> {
-        self.reject_nan(name)?;
-        min.reject_nan("min")?;
-        if self < min {
-            return Err(ArgumentError::new(format!(
-                "Parameter '{}' must be greater than or equal to {} but was: {}",
-                name, min, self
-            )));
-        }
-        Ok(self)
     }
 }
 
-/// Comparison argument validation
+/// Rejects a NaN numeric value at the supplied argument path.
 ///
-/// Provides comparison validation functionality between two arguments.
+/// `value` is inspected without normalization. Integer values always succeed;
+/// floating-point NaN values return `ArgumentErrorKind::NotANumber` at `path`.
+fn validate_not_nan<T>(path: &str, value: T) -> ArgumentResult<()>
+where
+    T: NumericValue,
+{
+    if value.is_nan() {
+        Err(ArgumentError::structured(
+            path,
+            ArgumentErrorKind::NotANumber,
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+/// Applies one comparison and returns the unchanged numeric value on success.
 ///
-/// # Examples
+/// `actual` and `bound` are checked for NaN before `predicate` is evaluated.
+/// If the predicate returns `false`, the error records `actual` and the exact
+/// supplied `constraint` at `path`.
+fn validate_comparison<T, F>(
+    actual: T,
+    path: &str,
+    bound: T,
+    constraint: ComparisonConstraint,
+    predicate: F,
+) -> ArgumentResult<T>
+where
+    T: NumericValue,
+    F: FnOnce(T, T) -> bool,
+{
+    validate_not_nan(path, actual)?;
+    validate_not_nan(path, bound)?;
+    if predicate(actual, bound) {
+        Ok(actual)
+    } else {
+        Err(ArgumentError::structured(
+            path,
+            ArgumentErrorKind::Comparison {
+                actual: actual.to_argument_value(),
+                constraint,
+            },
+        ))
+    }
+}
+
+/// Captures a borrowed standard-library bound as a structured argument bound.
 ///
-/// ```rust
-/// use qubit_argument::argument::require_equal;
+/// Included and excluded endpoints are converted without losing numeric bits;
+/// an unbounded endpoint remains unbounded.
+fn capture_argument_bound<T>(bound: Bound<&T>) -> ArgumentBound
+where
+    T: NumericValue,
+{
+    match bound {
+        Bound::Unbounded => ArgumentBound::Unbounded,
+        Bound::Included(value) => ArgumentBound::Included(value.to_argument_value()),
+        Bound::Excluded(value) => ArgumentBound::Excluded(value.to_argument_value()),
+    }
+}
+
+/// Captures both endpoints from `range` without validating their relationship.
 ///
-/// let result = require_equal("width", 100, "height", 100);
-/// assert!(result.is_ok());
+/// The returned constraint preserves inclusive, exclusive, unbounded, and
+/// floating-point bit-pattern details exactly.
+fn capture_range_constraint<T, R>(range: &R) -> RangeConstraint
+where
+    T: NumericValue,
+    R: RangeBounds<T>,
+{
+    RangeConstraint::new(
+        capture_argument_bound(range.start_bound()),
+        capture_argument_bound(range.end_bound()),
+    )
+}
+
+/// Validates that `range` denotes a structurally non-empty numeric interval.
 ///
-/// let result = require_equal("width", 100, "height", 200);
-/// assert!(result.is_err());
-/// ```
-#[inline]
-pub fn require_equal<T>(
-    name1: &str,
-    value1: T,
-    name2: &str,
-    value2: T,
+/// Endpoint NaNs return `NotANumber`. Reversed endpoints, or equal endpoints
+/// where either bound is excluded, return `InvalidRangeConstraint` containing
+/// a clone of `constraint`. Unbounded sides require no ordering comparison.
+fn validate_range_structure<T, R>(
+    path: &str,
+    range: &R,
+    constraint: &RangeConstraint,
 ) -> ArgumentResult<()>
+where
+    T: NumericValue,
+    R: RangeBounds<T>,
+{
+    validate_range_bound_not_nan(path, range.start_bound())?;
+    validate_range_bound_not_nan(path, range.end_bound())?;
+
+    let ordering_and_closed = match (range.start_bound(), range.end_bound()) {
+        (Bound::Unbounded, _) | (_, Bound::Unbounded) => return Ok(()),
+        (Bound::Included(lower), Bound::Included(upper)) => (lower.partial_cmp(upper), true),
+        (Bound::Included(lower), Bound::Excluded(upper))
+        | (Bound::Excluded(lower), Bound::Included(upper))
+        | (Bound::Excluded(lower), Bound::Excluded(upper)) => (lower.partial_cmp(upper), false),
+    };
+    let (ordering, both_included) = ordering_and_closed;
+    match ordering {
+        Some(Ordering::Less) | Some(Ordering::Equal) if both_included => Ok(()),
+        Some(Ordering::Less) => Ok(()),
+        Some(Ordering::Equal | Ordering::Greater) => Err(ArgumentError::structured(
+            path,
+            ArgumentErrorKind::InvalidRangeConstraint {
+                constraint: constraint.clone(),
+            },
+        )),
+        None => Err(ArgumentError::structured(
+            path,
+            ArgumentErrorKind::NotANumber,
+        )),
+    }
+}
+
+/// Rejects a NaN endpoint while accepting unbounded and ordinary endpoints.
+///
+/// A NaN included or excluded endpoint returns `NotANumber` at `path`.
+fn validate_range_bound_not_nan<T>(path: &str, bound: Bound<&T>) -> ArgumentResult<()>
+where
+    T: NumericValue,
+{
+    match bound {
+        Bound::Included(value) | Bound::Excluded(value) => validate_not_nan(path, *value),
+        Bound::Unbounded => Ok(()),
+    }
+}
+
+/// Returns whether `actual` satisfies both bounds of `range`.
+///
+/// This helper assumes the range structure and all values were already checked
+/// for NaN. It uses comparisons only and performs no endpoint arithmetic.
+fn range_contains<T, R>(range: &R, actual: T) -> bool
+where
+    T: NumericValue,
+    R: RangeBounds<T>,
+{
+    let satisfies_lower = match range.start_bound() {
+        Bound::Unbounded => true,
+        Bound::Included(lower) => actual >= *lower,
+        Bound::Excluded(lower) => actual > *lower,
+    };
+    let satisfies_upper = match range.end_bound() {
+        Bound::Unbounded => true,
+        Bound::Included(upper) => actual <= *upper,
+        Bound::Excluded(upper) => actual < *upper,
+    };
+    satisfies_lower && satisfies_upper
+}
+
+/// Temporarily validates that two named values are equal.
+///
+/// Returns `Ok(())` when `value1 == value2`. Otherwise, returns the legacy
+/// message-backed argument error naming both `name1` and `name2`. This hidden
+/// compatibility export is removed when the crate-root API is finalized.
+#[doc(hidden)]
+#[inline]
+pub fn require_equal<T>(name1: &str, value1: T, name2: &str, value2: T) -> ArgumentResult<()>
 where
     T: PartialEq + Display,
 {
@@ -772,30 +512,14 @@ where
     Ok(())
 }
 
-/// Validate that two arguments are not equal
+/// Temporarily validates that two named values are unequal.
 ///
-/// # Parameters
-///
-/// * `name1` - First parameter name
-/// * `value1` - First parameter value
-/// * `name2` - Second parameter name
-/// * `value2` - Second parameter value
-///
-/// # Examples
-///
-/// ```rust
-/// use qubit_argument::argument::require_not_equal;
-///
-/// let result = require_not_equal("min", 0, "max", 100);
-/// assert!(result.is_ok());
-/// ```
+/// Returns `Ok(())` when `value1 != value2`. Otherwise, returns the legacy
+/// message-backed argument error naming both `name1` and `name2`. This hidden
+/// compatibility export is removed when the crate-root API is finalized.
+#[doc(hidden)]
 #[inline]
-pub fn require_not_equal<T>(
-    name1: &str,
-    value1: T,
-    name2: &str,
-    value2: T,
-) -> ArgumentResult<()>
+pub fn require_not_equal<T>(name1: &str, value1: T, name2: &str, value2: T) -> ArgumentResult<()>
 where
     T: PartialEq + Display,
 {
