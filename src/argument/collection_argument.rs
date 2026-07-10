@@ -17,27 +17,29 @@ use crate::argument::{ArgumentError, ArgumentErrorKind, ArgumentResult, LengthCo
 pub trait CollectionArgument: Sized {
     /// Requires this collection to contain at least one element.
     ///
-    /// Returns the original collection on success. An empty collection returns
-    /// [`ArgumentErrorKind::Empty`] at `path`.
+    /// Success returns the original collection without cloning its elements.
+    /// An empty collection returns [`ArgumentErrorKind::Empty`] at `path`.
     fn require_non_empty(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this collection to contain exactly `expected` elements.
     ///
-    /// Returns the original collection on success. A different length returns
-    /// [`ArgumentErrorKind::Length`] at `path` with an exact constraint.
+    /// Success returns the original collection without cloning its elements.
+    /// A different length returns [`ArgumentErrorKind::Length`] at `path` with
+    /// an exact constraint.
     fn require_len(self, path: &str, expected: usize) -> ArgumentResult<Self>;
 
     /// Requires this collection to contain at least `min` elements.
     ///
-    /// Returns the original collection on success. A shorter collection
-    /// returns [`ArgumentErrorKind::Length`] at `path` with a minimum
-    /// constraint.
+    /// Success returns the original collection without cloning its elements.
+    /// A shorter collection returns [`ArgumentErrorKind::Length`] at `path`
+    /// with a minimum constraint.
     fn require_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self>;
 
     /// Requires this collection to contain at most `max` elements.
     ///
-    /// Returns the original collection on success. A longer collection returns
-    /// [`ArgumentErrorKind::Length`] at `path` with a maximum constraint.
+    /// Success returns the original collection without cloning its elements.
+    /// A longer collection returns [`ArgumentErrorKind::Length`] at `path`
+    /// with a maximum constraint.
     fn require_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this collection's length to lie in `min..=max`.
@@ -45,7 +47,8 @@ pub trait CollectionArgument: Sized {
     /// The range is validated before the observed length. If `min > max`, this
     /// returns [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`;
     /// otherwise, an out-of-range length returns
-    /// [`ArgumentErrorKind::Length`]. Success returns the original collection.
+    /// [`ArgumentErrorKind::Length`]. Success returns the original collection
+    /// without cloning its elements.
     fn require_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self>;
 }
 

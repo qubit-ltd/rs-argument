@@ -25,7 +25,7 @@ pub enum ArgumentErrorKind {
     Missing,
     /// The string argument contained no non-whitespace characters.
     Blank,
-    /// The string or collection argument was empty.
+    /// The collection argument was empty.
     Empty,
     /// The argument length did not satisfy a length constraint.
     Length {

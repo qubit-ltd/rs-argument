@@ -1,228 +1,174 @@
-# 参数验证模块 (Argument)
+# 参数校验指南
 
-作者: 胡海星
+作者：胡海星
 
-## 概述
+## 用途
 
-本模块提供参数验证功能，采用符合 Rust 习惯的设计。通过 trait 扩展模式，为各种类型提供验证方法，支持链式调用。
+Qubit Argument 用于在 API 和配置边界校验值，同时保持值原有的所有权形态。
+所有公共项都直接从 `qubit_argument` 导入，具体实现模块是私有细节。
 
-## 模块结构
+每个校验函数都返回 `ArgumentResult<T>`，即
+`Result<T, ArgumentError>` 的别名。`ArgumentError` 包含
+`ArgumentPath` 和非穷尽的 `ArgumentErrorKind`，下游代码可以直接匹配
+结构化错误，不必解析诊断文本。
 
-```
-argument/
-├── argument_error.rs       ## 错误类型定义
-├── numeric_argument.rs     ## 数值参数验证
-├── string_argument.rs      ## 字符串参数验证
-├── collection_argument.rs  ## 集合参数验证
-├── option_argument.rs      ## Option 参数验证
-├── condition.rs            ## 条件和状态验证
-└── mod.rs                  ## 模块入口
-```
+## 错误模型与约束类型
 
-## 核心特性
+错误模型中的所有类型也都直接从 crate 根导出：
 
-### 1. 数值验证 (`NumericArgument`)
+| API | 用途 |
+| --- | --- |
+| `ArgumentError::new`、`path`、`kind`、`into_parts` | 构造或检查持有所有权的结构化错误 |
+| `ArgumentPath::new`、`as_str` | 保存并借用参数路径或嵌套字段路径 |
+| `ArgumentErrorKind` | 匹配缺失、空白、空值、长度、比较、范围、非法约束、NaN、索引、边界、正则和自定义错误 |
+| `ArgumentValue` | 无损保存有符号数、无符号数、`f32` 或 `f64` |
+| `LengthConstraint`、`ComparisonConstraint` | 描述长度约束和数值比较约束 |
+| `ArgumentBound`、`RangeConstraint::new`、`lower`、`upper`、`into_bounds` | 描述包含、排除或无界的数值范围 |
+| `IndexRole`、`PatternExpectation` | 区分索引语义和正则匹配预期 |
 
-支持本 crate 已实现的内置数值类型：有符号整数（`i8`、`i16`、`i32`、
-`i64`、`i128`、`isize`）、无符号整数（`u8`、`u16`、`u32`、`u64`、
-`u128`、`usize`）以及浮点数（`f32`、`f64`）。浮点数验证会拒绝 `NaN`。
+`ArgumentError` 持有这些上下文并实现 `std::error::Error`。其 `Display`
+输出只用于诊断，不是稳定的解析协议。
 
-```rust
-use qubit_argument::argument::NumericArgument;
+## 保留所有权的链式校验
 
-// 验证非负
-let count = 10;
-let count = count.require_non_negative("count")?;
-
-// 验证范围
-let volume = 50;
-let volume = volume.require_in_closed_range("volume", 0, 100)?;
-
-// 链式调用
-let age = 25;
-let age = age
-    .require_non_negative("age")
-    .and_then(|a| a.require_in_closed_range("age", 0, 150))?;
-```
-
-**可用方法：**
-- `require_zero()` - 验证为零
-- `require_non_zero()` - 验证非零
-- `require_positive()` - 验证为正
-- `require_non_negative()` - 验证非负
-- `require_negative()` - 验证为负
-- `require_non_positive()` - 验证非正
-- `require_in_closed_range()` - 闭区间 [min, max]
-- `require_in_open_range()` - 开区间 (min, max)
-- `require_in_left_open_range()` - 左开右闭 (min, max]
-- `require_in_right_open_range()` - 左闭右开 [min, max)
-- `require_less()` - 小于
-- `require_less_equal()` - 小于等于
-- `require_greater()` - 大于
-- `require_greater_equal()` - 大于等于
-
-### 2. 字符串验证 (`StringArgument`)
-
-支持 `&str` 和 `String` 类型。
+扩展 trait 方法消费并返回 `Self`。持有所有权的值在成功后仍持有所有权，
+借用仍是原借用，校验过程不会克隆输入。
 
 ```rust
-use qubit_argument::argument::StringArgument;
+use qubit_argument::{ArgumentResult, NumericArgument, StringArgument};
 
-// 验证非空白
-let username = "alice";
-let username = username.require_non_blank("username")?;
-
-// 验证长度
-let password = "secret123";
-let password = password
-    .require_length_at_least("password", 8)
-    .and_then(|p| p.require_length_at_most("password", 20))?;
-
-// 正则匹配
-use regex::Regex;
-let email = "user@example.com";
-let pattern = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")?;
-let email = email.require_match("email", &pattern)?;
+fn validate_user(age: u8, name: String) -> ArgumentResult<(u8, String)> {
+    let age = age.require_in_range("age", 0..=150)?;
+    let name = name
+        .require_non_blank("name")?
+        .require_char_count_in("name", 3, 32)?;
+    Ok((age, name))
+}
 ```
 
-**可用方法：**
-- `require_non_blank()` - 验证非空白
-- `require_length_be()` - 长度等于
-- `require_length_at_least()` - 最小长度
-- `require_length_at_most()` - 最大长度
-- `require_length_in_range()` - 长度范围
-- `require_match()` - 正则匹配
-- `require_not_match()` - 正则不匹配
-
-### 3. 集合验证 (`CollectionArgument`)
-
-支持 `&[T]` 和 `Vec<T>` 类型。
+## 结构化错误与下游转换
 
 ```rust
-use qubit_argument::argument::CollectionArgument;
+use qubit_argument::{ArgumentError, NumericArgument};
 
-// 验证非空
-let items = vec![1, 2, 3];
-let items = items.require_non_empty("items")?;
+#[derive(Debug)]
+enum DomainError {
+    InvalidArgument(ArgumentError),
+}
 
-// 验证长度
-let tags = vec!["rust", "programming"];
-let tags = tags
-    .require_non_empty("tags")
-    .and_then(|t| t.require_length_at_most("tags", 10))?;
-```
-
-**可用方法：**
-- `require_non_empty()` - 验证非空
-- `require_length_be()` - 长度等于
-- `require_length_at_least()` - 最小长度
-- `require_length_at_most()` - 最大长度
-- `require_length_in_range()` - 长度范围
-
-### 4. Option 验证 (`OptionArgument`)
-
-支持 `Option<T>` 类型。
-
-```rust
-use qubit_argument::argument::OptionArgument;
-
-// 验证非空
-let timeout: Option<u64> = Some(30);
-let timeout = timeout.require_non_null("timeout")?;
-
-// 验证非空且满足条件
-let port: Option<u16> = Some(8080);
-let port = port.require_non_null_and(
-    "port",
-    |&p| p >= 1024,
-    "必须大于等于 1024"
-)?;
-
-// 可选验证
-let max_conn: Option<usize> = Some(100);
-let max_conn = max_conn.validate_if_present("max_connections", |c| {
-    if *c > 10000 {
-        Err("连接数过大".into())
-    } else {
-        Ok(*c)
+impl From<ArgumentError> for DomainError {
+    fn from(error: ArgumentError) -> Self {
+        Self::InvalidArgument(error)
     }
-})?;
-```
-
-**可用方法：**
-- `require_non_null()` - 验证非 None
-- `require_non_null_and()` - 验证非 None 且满足条件
-- `validate_if_present()` - 如果存在则验证
-
-### 5. 条件验证
-
-通用的条件和状态验证函数。
-
-```rust
-use qubit_argument::argument::{check_argument, check_state, check_bounds};
-
-// 基本条件检查
-let is_valid = true;
-check_argument(is_valid)?;
-
-// 带消息的检查
-check_argument_with_message(count > 0, "计数必须为正")?;
-
-// 状态检查
-check_state(is_initialized)?;
-
-// 边界检查
-check_bounds(offset, length, total_length)?;
-
-// 索引检查
-let index = check_element_index(5, list_size)?;
-```
-
-**可用函数：**
-- `check_argument()` - 检查参数条件
-- `check_argument_with_message()` - 带消息的参数检查
-- `check_argument_fmt()` - 格式化消息的参数检查
-- `check_state()` - 检查状态条件
-- `check_state_with_message()` - 带消息的状态检查
-- `check_bounds()` - 边界检查
-- `check_element_index()` - 元素索引检查
-- `check_position_index()` - 位置索引检查
-- `check_position_indexes()` - 位置索引范围检查
-
-## 错误处理
-
-所有验证方法返回 `ArgumentResult<T>`，这是 `Result<T, ArgumentError>` 的类型别名。
-
-```rust
-use qubit_argument::argument::{ArgumentError, ArgumentResult};
-
-fn validate_config(port: u16, timeout: u64) -> ArgumentResult<()> {
-    port.require_in_closed_range("port", 1024, 65535)?;
-    timeout.require_positive("timeout")?;
-    Ok(())
 }
 
-// 错误处理
-match validate_config(80, 30) {
-    Ok(_) => println!("配置有效"),
-    Err(e) => eprintln!("配置错误: {}", e.message()),
+fn validate_workers(workers: usize) -> Result<usize, DomainError> {
+    let workers = workers.require_positive("workers")?;
+    Ok(workers)
 }
 ```
 
-## 设计理念
+这种转换会保留完整的结构化错误，并让 `?` 自然完成传播。程序逻辑应通过
+`error.path()` 和 `error.kind()` 检查错误；`Display` 只用于面向用户的
+诊断信息。
 
-1. **类型安全**：利用 Rust 类型系统在编译期保证安全
-2. **零成本抽象**：编译后与手动检查性能相同
-3. **链式调用**：返回 `Result<Self>` 支持优雅的链式验证
-4. **清晰错误**：提供友好的错误消息，包含参数名和值
-5. **符合习惯**：遵循 Rust 的设计哲学和最佳实践
+若某个值由程序构造过程保证，调用方可以显式使用带说明的 `expect`，将校验
+错误升级为内部不变量错误：
 
-## 测试
+```rust
+use qubit_argument::NumericArgument;
+
+let workers = 4_usize
+    .require_positive("workers")
+    .expect("编译期写入的工作线程数必须为正数");
+assert_eq!(workers, 4);
+```
+
+## 数值校验
+
+`NumericArgument` 支持全部原生整数类型以及 `f32`、`f64`。每个方法校验
+成功后都原样返回数值，不会克隆。
+
+| 方法 | 错误种类 |
+| --- | --- |
+| `require_zero`、`require_non_zero`、`require_positive`、`require_non_negative`、`require_negative`、`require_non_positive` | `Comparison`；NaN 对应 `NotANumber` |
+| `require_less_than`、`require_at_most`、`require_greater_than`、`require_at_least` | `Comparison`；实参或边界为 NaN 时对应 `NotANumber` |
+| `require_in_range` | `Range`、`InvalidRangeConstraint` 或 `NotANumber` |
+
+`require_in_range` 接受标准 `RangeBounds`，支持包含端点、排除端点和无界
+端点。反向边界，以及端点相等但至少一侧排除的区间，会返回
+`InvalidRangeConstraint`。
+
+## 字符串校验
+
+`StringArgument` 为 `String` 和 `&str` 提供实现。每个方法成功后都会原样
+返回字符串值或借用，不会克隆；任何字符串校验错误都不会保存原始被检查
+字符串。
+
+| 方法 | 度量方式 | 错误种类 |
+| --- | --- | --- |
+| `require_non_blank` | Unicode 空白 | `Blank` |
+| `require_byte_len`、`require_byte_len_at_least`、`require_byte_len_at_most` | UTF-8 字节 | `Length` |
+| `require_byte_len_in` | UTF-8 字节 | `Length` 或 `InvalidLengthConstraint` |
+| `require_char_count`、`require_char_count_at_least`、`require_char_count_at_most` | Unicode 标量值 | `Length` |
+| `require_char_count_in` | Unicode 标量值 | `Length` 或 `InvalidLengthConstraint` |
+| `require_match`、`require_not_match`（`regex` feature） | `Regex::is_match` | `Pattern` |
+
+字节长度与 Unicode 标量值数量不可混用。`"汉😀"` 的字节长度为七，标量值
+数量为二；Unicode 标量值数量也不等于 grapheme cluster 数量。
+
+正则方法仅在启用可选 `regex` feature 后可用。它们直接使用
+`Regex::is_match`，不会隐式添加锚点；需要整串匹配时，应在模式中显式写出
+锚点。
+
+## 集合校验
+
+`CollectionArgument` 为 `Vec<T>`、`&[T]` 和 `[T; N]` 提供实现。校验
+成功后会原样返回集合，不会克隆元素。
+
+| 方法 | 错误种类 |
+| --- | --- |
+| `require_non_empty` | `Empty` |
+| `require_len`、`require_len_at_least`、`require_len_at_most` | `Length` |
+| `require_len_in` | `Length` 或 `InvalidLengthConstraint` |
+
+## Option 校验
+
+`OptionArgument::require_some` 会移出存在的值而不克隆；`None` 对应
+`Missing`。`validate_if_some` 将存在的值借给调用方校验器，成功后原样返回
+`Option`，不会克隆；遇到 `None` 时不执行校验器，并原样传播校验器返回的
+`ArgumentError`。
+
+## 自定义规则与边界校验
+
+| 函数 | 成功值 | 错误种类 |
+| --- | --- | --- |
+| `require_that` | 原值，不克隆 | `Custom` |
+| `check_bounds` | `()` | `Bounds` |
+| `check_element_index` | 原索引 | `Index`，角色为 `IndexRole::Element` |
+| `check_position_index` | 原索引 | `Index`，角色为 `IndexRole::Position` |
+| `check_position_range` | 校验后的 `start..end` | `IndexRange` |
+
+`check_bounds` 先比较再相减，不执行未经检查的 `offset + length` 运算。
+`require_that` 只在失败时复制调用方提供的路径、code 和 message；调用方必须
+确保自定义消息不包含敏感信息。
+
+## Features
+
+默认 feature 集为空。仅在确实需要正则校验时启用：
+
+```toml
+[dependencies]
+qubit-argument = "0.4"
+
+# 仅在需要正则校验时启用。
+qubit-argument = { version = "0.4", features = ["regex"] }
+```
+
+## 验证
 
 ```bash
-cargo test --test argument_tests argument
+cargo test --doc --no-default-features
+cargo test --doc --all-features
+RUSTDOCFLAGS='-D warnings' cargo doc --no-deps --all-features
 ```
-
-## 文档
-
-运行 `cargo doc --open` 查看完整 API 文档。

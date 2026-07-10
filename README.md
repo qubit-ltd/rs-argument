@@ -7,201 +7,186 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![中文文档](https://img.shields.io/badge/文档-中文版-blue.svg)](README.zh_CN.md)
 
-Argument and state validation utilities for Rust.
+Ownership-preserving argument validation for Rust.
 
 ## Overview
 
-Qubit Argument provides extension traits and checking functions for validating
-function arguments, configuration values, indexes, ranges, and runtime state.
-It uses Rust's trait extension pattern for readable validation chains while
-returning a small structured `ArgumentError`.
+Qubit Argument provides extension traits and focused checking functions for
+numeric values, strings, collections, optional values, indexes, and bounds.
+Every validation failure is an `ArgumentError` with an owned argument path and
+an inspectable `ArgumentErrorKind`. Validation APIs return `Result`; callers
+choose whether to recover, convert the error, or explicitly treat a failure as
+an internal invariant violation.
 
-## Design Goals
-
-- **Readable validation**: express checks close to the value being validated.
-- **Small error surface**: use `ArgumentError` and `ArgumentResult` for all validation failures.
-- **Method chaining**: return validated values or references so checks compose naturally.
-- **No panic by default**: report invalid arguments through `Result`.
-- **Focused scope**: provide validation utilities only, without pulling in broader common utilities.
-
-## Features
-
-### Numeric Validation
-
-- Zero and non-zero checks.
-- Positive, negative, non-positive, and non-negative checks.
-- Closed, open, left-open, and right-open range validation.
-- Less-than, less-or-equal, greater-than, and greater-or-equal checks.
-- Equality and inequality validation across two named arguments.
-
-### String Validation
-
-- Non-blank checks.
-- Exact length, minimum length, maximum length, and range length checks.
-- Regular expression match and non-match checks.
-- Implementations for both `str` and `String`.
-
-### Collection and Option Validation
-
-- Non-empty collection checks.
-- Collection length constraints.
-- Optional value presence checks.
-- Conditional validation for present optional values.
-- Element non-null checks for `&[Option<T>]`.
-
-### State and Bounds Checking
-
-- Boolean argument and state assertions.
-- Slice-style bounds checks.
-- Element index, position index, and position index range validation.
+Successful validation returns the original owned value or borrow without
+cloning it, so checks can be chained while preserving ownership.
 
 ## Installation
 
-Add this to your `Cargo.toml`:
+The default feature set is empty (`default = []`), so core validation has no
+runtime dependency on the regex engine.
 
 ```toml
 [dependencies]
-qubit-argument = "0.3"
+qubit-argument = "0.4"
+
+# Enable only when regex validation is needed.
+qubit-argument = { version = "0.4", features = ["regex"] }
 ```
 
 ## Quick Start
 
-### Numeric and String Validation
+The traits and error types are exported directly from the crate root:
 
 ```rust
-use qubit_argument::{
-    ArgumentResult,
-    NumericArgument,
-    StringArgument,
-};
+use qubit_argument::{ArgumentResult, NumericArgument, StringArgument};
 
-fn validate_user(age: i32, username: &str) -> ArgumentResult<()> {
-    age.require_in_closed_range("age", 0, 150)?;
-    username
-        .require_non_blank("username")?
-        .require_length_in_range("username", 3, 20)?;
-    Ok(())
+fn validate_user(age: u8, name: String) -> ArgumentResult<(u8, String)> {
+    let age = age.require_in_range("age", 0..=150)?;
+    let name = name
+        .require_non_blank("name")?
+        .require_char_count_in("name", 3, 32)?;
+    Ok((age, name))
 }
 ```
 
-### Collection Validation
+Both `age` and `name` are returned in their original forms. In particular, the
+owned `String` is not cloned during validation.
+
+## Downstream Error Conversion
+
+A downstream crate can preserve the structured error in its own domain error.
+After implementing `From<ArgumentError>`, the `?` operator performs the
+conversion directly:
 
 ```rust
-use qubit_argument::{
-    ArgumentResult,
-    CollectionArgument,
-};
+use qubit_argument::{ArgumentError, NumericArgument};
 
-fn validate_tags(tags: &[String]) -> ArgumentResult<&[String]> {
-    tags.require_non_empty("tags")?
-        .require_length_at_most("tags", 10)
+#[derive(Debug)]
+enum DomainError {
+    InvalidArgument(ArgumentError),
+}
+
+impl From<ArgumentError> for DomainError {
+    fn from(error: ArgumentError) -> Self {
+        Self::InvalidArgument(error)
+    }
+}
+
+fn validate_pool_size(size: u32) -> Result<u32, DomainError> {
+    let size = size.require_positive("pool_size")?;
+    Ok(size)
 }
 ```
 
-### State and Bounds Checking
+Use `ArgumentError::path()` and `ArgumentError::kind()` for programmatic
+decisions. The `Display` text is intended for diagnostics, not parsing.
+
+Validation remains recoverable by default. When a value is an internal
+invariant rather than external input, the caller may explicitly use `expect`
+with a meaningful explanation:
 
 ```rust
-use qubit_argument::{
-    ArgumentResult,
-    check_bounds,
-    check_state_with_message,
-};
+use qubit_argument::NumericArgument;
 
-fn read_range(offset: usize, length: usize, total: usize) -> ArgumentResult<()> {
-    check_state_with_message(total > 0, "total length must be positive")?;
-    check_bounds(offset, length, total)
+fn built_in_retry_limit() -> u32 {
+    3_u32
+        .require_positive("retry_limit")
+        .expect("the built-in retry limit is a positive internal invariant")
 }
 ```
 
-## API Reference
+## Validation APIs
 
-### Traits
+### Numeric values
 
-- [`NumericArgument`](https://docs.rs/qubit-argument/latest/qubit_argument/trait.NumericArgument.html) - numeric validation methods.
-- [`StringArgument`](https://docs.rs/qubit-argument/latest/qubit_argument/trait.StringArgument.html) - string validation methods.
-- [`CollectionArgument`](https://docs.rs/qubit-argument/latest/qubit_argument/trait.CollectionArgument.html) - collection validation methods.
-- [`OptionArgument`](https://docs.rs/qubit-argument/latest/qubit_argument/trait.OptionArgument.html) - optional value validation methods.
+`NumericArgument` supports all primitive integer types plus `f32` and `f64`:
 
-### Error Types
+- zero, non-zero, positive, non-negative, negative, and non-positive checks;
+- `require_less_than`, `require_at_most`, `require_greater_than`, and
+  `require_at_least` comparisons;
+- `require_in_range` with standard inclusive, exclusive, and unbounded
+  `RangeBounds`.
 
-- [`ArgumentError`](https://docs.rs/qubit-argument/latest/qubit_argument/struct.ArgumentError.html) - validation error with a human-readable message.
-- [`ArgumentResult`](https://docs.rs/qubit-argument/latest/qubit_argument/type.ArgumentResult.html) - result alias returned by validation APIs.
+Floating-point values and range endpoints that are `NaN` are rejected. A
+reversed or structurally empty range is reported separately from a value that
+falls outside a valid range.
 
-### Functions
+### Strings
 
-- `check_argument`, `check_argument_with_message`, `check_argument_fmt`
-- `check_state`, `check_state_with_message`
-- `check_bounds`, `check_element_index`, `check_position_index`, `check_position_indexes`
-- `require_equal`, `require_not_equal`, `require_element_non_null`, `require_null_or`
+`StringArgument` is implemented for `String` and `&str`:
 
-## Testing & Code Coverage
+- `require_non_blank` checks Unicode whitespace;
+- `require_byte_len*` methods count UTF-8 bytes;
+- `require_char_count*` methods count Unicode scalar values;
+- with the `regex` feature, `require_match` and `require_not_match` accept a
+  compiled `regex::Regex`.
 
-This project maintains comprehensive test coverage for success paths, failure
-paths, boundary conditions, and representative type instantiations.
+Byte length and Unicode scalar count are deliberately distinct. For example,
+`"汉😀"` contains seven UTF-8 bytes and two Unicode scalar values. Scalar
+counts are not grapheme-cluster counts.
 
-### Running Tests
+Regex validation uses `Regex::is_match` semantics and is not implicitly
+anchored. Add `^` and `$` to the pattern when the entire string must match.
+
+### Collections and optional values
+
+`CollectionArgument` validates `Vec<T>`, `&[T]`, and `[T; N]` without cloning
+elements. It provides non-empty, exact-length, minimum-length, maximum-length,
+and inclusive length-range checks.
+
+`OptionArgument::require_some` moves a present value out of its option.
+`OptionArgument::validate_if_some` borrows a present value for validation,
+skips the validator for `None`, and returns the original option without
+cloning.
+
+### Custom rules and bounds
+
+- `require_that` applies a caller-provided predicate and reports a structured
+  `Custom` error on failure.
+- `check_bounds` validates an offset and length without unchecked addition.
+- `check_element_index` and `check_position_index` distinguish element indexes
+  from boundary positions.
+- `check_position_range` validates a half-open position range.
+
+## Error Privacy
+
+String validation errors record the path, failure kind, observed length or
+count, and any required constraint. They do not store the original validated
+string, so `Debug` and `Display` do not reveal it. Pattern errors retain the
+pattern, not the input. Callers of `require_that` remain responsible for
+keeping their own custom code and message free of sensitive data.
+
+## Testing
 
 ```bash
-# Run all tests
-cargo test
+# Core API with the default empty feature set
+cargo test --no-default-features
 
-# Run with coverage report
-./coverage.sh
+# Core API plus regex validation
+cargo test --all-features
 
-# Generate text format report
-./coverage.sh text
-
-# Run CI checks (format, clippy, test, coverage, audit)
+# Project CI checks
 ./ci-check.sh
 ```
 
-### Coverage Metrics
-
-See [COVERAGE.md](COVERAGE.md) for detailed coverage statistics.
-
-## Dependencies
-
-Runtime dependencies are intentionally small:
-
-- `regex` powers regular expression validation for strings.
+See [COVERAGE.md](COVERAGE.md) for coverage details.
 
 ## License
 
 Copyright (c) 2025 - 2026. Haixing Hu, Qubit Co. Ltd. All rights reserved.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-See [LICENSE](LICENSE) for the full license text.
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for the
+full license text.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-### Development Guidelines
-
-- Follow the Rust API guidelines.
-- Maintain comprehensive test coverage.
-- Document all public APIs with examples when they clarify usage.
-- Run `./ci-check.sh` before submitting PRs.
+Contributions are welcome. Please follow the Rust API guidelines, keep public
+API documentation and tests current, and run `./ci-check.sh` before submitting
+a pull request.
 
 ## Author
 
 **Haixing Hu** - *Qubit Co. Ltd.*
-
-## Related Projects
-
-More Rust libraries from Qubit are published under the [qubit-ltd](https://github.com/qubit-ltd) organization on GitHub.
-
----
 
 Repository: [https://github.com/qubit-ltd/rs-argument](https://github.com/qubit-ltd/rs-argument)

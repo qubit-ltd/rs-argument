@@ -7,195 +7,178 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![English Document](https://img.shields.io/badge/Document-English-blue.svg)](README.md)
 
-面向 Rust 的参数和状态校验工具库。
+面向 Rust、保留所有权的参数校验库。
 
 ## 概述
 
-Qubit Argument 提供扩展 trait 和检查函数，用于校验函数参数、配置值、索引、范围和运行时状态。它使用 Rust 的 trait extension 模式表达可读的校验链，并统一返回轻量的 `ArgumentError`。
+Qubit Argument 提供扩展 trait 和职责单一的检查函数，用于校验数值、
+字符串、集合、可选值、索引和边界。每次校验失败都会返回 `ArgumentError`；
+错误中包含持有所有权的参数路径和可匹配的 `ArgumentErrorKind`。校验 API
+统一返回 `Result`，由调用方决定恢复、转换错误，还是明确将失败视为内部
+不变量遭到破坏。
 
-## 设计目标
-
-- **可读校验**：让检查逻辑靠近被校验的值。
-- **小型错误表面**：所有校验失败统一使用 `ArgumentError` 和 `ArgumentResult`。
-- **方法链式调用**：返回校验后的值或引用，使多个检查自然组合。
-- **默认不 panic**：通过 `Result` 报告无效参数。
-- **聚焦范围**：只提供参数校验工具，不引入更宽泛的 common 工具。
-
-## 特性
-
-### 数值校验
-
-- 零值和非零值检查。
-- 正数、负数、非正数、非负数检查。
-- 闭区间、开区间、左开右闭、左闭右开范围校验。
-- 小于、小于等于、大于、大于等于检查。
-- 两个具名参数之间的相等和不相等校验。
-
-### 字符串校验
-
-- 非空白检查。
-- 精确长度、最小长度、最大长度和长度范围检查。
-- 正则匹配和正则不匹配检查。
-- 同时支持 `str` 和 `String`。
-
-### 集合和 Option 校验
-
-- 非空集合检查。
-- 集合长度约束。
-- 可选值存在性检查。
-- 对存在的可选值进行条件校验。
-- 对 `&[Option<T>]` 进行元素非空检查。
-
-### 状态和边界检查
-
-- 布尔参数和状态断言。
-- 类似切片的边界检查。
-- 元素索引、位置索引和位置索引范围校验。
+校验成功时，API 会原样返回传入的所有权值或借用，不会隐式克隆，因此可以
+在链式校验中继续使用原值。
 
 ## 安装
 
-在 `Cargo.toml` 中添加：
+默认 feature 集为空（`default = []`），核心校验不会引入正则引擎这一运行时
+依赖。
 
 ```toml
 [dependencies]
-qubit-argument = "0.3"
+qubit-argument = "0.4"
+
+# 仅在需要正则校验时启用。
+qubit-argument = { version = "0.4", features = ["regex"] }
 ```
 
 ## 快速开始
 
-### 数值和字符串校验
+所有 trait 和错误类型都直接从 crate 根导入：
 
 ```rust
-use qubit_argument::{
-    ArgumentResult,
-    NumericArgument,
-    StringArgument,
-};
+use qubit_argument::{ArgumentResult, NumericArgument, StringArgument};
 
-fn validate_user(age: i32, username: &str) -> ArgumentResult<()> {
-    age.require_in_closed_range("age", 0, 150)?;
-    username
-        .require_non_blank("username")?
-        .require_length_in_range("username", 3, 20)?;
-    Ok(())
+fn validate_user(age: u8, name: String) -> ArgumentResult<(u8, String)> {
+    let age = age.require_in_range("age", 0..=150)?;
+    let name = name
+        .require_non_blank("name")?
+        .require_char_count_in("name", 3, 32)?;
+    Ok((age, name))
 }
 ```
 
-### 集合校验
+这里的 `age` 和 `name` 都保持原来的类型；其中持有所有权的 `String` 在校验
+过程中不会被克隆。
+
+## 转换为下游错误
+
+下游 crate 可以在自己的领域错误中保留结构化参数错误。实现
+`From<ArgumentError>` 后，`?` 运算符会直接完成错误转换：
 
 ```rust
-use qubit_argument::{
-    ArgumentResult,
-    CollectionArgument,
-};
+use qubit_argument::{ArgumentError, NumericArgument};
 
-fn validate_tags(tags: &[String]) -> ArgumentResult<&[String]> {
-    tags.require_non_empty("tags")?
-        .require_length_at_most("tags", 10)
+#[derive(Debug)]
+enum DomainError {
+    InvalidArgument(ArgumentError),
+}
+
+impl From<ArgumentError> for DomainError {
+    fn from(error: ArgumentError) -> Self {
+        Self::InvalidArgument(error)
+    }
+}
+
+fn validate_pool_size(size: u32) -> Result<u32, DomainError> {
+    let size = size.require_positive("pool_size")?;
+    Ok(size)
 }
 ```
 
-### 状态和边界检查
+程序需要根据错误分支处理时，应使用 `ArgumentError::path()` 和
+`ArgumentError::kind()`；`Display` 文本面向诊断日志，不是供程序解析的稳定
+协议。
+
+默认情况下，校验失败是可恢复错误。若被校验值属于内部不变量而不是外部输入，
+调用方可以明确使用带有说明的 `expect`：
 
 ```rust
-use qubit_argument::{
-    ArgumentResult,
-    check_bounds,
-    check_state_with_message,
-};
+use qubit_argument::NumericArgument;
 
-fn read_range(offset: usize, length: usize, total: usize) -> ArgumentResult<()> {
-    check_state_with_message(total > 0, "total length must be positive")?;
-    check_bounds(offset, length, total)
+fn built_in_retry_limit() -> u32 {
+    3_u32
+        .require_positive("retry_limit")
+        .expect("内置重试次数必须是正数")
 }
 ```
 
-## API 参考
+## 校验 API
 
-### Traits
+### 数值
 
-- [`NumericArgument`](https://docs.rs/qubit-argument/latest/qubit_argument/trait.NumericArgument.html) - 数值校验方法。
-- [`StringArgument`](https://docs.rs/qubit-argument/latest/qubit_argument/trait.StringArgument.html) - 字符串校验方法。
-- [`CollectionArgument`](https://docs.rs/qubit-argument/latest/qubit_argument/trait.CollectionArgument.html) - 集合校验方法。
-- [`OptionArgument`](https://docs.rs/qubit-argument/latest/qubit_argument/trait.OptionArgument.html) - 可选值校验方法。
+`NumericArgument` 支持全部原生整数类型以及 `f32`、`f64`：
 
-### 错误类型
+- 校验零、非零、正数、非负数、负数和非正数；
+- 通过 `require_less_than`、`require_at_most`、
+  `require_greater_than` 和 `require_at_least` 进行比较；
+- 通过 `require_in_range` 接受标准库中包含、排除或无界的
+  `RangeBounds`。
 
-- [`ArgumentError`](https://docs.rs/qubit-argument/latest/qubit_argument/struct.ArgumentError.html) - 带可读消息的校验错误。
-- [`ArgumentResult`](https://docs.rs/qubit-argument/latest/qubit_argument/type.ArgumentResult.html) - 校验 API 返回的结果别名。
+浮点实参或区间端点为 `NaN` 时校验失败。反向区间和结构上为空的区间会与
+“数值不在有效区间内”分别报告。
 
-### 函数
+### 字符串
 
-- `check_argument`、`check_argument_with_message`、`check_argument_fmt`
-- `check_state`、`check_state_with_message`
-- `check_bounds`、`check_element_index`、`check_position_index`、`check_position_indexes`
-- `require_equal`、`require_not_equal`、`require_element_non_null`、`require_null_or`
+`StringArgument` 为 `String` 和 `&str` 提供实现：
 
-## 测试与代码覆盖率
+- `require_non_blank` 检查 Unicode 空白字符；
+- `require_byte_len*` 方法统计 UTF-8 字节数；
+- `require_char_count*` 方法统计 Unicode scalar value（Unicode 标量值）
+  的数量；
+- 启用 `regex` feature 后，`require_match` 和 `require_not_match` 接受
+  已编译的 `regex::Regex`。
 
-本项目对成功路径、失败路径、边界条件和代表性类型实例保持全面测试覆盖。
+字节长度和 Unicode 标量值数量是两种不同的度量。例如，`"汉😀"` 占七个
+UTF-8 字节，但只包含两个 Unicode 标量值；标量值数量也不等于用户感知字符
+（grapheme cluster）的数量。
 
-### 运行测试
+正则校验直接采用 `Regex::is_match` 语义，不会隐式添加整串锚点。只有需要匹配
+整个字符串时，才应在模式中显式加入 `^` 和 `$`。
+
+### 集合和可选值
+
+`CollectionArgument` 支持 `Vec<T>`、`&[T]` 和 `[T; N]`，校验时不会克隆
+元素。它提供非空、精确长度、最小长度、最大长度和闭区间长度校验。
+
+`OptionArgument::require_some` 会移出并返回存在的值。
+`OptionArgument::validate_if_some` 只借用存在的值进行校验；遇到 `None` 时
+不会执行校验器，成功后原样返回 `Option`，不会克隆内部值。
+
+### 自定义规则和边界
+
+- `require_that` 执行调用方提供的谓词，失败时返回结构化 `Custom` 错误；
+- `check_bounds` 校验偏移量和长度，不执行可能溢出的未检查加法；
+- `check_element_index` 与 `check_position_index` 区分元素索引和边界位置；
+- `check_position_range` 校验半开的位置区间。
+
+## 错误隐私
+
+字符串校验错误只记录参数路径、错误种类、实际长度或数量以及约束，不会保存
+原始被校验字符串，因此 `Debug` 和 `Display` 也不会泄露该输入。正则错误保存
+模式而不是输入。使用 `require_that` 时，调用方仍需确保自己提供的自定义
+`code` 和 `message` 不包含敏感信息。
+
+## 测试
 
 ```bash
-# 运行所有测试
-cargo test
+# 使用默认的空 feature 集测试核心 API
+cargo test --no-default-features
 
-# 运行覆盖率报告
-./coverage.sh
+# 测试核心 API 和正则校验
+cargo test --all-features
 
-# 生成文本格式报告
-./coverage.sh text
-
-# 运行 CI 检查（格式化、clippy、测试、覆盖率、审计）
+# 运行项目 CI 检查
 ./ci-check.sh
 ```
 
-### 覆盖率指标
-
-详细的覆盖率统计请参见 [COVERAGE.zh_CN.md](COVERAGE.zh_CN.md)。
-
-## 依赖项
-
-运行时依赖保持很少：
-
-- `regex` 用于字符串正则校验。
+覆盖率详情请参见 [COVERAGE.zh_CN.md](COVERAGE.zh_CN.md)。
 
 ## 许可证
 
 Copyright (c) 2025 - 2026. Haixing Hu, Qubit Co. Ltd. All rights reserved.
 
-根据 Apache 许可证 2.0 版（"许可证"）授权；
-除非遵守许可证，否则您不得使用此文件。
-您可以在以下位置获取许可证副本：
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-除非适用法律要求或书面同意，否则根据许可证分发的软件
-按"原样"分发，不附带任何明示或暗示的担保或条件。
-有关许可证下的特定语言管理权限和限制，请参阅许可证。
-
-完整的许可证文本请参阅 [LICENSE](LICENSE)。
+本项目基于 Apache License 2.0 授权。完整许可证文本请参阅
+[LICENSE](LICENSE)。
 
 ## 贡献
 
-欢迎贡献！请随时提交 Pull Request。
-
-### 开发指南
-
-- 遵循 Rust API 指南。
-- 保持全面的测试覆盖。
-- 在文档能帮助理解时，为公共 API 提供示例。
-- 提交 PR 前运行 `./ci-check.sh`。
+欢迎贡献。请遵循 Rust API 指南，及时更新公共 API 文档与测试，并在提交
+Pull Request 前运行 `./ci-check.sh`。
 
 ## 作者
 
 **胡海星** - *Qubit Co. Ltd.*
-
-## 相关项目
-
-Qubit 旗下的更多 Rust 库发布在 GitHub 组织 [qubit-ltd](https://github.com/qubit-ltd)。
-
----
 
 仓库地址：[https://github.com/qubit-ltd/rs-argument](https://github.com/qubit-ltd/rs-argument)
