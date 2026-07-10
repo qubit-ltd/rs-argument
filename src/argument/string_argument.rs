@@ -12,6 +12,7 @@ use crate::argument::{
     ArgumentErrorKind,
     ArgumentResult,
     LengthConstraint,
+    LengthMetric,
 };
 
 #[cfg(feature = "regex")]
@@ -24,7 +25,8 @@ use regex::Regex;
 /// Byte-length methods count UTF-8 bytes, while character-count methods count
 /// Unicode scalar values. Every successful method returns the original value
 /// without cloning it. String contents are inspected but never captured in an
-/// error.
+/// error. Length failures use [`LengthMetric::Bytes`] for byte methods and
+/// [`LengthMetric::UnicodeScalars`] for character-count methods.
 pub trait StringArgument: Sized {
     /// Requires this string to contain at least one non-whitespace character.
     ///
@@ -162,7 +164,12 @@ impl StringArgument for &str {
         path: &str,
         expected: usize,
     ) -> ArgumentResult<Self> {
-        validate_length(path, self.len(), LengthConstraint::Exact(expected))?;
+        validate_length(
+            path,
+            self.len(),
+            LengthConstraint::Exact(expected),
+            LengthMetric::Bytes,
+        )?;
         Ok(self)
     }
 
@@ -175,7 +182,12 @@ impl StringArgument for &str {
         path: &str,
         min: usize,
     ) -> ArgumentResult<Self> {
-        validate_length(path, self.len(), LengthConstraint::AtLeast(min))?;
+        validate_length(
+            path,
+            self.len(),
+            LengthConstraint::AtLeast(min),
+            LengthMetric::Bytes,
+        )?;
         Ok(self)
     }
 
@@ -188,7 +200,12 @@ impl StringArgument for &str {
         path: &str,
         max: usize,
     ) -> ArgumentResult<Self> {
-        validate_length(path, self.len(), LengthConstraint::AtMost(max))?;
+        validate_length(
+            path,
+            self.len(),
+            LengthConstraint::AtMost(max),
+            LengthMetric::Bytes,
+        )?;
         Ok(self)
     }
 
@@ -207,6 +224,7 @@ impl StringArgument for &str {
             path,
             self.len(),
             LengthConstraint::InRange { min, max },
+            LengthMetric::Bytes,
         )?;
         Ok(self)
     }
@@ -225,6 +243,7 @@ impl StringArgument for &str {
             path,
             self.chars().count(),
             LengthConstraint::Exact(expected),
+            LengthMetric::UnicodeScalars,
         )?;
         Ok(self)
     }
@@ -243,6 +262,7 @@ impl StringArgument for &str {
             path,
             self.chars().count(),
             LengthConstraint::AtLeast(min),
+            LengthMetric::UnicodeScalars,
         )?;
         Ok(self)
     }
@@ -261,6 +281,7 @@ impl StringArgument for &str {
             path,
             self.chars().count(),
             LengthConstraint::AtMost(max),
+            LengthMetric::UnicodeScalars,
         )?;
         Ok(self)
     }
@@ -281,6 +302,7 @@ impl StringArgument for &str {
             path,
             self.chars().count(),
             LengthConstraint::InRange { min, max },
+            LengthMetric::UnicodeScalars,
         )?;
         Ok(self)
     }
@@ -335,7 +357,12 @@ impl StringArgument for String {
         path: &str,
         expected: usize,
     ) -> ArgumentResult<Self> {
-        validate_length(path, self.len(), LengthConstraint::Exact(expected))?;
+        validate_length(
+            path,
+            self.len(),
+            LengthConstraint::Exact(expected),
+            LengthMetric::Bytes,
+        )?;
         Ok(self)
     }
 
@@ -348,7 +375,12 @@ impl StringArgument for String {
         path: &str,
         min: usize,
     ) -> ArgumentResult<Self> {
-        validate_length(path, self.len(), LengthConstraint::AtLeast(min))?;
+        validate_length(
+            path,
+            self.len(),
+            LengthConstraint::AtLeast(min),
+            LengthMetric::Bytes,
+        )?;
         Ok(self)
     }
 
@@ -361,7 +393,12 @@ impl StringArgument for String {
         path: &str,
         max: usize,
     ) -> ArgumentResult<Self> {
-        validate_length(path, self.len(), LengthConstraint::AtMost(max))?;
+        validate_length(
+            path,
+            self.len(),
+            LengthConstraint::AtMost(max),
+            LengthMetric::Bytes,
+        )?;
         Ok(self)
     }
 
@@ -380,6 +417,7 @@ impl StringArgument for String {
             path,
             self.len(),
             LengthConstraint::InRange { min, max },
+            LengthMetric::Bytes,
         )?;
         Ok(self)
     }
@@ -397,6 +435,7 @@ impl StringArgument for String {
             path,
             self.chars().count(),
             LengthConstraint::Exact(expected),
+            LengthMetric::UnicodeScalars,
         )?;
         Ok(self)
     }
@@ -414,6 +453,7 @@ impl StringArgument for String {
             path,
             self.chars().count(),
             LengthConstraint::AtLeast(min),
+            LengthMetric::UnicodeScalars,
         )?;
         Ok(self)
     }
@@ -431,6 +471,7 @@ impl StringArgument for String {
             path,
             self.chars().count(),
             LengthConstraint::AtMost(max),
+            LengthMetric::UnicodeScalars,
         )?;
         Ok(self)
     }
@@ -451,6 +492,7 @@ impl StringArgument for String {
             path,
             self.chars().count(),
             LengthConstraint::InRange { min, max },
+            LengthMetric::UnicodeScalars,
         )?;
         Ok(self)
     }
@@ -511,8 +553,9 @@ fn validate_non_blank(value: &str, path: &str) -> ArgumentResult<()> {
 
 /// Validates an observed length against a structured length constraint.
 ///
-/// `actual` is compared with `constraint` and `path` identifies any failure.
-/// A reversed inclusive range returns
+/// `actual` is compared with `constraint`, `metric` records how it was
+/// measured, and `path` identifies any failure. A reversed inclusive range
+/// returns
 /// [`ArgumentErrorKind::InvalidLengthConstraint`] before `actual` is checked.
 /// Any other unsatisfied constraint returns [`ArgumentErrorKind::Length`]; a
 /// satisfied constraint returns `Ok(())`.
@@ -520,13 +563,14 @@ fn validate_length(
     path: &str,
     actual: usize,
     constraint: LengthConstraint,
+    metric: LengthMetric,
 ) -> ArgumentResult<()> {
     if let LengthConstraint::InRange { min, max } = &constraint
         && min > max
     {
         return Err(ArgumentError::new(
             path,
-            ArgumentErrorKind::InvalidLengthConstraint { constraint },
+            ArgumentErrorKind::InvalidLengthConstraint { constraint, metric },
         ));
     }
 
@@ -543,7 +587,11 @@ fn validate_length(
     } else {
         Err(ArgumentError::new(
             path,
-            ArgumentErrorKind::Length { actual, constraint },
+            ArgumentErrorKind::Length {
+                actual,
+                constraint,
+                metric,
+            },
         ))
     }
 }

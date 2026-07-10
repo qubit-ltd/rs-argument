@@ -9,6 +9,7 @@ use qubit_argument::{
     ArgumentErrorKind,
     CollectionArgument,
     LengthConstraint,
+    LengthMetric,
 };
 
 /// A value that cannot be cloned, used to verify ownership-preserving APIs.
@@ -71,6 +72,7 @@ fn test_require_len_reports_exact_length_error() {
         &ArgumentErrorKind::Length {
             actual: 2,
             constraint: LengthConstraint::Exact(3),
+            metric: LengthMetric::Elements,
         },
     );
 }
@@ -92,6 +94,7 @@ fn test_require_len_at_least_checks_minimum_length() {
         &ArgumentErrorKind::Length {
             actual: 2,
             constraint: LengthConstraint::AtLeast(3),
+            metric: LengthMetric::Elements,
         },
     );
 }
@@ -111,6 +114,7 @@ fn test_require_len_at_most_checks_maximum_length() {
         &ArgumentErrorKind::Length {
             actual: 3,
             constraint: LengthConstraint::AtMost(2),
+            metric: LengthMetric::Elements,
         },
     );
 }
@@ -135,6 +139,7 @@ fn test_require_len_in_checks_inclusive_range() {
         &ArgumentErrorKind::Length {
             actual: 1,
             constraint: LengthConstraint::InRange { min: 2, max: 3 },
+            metric: LengthMetric::Elements,
         },
     );
 }
@@ -149,6 +154,7 @@ fn test_require_len_in_reports_invalid_constraint() {
         error.kind(),
         &ArgumentErrorKind::InvalidLengthConstraint {
             constraint: LengthConstraint::InRange { min: 3, max: 1 },
+            metric: LengthMetric::Elements,
         },
     );
 }

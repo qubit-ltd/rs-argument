@@ -70,7 +70,9 @@
 //!
 //! Byte-length methods measure UTF-8 bytes. Character-count methods measure
 //! Unicode scalar values, not grapheme clusters. String validation errors do
-//! not retain the inspected input string.
+//! not retain the inspected input string. Structured length errors retain a
+//! [`LengthMetric`] so byte length, Unicode scalar count, and collection
+//! element count remain distinguishable.
 //!
 //! The default feature set is empty. Enabling the `regex` feature adds
 //! `StringArgument::require_match` and `StringArgument::require_not_match`.
@@ -90,6 +92,7 @@ pub use argument::{
     ComparisonConstraint,
     IndexRole,
     LengthConstraint,
+    LengthMetric,
     NumericArgument,
     OptionArgument,
     PatternExpectation,

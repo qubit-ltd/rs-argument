@@ -11,6 +11,7 @@ mod argument_bound;
 mod comparison_constraint;
 mod index_role;
 mod length_constraint;
+mod length_metric;
 mod pattern_expectation;
 mod range_constraint;
 
@@ -18,5 +19,6 @@ pub use argument_bound::ArgumentBound;
 pub use comparison_constraint::ComparisonConstraint;
 pub use index_role::IndexRole;
 pub use length_constraint::LengthConstraint;
+pub use length_metric::LengthMetric;
 pub use pattern_expectation::PatternExpectation;
 pub use range_constraint::RangeConstraint;

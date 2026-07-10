@@ -16,9 +16,18 @@ use qubit_argument::{
     ComparisonConstraint,
     IndexRole,
     LengthConstraint,
+    LengthMetric,
     PatternExpectation,
     RangeConstraint,
 };
+
+/// Asserts that diagnostic text contains no literal control characters.
+fn assert_single_line_diagnostic(diagnostic: &str) {
+    assert!(
+        diagnostic.chars().all(|character| !character.is_control()),
+        "diagnostic contains a literal control character: {diagnostic:?}",
+    );
+}
 
 /// Verifies that the final v0.4 error vocabulary is exported at the crate root.
 #[test]
@@ -34,6 +43,7 @@ fn test_argument_error_exposes_structured_parts() {
     let kind = ArgumentErrorKind::Length {
         actual: 12,
         constraint: LengthConstraint::AtMost(10),
+        metric: LengthMetric::Elements,
     };
     let error = ArgumentError::new("tags", kind.clone());
     assert_eq!(error.path().as_str(), "tags");
@@ -68,29 +78,33 @@ fn test_display_formats_every_error_kind_and_constraint() {
             ArgumentErrorKind::Length {
                 actual: 3,
                 constraint: LengthConstraint::Exact(2),
+                metric: LengthMetric::Bytes,
             },
-            "argument 'value' has length 3, expected exactly 2",
+            "argument 'value' has byte length 3, expected exactly 2",
         ),
         (
             ArgumentErrorKind::Length {
                 actual: 3,
                 constraint: LengthConstraint::AtLeast(4),
+                metric: LengthMetric::UnicodeScalars,
             },
-            "argument 'value' has length 3, expected at least 4",
+            "argument 'value' has Unicode scalar count 3, expected at least 4",
         ),
         (
             ArgumentErrorKind::Length {
                 actual: 3,
                 constraint: LengthConstraint::AtMost(2),
+                metric: LengthMetric::Elements,
             },
-            "argument 'value' has length 3, expected at most 2",
+            "argument 'value' has element count 3, expected at most 2",
         ),
         (
             ArgumentErrorKind::Length {
                 actual: 3,
                 constraint: LengthConstraint::InRange { min: 4, max: 5 },
+                metric: LengthMetric::Elements,
             },
-            "argument 'value' has length 3, expected between 4 and 5",
+            "argument 'value' has element count 3, expected between 4 and 5",
         ),
         (
             ArgumentErrorKind::Comparison {
@@ -179,8 +193,9 @@ fn test_display_formats_every_error_kind_and_constraint() {
         (
             ArgumentErrorKind::InvalidLengthConstraint {
                 constraint: LengthConstraint::InRange { min: 5, max: 4 },
+                metric: LengthMetric::Bytes,
             },
-            "argument 'value' has invalid length constraint between 5 and 4",
+            "argument 'value' has invalid byte length constraint between 5 and 4",
         ),
         (
             ArgumentErrorKind::InvalidRangeConstraint {
@@ -253,4 +268,130 @@ fn test_display_formats_every_error_kind_and_constraint() {
     for (kind, expected) in cases {
         assert_eq!(ArgumentError::new("value", kind).to_string(), expected);
     }
+}
+
+/// Verifies that equal numeric length data remains distinct across metrics.
+#[test]
+fn test_length_errors_distinguish_measurement_metrics() {
+    let constraint = LengthConstraint::Exact(2);
+    let bytes = ArgumentError::new(
+        "value",
+        ArgumentErrorKind::Length {
+            actual: 1,
+            constraint: constraint.clone(),
+            metric: LengthMetric::Bytes,
+        },
+    );
+    let unicode_scalars = ArgumentError::new(
+        "value",
+        ArgumentErrorKind::Length {
+            actual: 1,
+            constraint: constraint.clone(),
+            metric: LengthMetric::UnicodeScalars,
+        },
+    );
+    let elements = ArgumentError::new(
+        "value",
+        ArgumentErrorKind::Length {
+            actual: 1,
+            constraint,
+            metric: LengthMetric::Elements,
+        },
+    );
+
+    assert_ne!(bytes, unicode_scalars);
+    assert_ne!(bytes, elements);
+    assert_ne!(unicode_scalars, elements);
+    assert!(matches!(
+        bytes.kind(),
+        ArgumentErrorKind::Length {
+            metric: LengthMetric::Bytes,
+            ..
+        },
+    ));
+    assert!(matches!(
+        unicode_scalars.kind(),
+        ArgumentErrorKind::Length {
+            metric: LengthMetric::UnicodeScalars,
+            ..
+        },
+    ));
+    assert!(matches!(
+        elements.kind(),
+        ArgumentErrorKind::Length {
+            metric: LengthMetric::Elements,
+            ..
+        },
+    ));
+}
+
+/// Verifies that invalid length constraints retain their measurement metric.
+#[test]
+fn test_invalid_length_constraint_preserves_metric() {
+    let error = ArgumentError::new(
+        "value",
+        ArgumentErrorKind::InvalidLengthConstraint {
+            constraint: LengthConstraint::InRange { min: 2, max: 1 },
+            metric: LengthMetric::UnicodeScalars,
+        },
+    );
+
+    assert!(matches!(
+        error.kind(),
+        ArgumentErrorKind::InvalidLengthConstraint {
+            metric: LengthMetric::UnicodeScalars,
+            ..
+        },
+    ));
+}
+
+/// Verifies path escaping for delimiters, backslashes, and control characters.
+#[test]
+fn test_display_escapes_path_on_one_line() {
+    let path = "user'\\name\r\n\t\u{7}";
+    let error = ArgumentError::new(path, ArgumentErrorKind::Missing);
+    let diagnostic = error.to_string();
+
+    assert_eq!(diagnostic, r"argument 'user\'\\name\r\n\t\u{7}' is missing",);
+    assert_single_line_diagnostic(&diagnostic);
+    assert_eq!(error.path().as_str(), path);
+}
+
+/// Verifies pattern escaping without changing the structured pattern value.
+#[test]
+fn test_display_escapes_pattern_on_one_line() {
+    let pattern = "a'b\\c\r\n\t\u{1b}";
+    let kind = ArgumentErrorKind::Pattern {
+        pattern: String::from(pattern),
+        expectation: PatternExpectation::Match,
+    };
+    let error = ArgumentError::new("value", kind.clone());
+    let diagnostic = error.to_string();
+
+    assert_eq!(
+        diagnostic,
+        r"argument 'value' must match pattern 'a\'b\\c\r\n\t\u{1b}'",
+    );
+    assert_single_line_diagnostic(&diagnostic);
+    assert_eq!(error.kind(), &kind);
+}
+
+/// Verifies custom code and message escaping with their original values kept.
+#[test]
+fn test_display_escapes_custom_fields_on_one_line() {
+    let code = "bad]\\code\r\n\t\u{7}";
+    let message = "line\\one\r\n\t\u{1b}";
+    let kind = ArgumentErrorKind::Custom {
+        code: String::from(code),
+        message: String::from(message),
+    };
+    let error = ArgumentError::new("value", kind.clone());
+    let diagnostic = error.to_string();
+
+    assert_eq!(
+        diagnostic,
+        r"argument 'value' failed validation [bad\]\\code\r\n\t\u{7}]: line\\one\r\n\t\u{1b}",
+    );
+    assert_single_line_diagnostic(&diagnostic);
+    assert_eq!(error.kind(), &kind);
 }

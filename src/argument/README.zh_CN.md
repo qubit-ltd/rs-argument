@@ -23,11 +23,14 @@ Qubit Argument 用于在 API 和配置边界校验值，同时保持值原有的
 | `ArgumentErrorKind` | 匹配缺失、空白、空值、长度、比较、范围、非法约束、NaN、索引、边界、正则和自定义错误 |
 | `ArgumentValue` | 无损保存有符号数、无符号数、`f32` 或 `f64` |
 | `LengthConstraint`、`ComparisonConstraint` | 描述长度约束和数值比较约束 |
+| `LengthMetric` | 在长度错误中区分 UTF-8 字节数、Unicode 标量值数量和集合元素数量 |
 | `ArgumentBound`、`RangeConstraint::new`、`lower`、`upper`、`into_bounds` | 描述包含、排除或无界的数值范围 |
 | `IndexRole`、`PatternExpectation` | 区分索引语义和正则匹配预期 |
 
 `ArgumentError` 持有这些上下文并实现 `std::error::Error`。其 `Display`
-输出只用于诊断，不是稳定的解析协议。
+输出会转义为单行文本，只用于诊断，不是稳定的解析协议；结构字段仍保留原值。
+`Length` 和 `InvalidLengthConstraint` 都保留 `LengthMetric`，因此不同校验器
+产生的相同数值长度不会成为相等的错误。
 
 ## 保留所有权的链式校验
 

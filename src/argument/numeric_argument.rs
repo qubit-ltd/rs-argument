@@ -205,6 +205,8 @@ pub trait NumericArgument: Sized {
     /// [`ArgumentErrorKind::InvalidRangeConstraint`]. NaN endpoints or values
     /// return [`ArgumentErrorKind::NotANumber`].
     /// An otherwise out-of-range value returns [`ArgumentErrorKind::Range`].
+    /// The range's start and end accessors are each called exactly once, and
+    /// all checks use that owned endpoint snapshot.
     /// Successful validation returns the original value without cloning.
     fn require_in_range<R>(self, path: &str, range: R) -> ArgumentResult<Self>
     where
@@ -355,10 +357,11 @@ where
     where
         R: RangeBounds<Self>,
     {
-        let constraint = capture_range_constraint(&range);
-        validate_range_structure(path, &range, &constraint)?;
+        let (lower_bound, upper_bound) = snapshot_range_bounds(&range);
+        let constraint = capture_range_constraint(lower_bound, upper_bound);
+        validate_range_structure(path, lower_bound, upper_bound, &constraint)?;
         validate_not_nan(path, self)?;
-        if range_contains(&range, self) {
+        if range_contains(lower_bound, upper_bound, self) {
             Ok(self)
         } else {
             Err(ArgumentError::new(
@@ -418,11 +421,41 @@ where
     }
 }
 
-/// Captures a borrowed standard-library bound as a structured argument bound.
+/// Copies a borrowed standard-library bound into an owned bound.
+///
+/// Included and excluded endpoints are copied exactly; an unbounded endpoint
+/// remains unbounded.
+fn copy_range_bound<T>(bound: Bound<&T>) -> Bound<T>
+where
+    T: NumericValue,
+{
+    match bound {
+        Bound::Unbounded => Bound::Unbounded,
+        Bound::Included(value) => Bound::Included(*value),
+        Bound::Excluded(value) => Bound::Excluded(*value),
+    }
+}
+
+/// Reads each endpoint from `range` once and returns an owned snapshot.
+///
+/// The lower and upper endpoint accessors are each invoked exactly once. The
+/// returned values are reused for constraint construction, validation, and
+/// membership checks.
+fn snapshot_range_bounds<T, R>(range: &R) -> (Bound<T>, Bound<T>)
+where
+    T: NumericValue,
+    R: RangeBounds<T>,
+{
+    let lower_bound = copy_range_bound(range.start_bound());
+    let upper_bound = copy_range_bound(range.end_bound());
+    (lower_bound, upper_bound)
+}
+
+/// Captures an owned standard-library bound as a structured argument bound.
 ///
 /// Included and excluded endpoints are converted without losing numeric bits;
 /// an unbounded endpoint remains unbounded.
-fn capture_argument_bound<T>(bound: Bound<&T>) -> ArgumentBound
+fn capture_argument_bound<T>(bound: Bound<T>) -> ArgumentBound
 where
     T: NumericValue,
 {
@@ -437,39 +470,41 @@ where
     }
 }
 
-/// Captures both endpoints from `range` without validating their relationship.
+/// Captures both owned endpoints without validating their relationship.
 ///
 /// The returned constraint preserves inclusive, exclusive, unbounded, and
 /// floating-point bit-pattern details exactly.
-fn capture_range_constraint<T, R>(range: &R) -> RangeConstraint
+fn capture_range_constraint<T>(
+    lower_bound: Bound<T>,
+    upper_bound: Bound<T>,
+) -> RangeConstraint
 where
     T: NumericValue,
-    R: RangeBounds<T>,
 {
     RangeConstraint::new(
-        capture_argument_bound(range.start_bound()),
-        capture_argument_bound(range.end_bound()),
+        capture_argument_bound(lower_bound),
+        capture_argument_bound(upper_bound),
     )
 }
 
-/// Validates that `range` denotes a structurally non-empty numeric interval.
+/// Validates that two snapshotted bounds form a non-empty numeric interval.
 ///
 /// Endpoint NaNs return `NotANumber`. Reversed endpoints, or equal endpoints
 /// where either bound is excluded, return `InvalidRangeConstraint` containing
 /// a clone of `constraint`. Unbounded sides require no ordering comparison.
-fn validate_range_structure<T, R>(
+fn validate_range_structure<T>(
     path: &str,
-    range: &R,
+    lower_bound: Bound<T>,
+    upper_bound: Bound<T>,
     constraint: &RangeConstraint,
 ) -> ArgumentResult<()>
 where
     T: NumericValue,
-    R: RangeBounds<T>,
 {
-    validate_range_bound_not_nan(path, range.start_bound())?;
-    validate_range_bound_not_nan(path, range.end_bound())?;
+    validate_range_bound_not_nan(path, lower_bound)?;
+    validate_range_bound_not_nan(path, upper_bound)?;
 
-    let is_valid = match (range.start_bound(), range.end_bound()) {
+    let is_valid = match (lower_bound, upper_bound) {
         (Bound::Unbounded, _) | (_, Bound::Unbounded) => return Ok(()),
         (Bound::Included(lower), Bound::Included(upper)) => lower <= upper,
         (Bound::Included(lower), Bound::Excluded(upper))
@@ -493,37 +528,40 @@ where
 /// A NaN included or excluded endpoint returns `NotANumber` at `path`.
 fn validate_range_bound_not_nan<T>(
     path: &str,
-    bound: Bound<&T>,
+    bound: Bound<T>,
 ) -> ArgumentResult<()>
 where
     T: NumericValue,
 {
     match bound {
         Bound::Included(value) | Bound::Excluded(value) => {
-            validate_not_nan(path, *value)
+            validate_not_nan(path, value)
         }
         Bound::Unbounded => Ok(()),
     }
 }
 
-/// Returns whether `actual` satisfies both bounds of `range`.
+/// Returns whether `actual` satisfies two snapshotted bounds.
 ///
-/// This helper assumes the range structure and all values were already checked
-/// for NaN. It uses comparisons only and performs no endpoint arithmetic.
-fn range_contains<T, R>(range: &R, actual: T) -> bool
+/// This helper assumes the bounds and all values were already checked for NaN.
+/// It uses comparisons only and performs no endpoint arithmetic.
+fn range_contains<T>(
+    lower_bound: Bound<T>,
+    upper_bound: Bound<T>,
+    actual: T,
+) -> bool
 where
     T: NumericValue,
-    R: RangeBounds<T>,
 {
-    let satisfies_lower = match range.start_bound() {
+    let satisfies_lower = match lower_bound {
         Bound::Unbounded => true,
-        Bound::Included(lower) => actual >= *lower,
-        Bound::Excluded(lower) => actual > *lower,
+        Bound::Included(lower) => actual >= lower,
+        Bound::Excluded(lower) => actual > lower,
     };
-    let satisfies_upper = match range.end_bound() {
+    let satisfies_upper = match upper_bound {
         Bound::Unbounded => true,
-        Bound::Included(upper) => actual <= *upper,
-        Bound::Excluded(upper) => actual < *upper,
+        Bound::Included(upper) => actual <= upper,
+        Bound::Excluded(upper) => actual < upper,
     };
     satisfies_lower && satisfies_upper
 }

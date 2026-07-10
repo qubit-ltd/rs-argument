@@ -5,9 +5,12 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-//! String and collection length constraints.
+//! Relationships used by string and collection length constraints.
 
-/// A constraint on the length of a string or collection.
+/// A numeric relationship required of a measured string or collection length.
+///
+/// [`LengthMetric`](super::LengthMetric) identifies the measurement unit in a
+/// structured validation error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LengthConstraint {
     /// Requires exactly the specified length.

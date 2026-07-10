@@ -79,7 +79,8 @@ fn validate_pool_size(size: u32) -> Result<u32, DomainError> {
 
 程序需要根据错误分支处理时，应使用 `ArgumentError::path()` 和
 `ArgumentError::kind()`；`Display` 文本面向诊断日志，不是供程序解析的稳定
-协议。
+协议。调用方提供的路径、pattern、custom code/message 会在显示时转义，使
+诊断保持单行，但不会改变结构字段中的原值。
 
 默认情况下，校验失败是可恢复错误。若被校验值属于内部不变量而不是外部输入，
 调用方可以明确使用带有说明的 `expect`：
@@ -149,6 +150,10 @@ UTF-8 字节，但只包含两个 Unicode 标量值；标量值数量也不等�
 原始被校验字符串，因此 `Debug` 和 `Display` 也不会泄露该输入。正则错误保存
 模式而不是输入。使用 `require_that` 时，调用方仍需确保自己提供的自定义
 `code` 和 `message` 不包含敏感信息。
+
+`Length` 和 `InvalidLengthConstraint` 错误还会携带 `LengthMetric`：UTF-8
+字节方法使用 `Bytes`，字符数量方法使用 `UnicodeScalars`，集合方法使用
+`Elements`。因此，即使数值长度相同，也能从结构上区分其度量单位。
 
 ## 测试
 

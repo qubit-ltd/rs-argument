@@ -64,7 +64,7 @@ pub struct ArgumentError {
 - `kind(&self) -> &ArgumentErrorKind`
 - `into_parts(self) -> (ArgumentPath, ArgumentErrorKind)`
 
-`ArgumentError` 手动实现 `Display` 和 `std::error::Error`。不额外保存一份普通 message；`Display` 完全根据 `path` 和 `kind` 生成单行诊断，避免结构化信息与文本不一致。
+`ArgumentError` 手动实现 `Display` 和 `std::error::Error`。不额外保存一份普通 message；`Display` 完全根据 `path` 和 `kind` 生成单行诊断，避免结构化信息与文本不一致。调用方提供的 `path`、pattern、custom code/message 在格式化时统一转义反斜线、控制字符和当前分隔符，结构字段仍保留原值。
 
 `Debug` 用于完整结构诊断，`Display` 用于人类可读日志。`Display` 文本不是供程序解析的稳定协议，下游必须使用访问器和枚举匹配。
 
@@ -98,13 +98,14 @@ pub enum ArgumentValue {
 公共约束类型包括：
 
 - `LengthConstraint`：精确长度、至少、至多、闭区间。
+- `LengthMetric`：UTF-8 字节数、Unicode 标量值数量或集合元素数量。
 - `ComparisonConstraint`：等于、不等于、小于、至多、大于、至少。
 - `ArgumentBound`：无界、包含边界、排除边界。
 - `RangeConstraint`：下界和上界。
 - `IndexRole`：元素索引或插入位置索引。
 - `PatternExpectation`：要求匹配或要求不匹配。
 
-这些类型实现 `Debug`、`Clone`、`PartialEq` 和 `Eq`，供下游稳定匹配。
+这些类型实现 `Debug`、`Clone`、`PartialEq` 和 `Eq`，供下游稳定匹配；`LengthMetric` 还实现 `Copy`。
 
 ### 5.5 ArgumentErrorKind
 
@@ -113,10 +114,10 @@ pub enum ArgumentValue {
 - `Missing`
 - `Blank`
 - `Empty`
-- `Length { actual, constraint }`
+- `Length { actual, constraint, metric }`
 - `Comparison { actual, constraint }`
 - `Range { actual, constraint }`
-- `InvalidLengthConstraint { constraint }`
+- `InvalidLengthConstraint { constraint, metric }`
 - `InvalidRangeConstraint { constraint }`
 - `NotANumber`
 - `Index { index, size, role }`
@@ -130,6 +131,13 @@ pub enum ArgumentValue {
 ## 6. 公共 API 与所有权
 
 所有公共类型和 trait 从 crate 根导出。`argument` 及其子模块改为私有实现细节，不再提供多套公共导入路径。
+
+| 类别 | crate-root 导出 |
+| --- | --- |
+| 错误模型 | `ArgumentError`、`ArgumentErrorKind`、`ArgumentPath`、`ArgumentResult` |
+| 值与约束 | `ArgumentValue`、`LengthConstraint`、`LengthMetric`、`ComparisonConstraint`、`ArgumentBound`、`RangeConstraint`、`IndexRole`、`PatternExpectation` |
+| 校验 trait | `NumericArgument`、`StringArgument`、`CollectionArgument`、`OptionArgument` |
+| 检查函数 | `require_that`、`check_bounds`、`check_element_index`、`check_position_index`、`check_position_range` |
 
 ### 6.1 数值校验
 
@@ -147,7 +155,7 @@ pub enum ArgumentValue {
 - `require_at_least`
 - `require_in_range<R: RangeBounds<Self>>`
 
-浮点值和区间边界中的 NaN 返回 `NotANumber`。无穷值按正常比较语义处理。区间下界大于上界时返回 `InvalidRangeConstraint`。下界等于上界时，只有上下界均为包含边界的单点闭区间有效；任一边界为排除边界时返回 `InvalidRangeConstraint`。
+浮点值和区间边界中的 NaN 返回 `NotANumber`。无穷值按正常比较语义处理。区间下界大于上界时返回 `InvalidRangeConstraint`。下界等于上界时，只有上下界均为包含边界的单点闭区间有效；任一边界为排除边界时返回 `InvalidRangeConstraint`。入口只调用一次 `start_bound` 和一次 `end_bound`，随后使用同一份持有所有权的边界快照完成错误约束构造、NaN/结构校验和成员判断。
 
 ### 6.2 字符串校验
 
@@ -274,7 +282,7 @@ regex = { version = "1.12", optional = true }
 ### 9.1 错误模型
 
 - 精确验证 `path`、`kind`、`into_parts`。
-- 验证 `Debug`、`Display` 和 `Error`。
+- 验证 `Debug`、单行转义的 `Display` 和 `Error`。
 - 编译期验证 `Send + Sync + 'static`。
 - 验证 `Clone + PartialEq + Eq`。
 - 验证字符串实际内容不会出现在错误输出中。
@@ -295,7 +303,7 @@ regex = { version = "1.12", optional = true }
 ### 9.4 字符串、集合和 Option
 
 - 覆盖空串、Unicode 空白、UTF-8 多字节字符和字符数量。
-- 精确区分字节长度和字符数量。
+- 精确区分字节长度、Unicode 标量值数量和集合元素数量的 `LengthMetric`。
 - 验证 owned 与 borrowed 输入保持原类型。
 - 覆盖集合长度边界和非法长度约束。
 - 使用不可 `Clone` 类型验证 `Option` 不发生隐式 clone。

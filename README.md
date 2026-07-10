@@ -80,7 +80,9 @@ fn validate_pool_size(size: u32) -> Result<u32, DomainError> {
 ```
 
 Use `ArgumentError::path()` and `ArgumentError::kind()` for programmatic
-decisions. The `Display` text is intended for diagnostics, not parsing.
+decisions. The `Display` text is intended for diagnostics, not parsing;
+caller-provided paths, patterns, custom codes, and messages are escaped so the
+diagnostic remains on one line without changing the structured values.
 
 Validation remains recoverable by default. When a value is an internal
 invariant rather than external input, the caller may explicitly use `expect`
@@ -156,6 +158,11 @@ count, and any required constraint. They do not store the original validated
 string, so `Debug` and `Display` do not reveal it. Pattern errors retain the
 pattern, not the input. Callers of `require_that` remain responsible for
 keeping their own custom code and message free of sensitive data.
+
+`Length` and `InvalidLengthConstraint` errors also carry a `LengthMetric`:
+`Bytes` for UTF-8 byte methods, `UnicodeScalars` for character-count methods,
+and `Elements` for collection methods. Equal numeric lengths therefore remain
+structurally distinguishable by measurement unit.
 
 ## Testing
 

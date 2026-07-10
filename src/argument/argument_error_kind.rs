@@ -12,6 +12,7 @@ use crate::argument::{
     ComparisonConstraint,
     IndexRole,
     LengthConstraint,
+    LengthMetric,
     PatternExpectation,
     RangeConstraint,
 };
@@ -31,10 +32,12 @@ pub enum ArgumentErrorKind {
     Empty,
     /// The argument length did not satisfy a length constraint.
     Length {
-        /// The observed length.
+        /// The observed length in the unit identified by `metric`.
         actual: usize,
         /// The required length relationship.
         constraint: LengthConstraint,
+        /// The unit used to measure the observed and required lengths.
+        metric: LengthMetric,
     },
     /// The numeric argument did not satisfy a comparison constraint.
     Comparison {
@@ -54,6 +57,8 @@ pub enum ArgumentErrorKind {
     InvalidLengthConstraint {
         /// The invalid length constraint.
         constraint: LengthConstraint,
+        /// The unit to which the invalid constraint would have applied.
+        metric: LengthMetric,
     },
     /// The supplied numeric range was internally invalid.
     InvalidRangeConstraint {
