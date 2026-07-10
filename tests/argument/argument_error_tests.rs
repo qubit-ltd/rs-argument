@@ -5,43 +5,33 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-use qubit_argument::{
-    ArgumentError,
-    ArgumentResult,
-};
+//! Tests for structured argument validation errors.
 
+use qubit_argument::{ArgumentError, ArgumentErrorKind, LengthConstraint};
+
+/// Verifies that a structured error exposes and returns its owned components.
 #[test]
-fn argument_error_new_and_message() {
-    let e = ArgumentError::new("Invalid parameter");
-    assert_eq!(e.message(), "Invalid parameter");
+fn test_argument_error_exposes_structured_parts() {
+    let kind = ArgumentErrorKind::Length {
+        actual: 12,
+        constraint: LengthConstraint::AtMost(10),
+    };
+    let error = ArgumentError::structured("tags", kind.clone());
+    assert_eq!(error.path().as_str(), "tags");
+    assert_eq!(error.kind(), &kind);
+    let (path, actual_kind) = error.into_parts();
+    assert_eq!(path.as_str(), "tags");
+    assert_eq!(actual_kind, kind);
 }
 
+/// Verifies the standard error traits and human-readable structured display.
 #[test]
-fn argument_error_display() {
-    let e = ArgumentError::new("Display message");
-    assert_eq!(format!("{}", e), "Display message");
-}
+fn test_argument_error_implements_standard_traits() {
+    /// Asserts the standard bounds required of argument errors.
+    fn assert_traits<T: std::error::Error + Send + Sync + 'static>() {}
 
-#[test]
-fn argument_error_from_str_and_string() {
-    let e1: ArgumentError = "Error A".into();
-    assert_eq!(e1.message(), "Error A");
-
-    let e2: ArgumentError = String::from("Error B").into();
-    assert_eq!(e2.message(), "Error B");
-}
-
-#[test]
-fn argument_result_usage() {
-    fn validate_positive(v: i32) -> ArgumentResult<i32> {
-        if v > 0 {
-            Ok(v)
-        } else {
-            Err(ArgumentError::new("Value must be positive"))
-        }
-    }
-
-    assert_eq!(validate_positive(3).unwrap(), 3);
-    let err = validate_positive(0).unwrap_err();
-    assert!(err.message().contains("Value must be positive"));
+    assert_traits::<ArgumentError>();
+    let error = ArgumentError::structured("name", ArgumentErrorKind::Blank);
+    assert_eq!(error.to_string(), "argument 'name' must not be blank");
+    assert!(format!("{error:?}").contains("Blank"));
 }

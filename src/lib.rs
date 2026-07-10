@@ -15,6 +15,7 @@ pub mod argument;
 pub use argument::{
     ArgumentBound,
     ArgumentError,
+    ArgumentErrorKind,
     ArgumentPath,
     ArgumentResult,
     ArgumentValue,
