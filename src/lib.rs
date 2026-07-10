@@ -13,11 +13,19 @@
 pub mod argument;
 
 pub use argument::{
+    ArgumentBound,
     ArgumentError,
+    ArgumentPath,
     ArgumentResult,
+    ArgumentValue,
     CollectionArgument,
+    ComparisonConstraint,
+    IndexRole,
+    LengthConstraint,
     NumericArgument,
     OptionArgument,
+    PatternExpectation,
+    RangeConstraint,
     StringArgument,
     check_argument,
     check_argument_fmt,
