@@ -31,7 +31,7 @@
 //! # Usage Examples
 //!
 //! ```rust
-//! use qubit_argument::argument::{
+//! use qubit_argument::{
 //!     NumericArgument, StringArgument, CollectionArgument, ArgumentResult
 //! };
 //! #[cfg(feature = "regex")]
@@ -64,50 +64,28 @@
 //! }
 //! ```
 
-pub mod argument_error;
+mod argument_error;
 mod argument_path;
 mod argument_value;
-pub mod bounds;
-pub mod collection_argument;
+mod bounds;
+mod collection_argument;
 mod constraint;
-pub mod numeric_argument;
-pub mod option_argument;
-pub mod string_argument;
+mod numeric_argument;
+mod option_argument;
+mod string_argument;
 
 // Re-export main types and traits
-pub use argument_error::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-};
+pub use argument_error::{ArgumentError, ArgumentErrorKind, ArgumentResult};
 pub use argument_path::ArgumentPath;
 pub use argument_value::ArgumentValue;
 pub use bounds::{
-    check_bounds,
-    check_element_index,
-    check_position_index,
-    check_position_range,
-    require_that,
+    check_bounds, check_element_index, check_position_index, check_position_range, require_that,
 };
-pub use collection_argument::{
-    CollectionArgument,
-    require_element_non_null,
-};
+pub use collection_argument::CollectionArgument;
 pub use constraint::{
-    ArgumentBound,
-    ComparisonConstraint,
-    IndexRole,
-    LengthConstraint,
-    PatternExpectation,
+    ArgumentBound, ComparisonConstraint, IndexRole, LengthConstraint, PatternExpectation,
     RangeConstraint,
 };
-pub use numeric_argument::{
-    NumericArgument,
-    require_equal,
-    require_not_equal,
-};
-pub use option_argument::{
-    OptionArgument,
-    require_null_or,
-};
+pub use numeric_argument::NumericArgument;
+pub use option_argument::OptionArgument;
 pub use string_argument::StringArgument;

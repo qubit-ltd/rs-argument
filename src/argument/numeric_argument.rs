@@ -8,7 +8,6 @@
 //! Ownership-preserving validation for primitive numeric arguments.
 
 use std::cmp::Ordering;
-use std::fmt::Display;
 use std::ops::{Bound, RangeBounds};
 
 use crate::argument::{
@@ -326,7 +325,7 @@ where
         if range_contains(&range, self) {
             Ok(self)
         } else {
-            Err(ArgumentError::structured(
+            Err(ArgumentError::new(
                 path,
                 ArgumentErrorKind::Range {
                     actual: self.to_argument_value(),
@@ -346,10 +345,7 @@ where
     T: NumericValue,
 {
     if value.is_nan() {
-        Err(ArgumentError::structured(
-            path,
-            ArgumentErrorKind::NotANumber,
-        ))
+        Err(ArgumentError::new(path, ArgumentErrorKind::NotANumber))
     } else {
         Ok(())
     }
@@ -376,7 +372,7 @@ where
     if predicate(actual, bound) {
         Ok(actual)
     } else {
-        Err(ArgumentError::structured(
+        Err(ArgumentError::new(
             path,
             ArgumentErrorKind::Comparison {
                 actual: actual.to_argument_value(),
@@ -444,16 +440,13 @@ where
     match ordering {
         Some(Ordering::Less) | Some(Ordering::Equal) if both_included => Ok(()),
         Some(Ordering::Less) => Ok(()),
-        Some(Ordering::Equal | Ordering::Greater) => Err(ArgumentError::structured(
+        Some(Ordering::Equal | Ordering::Greater) => Err(ArgumentError::new(
             path,
             ArgumentErrorKind::InvalidRangeConstraint {
                 constraint: constraint.clone(),
             },
         )),
-        None => Err(ArgumentError::structured(
-            path,
-            ArgumentErrorKind::NotANumber,
-        )),
+        None => Err(ArgumentError::new(path, ArgumentErrorKind::NotANumber)),
     }
 }
 
@@ -490,44 +483,4 @@ where
         Bound::Excluded(upper) => actual < *upper,
     };
     satisfies_lower && satisfies_upper
-}
-
-/// Temporarily validates that two named values are equal.
-///
-/// Returns `Ok(())` when `value1 == value2`. Otherwise, returns the legacy
-/// message-backed argument error naming both `name1` and `name2`. This hidden
-/// compatibility export is removed when the crate-root API is finalized.
-#[doc(hidden)]
-#[inline]
-pub fn require_equal<T>(name1: &str, value1: T, name2: &str, value2: T) -> ArgumentResult<()>
-where
-    T: PartialEq + Display,
-{
-    if value1 != value2 {
-        return Err(ArgumentError::new(format!(
-            "Parameter '{}' ({}) must equal parameter '{}' ({})",
-            name1, value1, name2, value2
-        )));
-    }
-    Ok(())
-}
-
-/// Temporarily validates that two named values are unequal.
-///
-/// Returns `Ok(())` when `value1 != value2`. Otherwise, returns the legacy
-/// message-backed argument error naming both `name1` and `name2`. This hidden
-/// compatibility export is removed when the crate-root API is finalized.
-#[doc(hidden)]
-#[inline]
-pub fn require_not_equal<T>(name1: &str, value1: T, name2: &str, value2: T) -> ArgumentResult<()>
-where
-    T: PartialEq + Display,
-{
-    if value1 == value2 {
-        return Err(ArgumentError::new(format!(
-            "Parameters '{}' and '{}' cannot be equal (both are: {})",
-            name1, name2, value1
-        )));
-    }
-    Ok(())
 }

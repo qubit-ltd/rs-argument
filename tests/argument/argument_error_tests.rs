@@ -7,7 +7,15 @@
 // =============================================================================
 //! Tests for structured argument validation errors.
 
-use qubit_argument::{ArgumentError, ArgumentErrorKind, LengthConstraint};
+use qubit_argument::{ArgumentError, ArgumentErrorKind, ArgumentPath, LengthConstraint};
+
+/// Verifies that the final v0.4 error vocabulary is exported at the crate root.
+#[test]
+fn test_crate_root_exports_v04_error_vocabulary() {
+    let error = ArgumentError::new("name", ArgumentErrorKind::Blank);
+    let _: &ArgumentPath = error.path();
+    assert_eq!(error.to_string(), "argument 'name' must not be blank");
+}
 
 /// Verifies that a structured error exposes and returns its owned components.
 #[test]
@@ -16,7 +24,7 @@ fn test_argument_error_exposes_structured_parts() {
         actual: 12,
         constraint: LengthConstraint::AtMost(10),
     };
-    let error = ArgumentError::structured("tags", kind.clone());
+    let error = ArgumentError::new("tags", kind.clone());
     assert_eq!(error.path().as_str(), "tags");
     assert_eq!(error.kind(), &kind);
     let (path, actual_kind) = error.into_parts();
@@ -31,7 +39,7 @@ fn test_argument_error_implements_standard_traits() {
     fn assert_traits<T: std::error::Error + Send + Sync + 'static>() {}
 
     assert_traits::<ArgumentError>();
-    let error = ArgumentError::structured("name", ArgumentErrorKind::Blank);
+    let error = ArgumentError::new("name", ArgumentErrorKind::Blank);
     assert_eq!(error.to_string(), "argument 'name' must not be blank");
     assert!(format!("{error:?}").contains("Blank"));
 }

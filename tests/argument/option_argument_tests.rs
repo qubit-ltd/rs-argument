@@ -41,7 +41,7 @@ fn test_validate_if_some_preserves_non_clone_value() {
             if item.0 == 7 {
                 Ok(())
             } else {
-                Err(ArgumentError::structured(
+                Err(ArgumentError::new(
                     "item",
                     ArgumentErrorKind::Custom {
                         code: String::from("unexpected_value"),
@@ -87,7 +87,7 @@ fn test_validate_if_some_executes_validator_once_for_some() {
 fn test_validate_if_some_propagates_structured_error() {
     let error = Some(NonClone(1))
         .validate_if_some(|_| {
-            Err(ArgumentError::structured(
+            Err(ArgumentError::new(
                 "item",
                 ArgumentErrorKind::Custom {
                     code: String::from("rejected"),

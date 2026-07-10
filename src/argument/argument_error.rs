@@ -119,7 +119,7 @@ impl ArgumentError {
     /// `path` is copied only while constructing the error. The supplied
     /// `kind` is retained unchanged.
     #[inline]
-    pub fn structured(path: &str, kind: ArgumentErrorKind) -> Self {
+    pub fn new(path: &str, kind: ArgumentErrorKind) -> Self {
         Self {
             path: ArgumentPath::new(path),
             kind: Box::new(kind),
@@ -147,43 +147,11 @@ impl ArgumentError {
         let Self { path, kind } = self;
         (path, *kind)
     }
-
-    /// Creates a temporary legacy custom error from message text.
-    ///
-    /// This compatibility constructor stores the message under the fixed
-    /// `legacy` code and the fixed `argument` path.
-    #[doc(hidden)]
-    #[inline]
-    pub fn new(message: impl Into<String>) -> Self {
-        Self::structured(
-            "argument",
-            ArgumentErrorKind::Custom {
-                code: String::from("legacy"),
-                message: message.into(),
-            },
-        )
-    }
-
-    /// Formats this error for temporary message-based compatibility.
-    ///
-    /// The returned string is generated from the structured path and kind;
-    /// the error does not store a second preformatted message.
-    #[doc(hidden)]
-    #[inline]
-    pub fn message(&self) -> String {
-        self.to_string()
-    }
 }
 
 impl Display for ArgumentError {
     /// Formats a single-line diagnostic entirely from the structured fields.
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        if let ArgumentErrorKind::Custom { code, message } = self.kind.as_ref()
-            && code == "legacy"
-            && self.path.as_str() == "argument"
-        {
-            return formatter.write_str(message);
-        }
         write!(formatter, "argument '{}'", self.path)?;
         match self.kind.as_ref() {
             ArgumentErrorKind::Missing => formatter.write_str(" is missing"),
@@ -251,24 +219,6 @@ impl Display for ArgumentError {
 }
 
 impl std::error::Error for ArgumentError {}
-
-#[doc(hidden)]
-impl From<String> for ArgumentError {
-    /// Converts owned legacy message text into a structured custom error.
-    #[inline]
-    fn from(message: String) -> Self {
-        Self::new(message)
-    }
-}
-
-#[doc(hidden)]
-impl From<&str> for ArgumentError {
-    /// Copies borrowed legacy message text into a structured custom error.
-    #[inline]
-    fn from(message: &str) -> Self {
-        Self::new(message)
-    }
-}
 
 /// Writes a length constraint in human-readable form.
 ///
