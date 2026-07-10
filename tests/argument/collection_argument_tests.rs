@@ -5,76 +5,146 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-use qubit_argument::{
-    CollectionArgument,
-    require_element_non_null,
-};
+use qubit_argument::{ArgumentErrorKind, CollectionArgument, LengthConstraint};
+
+/// A value that cannot be cloned, used to verify ownership-preserving APIs.
+#[derive(Debug, PartialEq, Eq)]
+struct NonClone(u32);
 
 #[test]
-fn non_empty_and_length_checks_slice() {
-    let v = [1, 2, 3];
-    assert!(v.require_non_empty("v").is_ok());
-    let empty: [i32; 0] = [];
-    assert!(empty.require_non_empty("v").is_err());
-
-    assert!(v.require_length_be("v", 3).is_ok());
-    assert!(v.require_length_be("v", 2).is_err());
-
-    assert!(v.require_length_at_least("v", 3).is_ok());
-    assert!(v.require_length_at_least("v", 4).is_err());
-
-    assert!(v.require_length_at_most("v", 3).is_ok());
-    assert!(v.require_length_at_most("v", 2).is_err());
-
-    assert!(v.require_length_in_range("v", 1, 3).is_ok());
-    assert!(v.require_length_in_range("v", 4, 5).is_err());
-    assert!(v.require_length_in_range("v", 3, 2).is_err());
+fn test_require_non_empty_preserves_vec_ownership() {
+    let values = vec![NonClone(1), NonClone(2), NonClone(3)];
+    let validated: Vec<NonClone> = values
+        .require_non_empty("values")
+        .expect("vector is non-empty");
+    assert_eq!(validated, vec![NonClone(1), NonClone(2), NonClone(3)]);
 }
 
 #[test]
-fn non_empty_and_length_checks_vec() {
-    let v = vec![1, 2, 3, 4];
-    assert!(v.require_non_empty("v").is_ok());
-    let empty: Vec<i32> = vec![];
-    assert!(empty.require_non_empty("v").is_err());
-
-    assert!(vec![1, 2, 3].require_length_be("v", 3).is_ok());
-    assert!(vec![1, 2, 3].require_length_be("v", 2).is_err());
-
-    assert!(vec![1, 2, 3].require_length_at_least("v", 2).is_ok());
-    assert!(vec![1, 2, 3].require_length_at_least("v", 4).is_err());
-
-    assert!(vec![1, 2, 3].require_length_at_most("v", 3).is_ok());
-    assert!(vec![1, 2, 3].require_length_at_most("v", 2).is_err());
-
-    assert!(vec![1, 2, 3].require_length_in_range("v", 1, 3).is_ok());
-    assert!(vec![1, 2, 3].require_length_in_range("v", 4, 5).is_err());
-    assert!(vec![1, 2, 3].require_length_in_range("v", 3, 2).is_err());
+fn test_require_non_empty_preserves_borrowed_slice() {
+    let values = [1, 2, 3];
+    let slice: &[i32] = &values;
+    let validated: &[i32] = slice
+        .require_non_empty("values")
+        .expect("slice is non-empty");
+    assert!(std::ptr::eq(validated, slice));
 }
 
 #[test]
-fn require_element_non_null_checks() {
-    let all_some = vec![Some(1), Some(2), Some(3)];
-    assert!(require_element_non_null("items", &all_some).is_ok());
-
-    let with_none = vec![Some(1), None, Some(3)];
-    let err = require_element_non_null("items", &with_none).unwrap_err();
-    assert!(err.message().contains("element at index 1"));
-
-    let empty: Vec<Option<i32>> = vec![];
-    assert!(require_element_non_null("items", &empty).is_ok());
-
-    let none_first = vec![None, Some(2)];
-    let err2 = require_element_non_null("items", &none_first).unwrap_err();
-    assert!(err2.message().contains("element at index 0"));
+fn test_require_non_empty_preserves_array_ownership() {
+    let values = [NonClone(1), NonClone(2)];
+    let validated: [NonClone; 2] = values
+        .require_non_empty("values")
+        .expect("array is non-empty");
+    assert_eq!(validated, [NonClone(1), NonClone(2)]);
 }
 
 #[test]
-fn vec_impl_returns_same_reference_after_validation() {
-    let values = vec![1, 2, 3];
-    let validated = values.require_non_empty("values").unwrap();
-    assert!(std::ptr::eq(validated, &values));
+fn test_require_non_empty_reports_empty_collection() {
+    let error = Vec::<i32>::new()
+        .require_non_empty("values")
+        .expect_err("empty vector must fail");
+    assert_eq!(error.path().as_str(), "values");
+    assert_eq!(error.kind(), &ArgumentErrorKind::Empty);
+}
 
-    let validated2 = values.require_length_in_range("values", 1, 3).unwrap();
-    assert!(std::ptr::eq(validated2, &values));
+#[test]
+fn test_require_len_accepts_exact_length() {
+    let validated: [i32; 3] = [1, 2, 3]
+        .require_len("values", 3)
+        .expect("array has the required length");
+    assert_eq!(validated, [1, 2, 3]);
+}
+
+#[test]
+fn test_require_len_reports_exact_length_error() {
+    let error = vec![1, 2]
+        .require_len("values", 3)
+        .expect_err("vector has the wrong length");
+    assert_eq!(error.path().as_str(), "values");
+    assert_eq!(
+        error.kind(),
+        &ArgumentErrorKind::Length {
+            actual: 2,
+            constraint: LengthConstraint::Exact(3),
+        },
+    );
+}
+
+#[test]
+fn test_require_len_at_least_checks_minimum_length() {
+    let values = [1, 2, 3];
+    let slice: &[i32] = &values;
+    let validated: &[i32] = slice
+        .require_len_at_least("values", 3)
+        .expect("slice meets the inclusive minimum");
+    assert!(std::ptr::eq(validated, slice));
+
+    let error = [1, 2]
+        .require_len_at_least("values", 3)
+        .expect_err("array is shorter than the minimum");
+    assert_eq!(
+        error.kind(),
+        &ArgumentErrorKind::Length {
+            actual: 2,
+            constraint: LengthConstraint::AtLeast(3),
+        },
+    );
+}
+
+#[test]
+fn test_require_len_at_most_checks_maximum_length() {
+    let validated: Vec<i32> = vec![1, 2, 3]
+        .require_len_at_most("values", 3)
+        .expect("vector meets the inclusive maximum");
+    assert_eq!(validated, vec![1, 2, 3]);
+
+    let error = [1, 2, 3]
+        .require_len_at_most("values", 2)
+        .expect_err("array is longer than the maximum");
+    assert_eq!(
+        error.kind(),
+        &ArgumentErrorKind::Length {
+            actual: 3,
+            constraint: LengthConstraint::AtMost(2),
+        },
+    );
+}
+
+#[test]
+fn test_require_len_in_checks_inclusive_range() {
+    let at_minimum: [i32; 2] = [1, 2]
+        .require_len_in("values", 2, 3)
+        .expect("minimum endpoint is included");
+    assert_eq!(at_minimum, [1, 2]);
+
+    let at_maximum: Vec<i32> = vec![1, 2, 3]
+        .require_len_in("values", 2, 3)
+        .expect("maximum endpoint is included");
+    assert_eq!(at_maximum, vec![1, 2, 3]);
+
+    let error = [1]
+        .require_len_in("values", 2, 3)
+        .expect_err("array is outside the required range");
+    assert_eq!(
+        error.kind(),
+        &ArgumentErrorKind::Length {
+            actual: 1,
+            constraint: LengthConstraint::InRange { min: 2, max: 3 },
+        },
+    );
+}
+
+#[test]
+fn test_require_len_in_reports_invalid_constraint() {
+    let error = [1, 2]
+        .require_len_in("values", 3, 1)
+        .expect_err("reversed length range must fail");
+    assert_eq!(error.path().as_str(), "values");
+    assert_eq!(
+        error.kind(),
+        &ArgumentErrorKind::InvalidLengthConstraint {
+            constraint: LengthConstraint::InRange { min: 3, max: 1 },
+        },
+    );
 }
