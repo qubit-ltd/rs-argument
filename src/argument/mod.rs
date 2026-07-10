@@ -73,6 +73,7 @@ pub mod string_argument;
 // Re-export main types and traits
 pub use argument_error::{
     ArgumentError,
+    ArgumentErrorKind,
     ArgumentResult,
 };
 pub use argument_path::ArgumentPath;
