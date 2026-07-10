@@ -7,12 +7,19 @@
 // =============================================================================
 //! Ownership-preserving validation for primitive numeric arguments.
 
-use std::cmp::Ordering;
-use std::ops::{Bound, RangeBounds};
+use std::ops::{
+    Bound,
+    RangeBounds,
+};
 
 use crate::argument::{
-    ArgumentBound, ArgumentError, ArgumentErrorKind, ArgumentResult, ArgumentValue,
-    ComparisonConstraint, RangeConstraint,
+    ArgumentBound,
+    ArgumentError,
+    ArgumentErrorKind,
+    ArgumentResult,
+    ArgumentValue,
+    ComparisonConstraint,
+    RangeConstraint,
 };
 
 /// Restricts numeric validation to supported primitive numeric values.
@@ -159,7 +166,8 @@ pub trait NumericArgument: Sized {
     /// comparison returns [`ArgumentErrorKind::Comparison`] with a `LessThan`
     /// constraint at `path`; a NaN value or bound returns
     /// [`ArgumentErrorKind::NotANumber`].
-    fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
+    fn require_less_than(self, path: &str, bound: Self)
+    -> ArgumentResult<Self>;
 
     /// Requires this value to be less than or equal to `bound`.
     ///
@@ -175,7 +183,11 @@ pub trait NumericArgument: Sized {
     /// comparison returns [`ArgumentErrorKind::Comparison`] with a
     /// `GreaterThan` constraint at `path`; a NaN value or bound returns
     /// [`ArgumentErrorKind::NotANumber`].
-    fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
+    fn require_greater_than(
+        self,
+        path: &str,
+        bound: Self,
+    ) -> ArgumentResult<Self>;
 
     /// Requires this value to be greater than or equal to `bound`.
     ///
@@ -283,7 +295,11 @@ where
 
     /// Requires a value strictly less than the supplied bound.
     #[inline]
-    fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self> {
+    fn require_less_than(
+        self,
+        path: &str,
+        bound: Self,
+    ) -> ArgumentResult<Self> {
         validate_comparison(
             self,
             path,
@@ -307,7 +323,11 @@ where
 
     /// Requires a value strictly greater than the supplied bound.
     #[inline]
-    fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self> {
+    fn require_greater_than(
+        self,
+        path: &str,
+        bound: Self,
+    ) -> ArgumentResult<Self> {
         validate_comparison(
             self,
             path,
@@ -408,8 +428,12 @@ where
 {
     match bound {
         Bound::Unbounded => ArgumentBound::Unbounded,
-        Bound::Included(value) => ArgumentBound::Included(value.to_argument_value()),
-        Bound::Excluded(value) => ArgumentBound::Excluded(value.to_argument_value()),
+        Bound::Included(value) => {
+            ArgumentBound::Included(value.to_argument_value())
+        }
+        Bound::Excluded(value) => {
+            ArgumentBound::Excluded(value.to_argument_value())
+        }
     }
 }
 
@@ -445,36 +469,39 @@ where
     validate_range_bound_not_nan(path, range.start_bound())?;
     validate_range_bound_not_nan(path, range.end_bound())?;
 
-    let ordering_and_closed = match (range.start_bound(), range.end_bound()) {
+    let is_valid = match (range.start_bound(), range.end_bound()) {
         (Bound::Unbounded, _) | (_, Bound::Unbounded) => return Ok(()),
-        (Bound::Included(lower), Bound::Included(upper)) => (lower.partial_cmp(upper), true),
+        (Bound::Included(lower), Bound::Included(upper)) => lower <= upper,
         (Bound::Included(lower), Bound::Excluded(upper))
         | (Bound::Excluded(lower), Bound::Included(upper))
-        | (Bound::Excluded(lower), Bound::Excluded(upper)) => (lower.partial_cmp(upper), false),
+        | (Bound::Excluded(lower), Bound::Excluded(upper)) => lower < upper,
     };
-    let (ordering, both_included) = ordering_and_closed;
-    match ordering {
-        Some(Ordering::Less) | Some(Ordering::Equal) if both_included => Ok(()),
-        Some(Ordering::Less) => Ok(()),
-        Some(Ordering::Equal | Ordering::Greater) => Err(ArgumentError::new(
+    if is_valid {
+        Ok(())
+    } else {
+        Err(ArgumentError::new(
             path,
             ArgumentErrorKind::InvalidRangeConstraint {
                 constraint: constraint.clone(),
             },
-        )),
-        None => Err(ArgumentError::new(path, ArgumentErrorKind::NotANumber)),
+        ))
     }
 }
 
 /// Rejects a NaN endpoint while accepting unbounded and ordinary endpoints.
 ///
 /// A NaN included or excluded endpoint returns `NotANumber` at `path`.
-fn validate_range_bound_not_nan<T>(path: &str, bound: Bound<&T>) -> ArgumentResult<()>
+fn validate_range_bound_not_nan<T>(
+    path: &str,
+    bound: Bound<&T>,
+) -> ArgumentResult<()>
 where
     T: NumericValue,
 {
     match bound {
-        Bound::Included(value) | Bound::Excluded(value) => validate_not_nan(path, *value),
+        Bound::Included(value) | Bound::Excluded(value) => {
+            validate_not_nan(path, *value)
+        }
         Bound::Unbounded => Ok(()),
     }
 }

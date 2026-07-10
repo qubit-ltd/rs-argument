@@ -7,7 +7,12 @@
 // =============================================================================
 //! Lossless representations of primitive numeric argument values.
 
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{
+    self,
+    Debug,
+    Display,
+    Formatter,
+};
 
 /// A primitive numeric value captured for a validation constraint or error.
 ///
@@ -78,8 +83,12 @@ impl Debug for ArgumentValue {
     /// Formats the variant with a reconstructed primitive numeric value.
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Signed(value) => formatter.debug_tuple("Signed").field(value).finish(),
-            Self::Unsigned(value) => formatter.debug_tuple("Unsigned").field(value).finish(),
+            Self::Signed(value) => {
+                formatter.debug_tuple("Signed").field(value).finish()
+            }
+            Self::Unsigned(value) => {
+                formatter.debug_tuple("Unsigned").field(value).finish()
+            }
             Self::Float32(bits) => formatter
                 .debug_tuple("Float32")
                 .field(&f32::from_bits(*bits))
@@ -98,8 +107,12 @@ impl Display for ArgumentValue {
         match self {
             Self::Signed(value) => Display::fmt(value, formatter),
             Self::Unsigned(value) => Display::fmt(value, formatter),
-            Self::Float32(bits) => Display::fmt(&f32::from_bits(*bits), formatter),
-            Self::Float64(bits) => Display::fmt(&f64::from_bits(*bits), formatter),
+            Self::Float32(bits) => {
+                Display::fmt(&f32::from_bits(*bits), formatter)
+            }
+            Self::Float64(bits) => {
+                Display::fmt(&f64::from_bits(*bits), formatter)
+            }
         }
     }
 }

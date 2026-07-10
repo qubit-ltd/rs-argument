@@ -7,7 +7,12 @@
 // =============================================================================
 //! Ownership-preserving validation for string arguments.
 
-use crate::argument::{ArgumentError, ArgumentErrorKind, ArgumentResult, LengthConstraint};
+use crate::argument::{
+    ArgumentError,
+    ArgumentErrorKind,
+    ArgumentResult,
+    LengthConstraint,
+};
 
 #[cfg(feature = "regex")]
 use crate::argument::PatternExpectation;
@@ -32,19 +37,31 @@ pub trait StringArgument: Sized {
     ///
     /// Success returns the original value without cloning. A different byte
     /// length returns [`ArgumentErrorKind::Length`] at `path`.
-    fn require_byte_len(self, path: &str, expected: usize) -> ArgumentResult<Self>;
+    fn require_byte_len(
+        self,
+        path: &str,
+        expected: usize,
+    ) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at least `min` UTF-8 bytes.
     ///
     /// Success returns the original value without cloning. A smaller byte
     /// length returns [`ArgumentErrorKind::Length`] at `path`.
-    fn require_byte_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self>;
+    fn require_byte_len_at_least(
+        self,
+        path: &str,
+        min: usize,
+    ) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at most `max` UTF-8 bytes.
     ///
     /// Success returns the original value without cloning. A larger byte
     /// length returns [`ArgumentErrorKind::Length`] at `path`.
-    fn require_byte_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self>;
+    fn require_byte_len_at_most(
+        self,
+        path: &str,
+        max: usize,
+    ) -> ArgumentResult<Self>;
 
     /// Requires this string's UTF-8 byte length to lie in `min..=max`.
     ///
@@ -53,25 +70,43 @@ pub trait StringArgument: Sized {
     /// otherwise, an out-of-range length returns
     /// [`ArgumentErrorKind::Length`]. Success returns the original value
     /// without cloning.
-    fn require_byte_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self>;
+    fn require_byte_len_in(
+        self,
+        path: &str,
+        min: usize,
+        max: usize,
+    ) -> ArgumentResult<Self>;
 
-    /// Requires this string to contain exactly `expected` Unicode scalar values.
+    /// Requires this string to contain exactly `expected` Unicode scalar
+    /// values.
     ///
     /// Success returns the original value without cloning. A different scalar
     /// count returns [`ArgumentErrorKind::Length`] at `path`.
-    fn require_char_count(self, path: &str, expected: usize) -> ArgumentResult<Self>;
+    fn require_char_count(
+        self,
+        path: &str,
+        expected: usize,
+    ) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at least `min` Unicode scalar values.
     ///
     /// Success returns the original value without cloning. A smaller scalar
     /// count returns [`ArgumentErrorKind::Length`] at `path`.
-    fn require_char_count_at_least(self, path: &str, min: usize) -> ArgumentResult<Self>;
+    fn require_char_count_at_least(
+        self,
+        path: &str,
+        min: usize,
+    ) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at most `max` Unicode scalar values.
     ///
     /// Success returns the original value without cloning. A larger scalar
     /// count returns [`ArgumentErrorKind::Length`] at `path`.
-    fn require_char_count_at_most(self, path: &str, max: usize) -> ArgumentResult<Self>;
+    fn require_char_count_at_most(
+        self,
+        path: &str,
+        max: usize,
+    ) -> ArgumentResult<Self>;
 
     /// Requires this string's Unicode scalar count to lie in `min..=max`.
     ///
@@ -79,7 +114,12 @@ pub trait StringArgument: Sized {
     /// returns [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`;
     /// otherwise, an out-of-range count returns [`ArgumentErrorKind::Length`].
     /// Success returns the original value without cloning.
-    fn require_char_count_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self>;
+    fn require_char_count_in(
+        self,
+        path: &str,
+        min: usize,
+        max: usize,
+    ) -> ArgumentResult<Self>;
 
     /// Requires this string to match `pattern`.
     ///
@@ -87,7 +127,8 @@ pub trait StringArgument: Sized {
     /// returns the original value without cloning; failure returns
     /// [`ArgumentErrorKind::Pattern`] at `path` without capturing the input.
     #[cfg(feature = "regex")]
-    fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self>;
+    fn require_match(self, path: &str, pattern: &Regex)
+    -> ArgumentResult<Self>;
 
     /// Requires this string not to match `pattern`.
     ///
@@ -95,7 +136,11 @@ pub trait StringArgument: Sized {
     /// returns the original value without cloning; failure returns
     /// [`ArgumentErrorKind::Pattern`] at `path` without capturing the input.
     #[cfg(feature = "regex")]
-    fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self>;
+    fn require_not_match(
+        self,
+        path: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<Self>;
 }
 
 impl StringArgument for &str {
@@ -112,7 +157,11 @@ impl StringArgument for &str {
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_byte_len(self, path: &str, expected: usize) -> ArgumentResult<Self> {
+    fn require_byte_len(
+        self,
+        path: &str,
+        expected: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::Exact(expected))?;
         Ok(self)
     }
@@ -121,7 +170,11 @@ impl StringArgument for &str {
     ///
     /// A value below `min` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_byte_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
+    fn require_byte_len_at_least(
+        self,
+        path: &str,
+        min: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtLeast(min))?;
         Ok(self)
     }
@@ -130,7 +183,11 @@ impl StringArgument for &str {
     ///
     /// A value above `max` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_byte_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
+    fn require_byte_len_at_most(
+        self,
+        path: &str,
+        max: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtMost(max))?;
         Ok(self)
     }
@@ -140,16 +197,30 @@ impl StringArgument for &str {
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range value returns [`ArgumentErrorKind::Length`].
     #[inline]
-    fn require_byte_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
-        validate_length(path, self.len(), LengthConstraint::InRange { min, max })?;
+    fn require_byte_len_in(
+        self,
+        path: &str,
+        min: usize,
+        max: usize,
+    ) -> ArgumentResult<Self> {
+        validate_length(
+            path,
+            self.len(),
+            LengthConstraint::InRange { min, max },
+        )?;
         Ok(self)
     }
 
-    /// Validates the exact Unicode scalar count and returns the original borrow.
+    /// Validates the exact Unicode scalar count and returns the original
+    /// borrow.
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_char_count(self, path: &str, expected: usize) -> ArgumentResult<Self> {
+    fn require_char_count(
+        self,
+        path: &str,
+        expected: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(
             path,
             self.chars().count(),
@@ -158,30 +229,54 @@ impl StringArgument for &str {
         Ok(self)
     }
 
-    /// Validates the minimum Unicode scalar count and returns the original borrow.
+    /// Validates the minimum Unicode scalar count and returns the original
+    /// borrow.
     ///
     /// A count below `min` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_char_count_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
-        validate_length(path, self.chars().count(), LengthConstraint::AtLeast(min))?;
+    fn require_char_count_at_least(
+        self,
+        path: &str,
+        min: usize,
+    ) -> ArgumentResult<Self> {
+        validate_length(
+            path,
+            self.chars().count(),
+            LengthConstraint::AtLeast(min),
+        )?;
         Ok(self)
     }
 
-    /// Validates the maximum Unicode scalar count and returns the original borrow.
+    /// Validates the maximum Unicode scalar count and returns the original
+    /// borrow.
     ///
     /// A count above `max` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_char_count_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
-        validate_length(path, self.chars().count(), LengthConstraint::AtMost(max))?;
+    fn require_char_count_at_most(
+        self,
+        path: &str,
+        max: usize,
+    ) -> ArgumentResult<Self> {
+        validate_length(
+            path,
+            self.chars().count(),
+            LengthConstraint::AtMost(max),
+        )?;
         Ok(self)
     }
 
-    /// Validates an inclusive Unicode scalar-count range and returns the borrow.
+    /// Validates an inclusive Unicode scalar-count range and returns the
+    /// borrow.
     ///
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range count returns [`ArgumentErrorKind::Length`].
     #[inline]
-    fn require_char_count_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
+    fn require_char_count_in(
+        self,
+        path: &str,
+        min: usize,
+        max: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(
             path,
             self.chars().count(),
@@ -196,7 +291,11 @@ impl StringArgument for &str {
     /// capturing the input string.
     #[cfg(feature = "regex")]
     #[inline]
-    fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
+    fn require_match(
+        self,
+        path: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<Self> {
         validate_pattern(self, path, pattern, PatternExpectation::Match)?;
         Ok(self)
     }
@@ -207,7 +306,11 @@ impl StringArgument for &str {
     /// capturing the input string.
     #[cfg(feature = "regex")]
     #[inline]
-    fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
+    fn require_not_match(
+        self,
+        path: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<Self> {
         validate_pattern(self, path, pattern, PatternExpectation::NoMatch)?;
         Ok(self)
     }
@@ -227,7 +330,11 @@ impl StringArgument for String {
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_byte_len(self, path: &str, expected: usize) -> ArgumentResult<Self> {
+    fn require_byte_len(
+        self,
+        path: &str,
+        expected: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::Exact(expected))?;
         Ok(self)
     }
@@ -236,7 +343,11 @@ impl StringArgument for String {
     ///
     /// A value below `min` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_byte_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
+    fn require_byte_len_at_least(
+        self,
+        path: &str,
+        min: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtLeast(min))?;
         Ok(self)
     }
@@ -245,7 +356,11 @@ impl StringArgument for String {
     ///
     /// A value above `max` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_byte_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
+    fn require_byte_len_at_most(
+        self,
+        path: &str,
+        max: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtMost(max))?;
         Ok(self)
     }
@@ -255,8 +370,17 @@ impl StringArgument for String {
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range value returns [`ArgumentErrorKind::Length`].
     #[inline]
-    fn require_byte_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
-        validate_length(path, self.len(), LengthConstraint::InRange { min, max })?;
+    fn require_byte_len_in(
+        self,
+        path: &str,
+        min: usize,
+        max: usize,
+    ) -> ArgumentResult<Self> {
+        validate_length(
+            path,
+            self.len(),
+            LengthConstraint::InRange { min, max },
+        )?;
         Ok(self)
     }
 
@@ -264,7 +388,11 @@ impl StringArgument for String {
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_char_count(self, path: &str, expected: usize) -> ArgumentResult<Self> {
+    fn require_char_count(
+        self,
+        path: &str,
+        expected: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(
             path,
             self.chars().count(),
@@ -277,8 +405,16 @@ impl StringArgument for String {
     ///
     /// A count below `min` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_char_count_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
-        validate_length(path, self.chars().count(), LengthConstraint::AtLeast(min))?;
+    fn require_char_count_at_least(
+        self,
+        path: &str,
+        min: usize,
+    ) -> ArgumentResult<Self> {
+        validate_length(
+            path,
+            self.chars().count(),
+            LengthConstraint::AtLeast(min),
+        )?;
         Ok(self)
     }
 
@@ -286,17 +422,31 @@ impl StringArgument for String {
     ///
     /// A count above `max` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_char_count_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
-        validate_length(path, self.chars().count(), LengthConstraint::AtMost(max))?;
+    fn require_char_count_at_most(
+        self,
+        path: &str,
+        max: usize,
+    ) -> ArgumentResult<Self> {
+        validate_length(
+            path,
+            self.chars().count(),
+            LengthConstraint::AtMost(max),
+        )?;
         Ok(self)
     }
 
-    /// Validates an inclusive Unicode scalar-count range and returns the string.
+    /// Validates an inclusive Unicode scalar-count range and returns the
+    /// string.
     ///
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range count returns [`ArgumentErrorKind::Length`].
     #[inline]
-    fn require_char_count_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
+    fn require_char_count_in(
+        self,
+        path: &str,
+        min: usize,
+        max: usize,
+    ) -> ArgumentResult<Self> {
         validate_length(
             path,
             self.chars().count(),
@@ -311,8 +461,17 @@ impl StringArgument for String {
     /// capturing the input string.
     #[cfg(feature = "regex")]
     #[inline]
-    fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
-        validate_pattern(self.as_str(), path, pattern, PatternExpectation::Match)?;
+    fn require_match(
+        self,
+        path: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<Self> {
+        validate_pattern(
+            self.as_str(),
+            path,
+            pattern,
+            PatternExpectation::Match,
+        )?;
         Ok(self)
     }
 
@@ -322,8 +481,17 @@ impl StringArgument for String {
     /// capturing the input string.
     #[cfg(feature = "regex")]
     #[inline]
-    fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
-        validate_pattern(self.as_str(), path, pattern, PatternExpectation::NoMatch)?;
+    fn require_not_match(
+        self,
+        path: &str,
+        pattern: &Regex,
+    ) -> ArgumentResult<Self> {
+        validate_pattern(
+            self.as_str(),
+            path,
+            pattern,
+            PatternExpectation::NoMatch,
+        )?;
         Ok(self)
     }
 }
@@ -348,7 +516,11 @@ fn validate_non_blank(value: &str, path: &str) -> ArgumentResult<()> {
 /// [`ArgumentErrorKind::InvalidLengthConstraint`] before `actual` is checked.
 /// Any other unsatisfied constraint returns [`ArgumentErrorKind::Length`]; a
 /// satisfied constraint returns `Ok(())`.
-fn validate_length(path: &str, actual: usize, constraint: LengthConstraint) -> ArgumentResult<()> {
+fn validate_length(
+    path: &str,
+    actual: usize,
+    constraint: LengthConstraint,
+) -> ArgumentResult<()> {
     if let LengthConstraint::InRange { min, max } = &constraint
         && min > max
     {
@@ -362,7 +534,9 @@ fn validate_length(path: &str, actual: usize, constraint: LengthConstraint) -> A
         LengthConstraint::Exact(expected) => actual == *expected,
         LengthConstraint::AtLeast(min) => actual >= *min,
         LengthConstraint::AtMost(max) => actual <= *max,
-        LengthConstraint::InRange { min, max } => actual >= *min && actual <= *max,
+        LengthConstraint::InRange { min, max } => {
+            actual >= *min && actual <= *max
+        }
     };
     if is_valid {
         Ok(())
