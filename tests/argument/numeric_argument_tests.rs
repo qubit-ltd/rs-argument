@@ -11,8 +11,13 @@ use std::fmt::Debug;
 use std::ops::Bound;
 
 use qubit_argument::{
-    ArgumentBound, ArgumentError, ArgumentErrorKind, ArgumentValue, ComparisonConstraint,
-    NumericArgument, RangeConstraint,
+    ArgumentBound,
+    ArgumentError,
+    ArgumentErrorKind,
+    ArgumentValue,
+    ComparisonConstraint,
+    NumericArgument,
+    RangeConstraint,
 };
 
 /// Asserts that an error has the requested path and structured kind.
@@ -67,6 +72,14 @@ where
             .expect("one is at least one"),
         one,
     );
+    assert_eq!(
+        one.require_in_range(
+            "value",
+            (Bound::Excluded(zero), Bound::Included(two)),
+        )
+        .expect("one lies above the excluded lower bound"),
+        one,
+    );
 }
 
 /// Asserts that every numeric validator rejects a NaN value or bound.
@@ -100,8 +113,14 @@ where
         zero.require_at_most("value", nan),
         one.require_greater_than("value", nan),
         one.require_at_least("value", nan),
-        zero.require_in_range("value", (Bound::Included(nan), Bound::Included(one))),
-        zero.require_in_range("value", (Bound::Included(zero), Bound::Included(nan))),
+        zero.require_in_range(
+            "value",
+            (Bound::Included(nan), Bound::Included(one)),
+        ),
+        zero.require_in_range(
+            "value",
+            (Bound::Included(zero), Bound::Included(nan)),
+        ),
     ];
     for result in nan_bound_results {
         assert_structured_error(
@@ -140,7 +159,9 @@ fn test_require_zero_returns_structured_comparison_error() {
         "value",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(1_i32),
-            constraint: ComparisonConstraint::EqualTo(ArgumentValue::from(0_i32)),
+            constraint: ComparisonConstraint::EqualTo(ArgumentValue::from(
+                0_i32,
+            )),
         },
     );
 }
@@ -156,7 +177,9 @@ fn test_require_non_zero_returns_structured_comparison_error() {
         "workers",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(0_u32),
-            constraint: ComparisonConstraint::NotEqualTo(ArgumentValue::from(0_u32)),
+            constraint: ComparisonConstraint::NotEqualTo(ArgumentValue::from(
+                0_u32,
+            )),
         },
     );
 }
@@ -172,7 +195,9 @@ fn test_require_positive_returns_structured_comparison_error() {
         "pool_size",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(0_i32),
-            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(0_i32)),
+            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(
+                0_i32,
+            )),
         },
     );
 }
@@ -188,7 +213,9 @@ fn test_require_non_negative_returns_structured_comparison_error() {
         "offset",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(-1_i32),
-            constraint: ComparisonConstraint::AtLeast(ArgumentValue::from(0_i32)),
+            constraint: ComparisonConstraint::AtLeast(ArgumentValue::from(
+                0_i32,
+            )),
         },
     );
 }
@@ -204,7 +231,9 @@ fn test_require_negative_returns_structured_comparison_error() {
         "delta",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(0_i32),
-            constraint: ComparisonConstraint::LessThan(ArgumentValue::from(0_i32)),
+            constraint: ComparisonConstraint::LessThan(ArgumentValue::from(
+                0_i32,
+            )),
         },
     );
 }
@@ -220,7 +249,9 @@ fn test_require_non_positive_returns_structured_comparison_error() {
         "delta",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(1_u32),
-            constraint: ComparisonConstraint::AtMost(ArgumentValue::from(0_u32)),
+            constraint: ComparisonConstraint::AtMost(ArgumentValue::from(
+                0_u32,
+            )),
         },
     );
 }
@@ -236,7 +267,9 @@ fn test_require_less_than_returns_structured_comparison_error() {
         "value",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(5_i32),
-            constraint: ComparisonConstraint::LessThan(ArgumentValue::from(5_i32)),
+            constraint: ComparisonConstraint::LessThan(ArgumentValue::from(
+                5_i32,
+            )),
         },
     );
 }
@@ -252,7 +285,9 @@ fn test_require_at_most_returns_structured_comparison_error() {
         "value",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(6_i32),
-            constraint: ComparisonConstraint::AtMost(ArgumentValue::from(5_i32)),
+            constraint: ComparisonConstraint::AtMost(ArgumentValue::from(
+                5_i32,
+            )),
         },
     );
 }
@@ -268,7 +303,9 @@ fn test_require_greater_than_returns_structured_comparison_error() {
         "value",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(5_i32),
-            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(5_i32)),
+            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(
+                5_i32,
+            )),
         },
     );
 }
@@ -295,7 +332,9 @@ fn test_require_at_least_returns_structured_comparison_error() {
         "value",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(4_i32),
-            constraint: ComparisonConstraint::AtLeast(ArgumentValue::from(5_i32)),
+            constraint: ComparisonConstraint::AtLeast(ArgumentValue::from(
+                5_i32,
+            )),
         },
     );
 }
@@ -387,7 +426,10 @@ fn test_require_in_range_rejects_included_excluded_singleton() {
 #[test]
 fn test_require_in_range_rejects_excluded_included_singleton() {
     let error = 1_i32
-        .require_in_range("value", (Bound::Excluded(1_i32), Bound::Included(1_i32)))
+        .require_in_range(
+            "value",
+            (Bound::Excluded(1_i32), Bound::Included(1_i32)),
+        )
         .expect_err("an excluded equal lower bound is empty");
     assert_structured_error(
         error,
@@ -405,7 +447,10 @@ fn test_require_in_range_rejects_excluded_included_singleton() {
 #[test]
 fn test_require_in_range_rejects_excluded_singleton() {
     let error = 1_i32
-        .require_in_range("value", (Bound::Excluded(1_i32), Bound::Excluded(1_i32)))
+        .require_in_range(
+            "value",
+            (Bound::Excluded(1_i32), Bound::Excluded(1_i32)),
+        )
         .expect_err("two excluded equal endpoints are empty");
     assert_structured_error(
         error,
@@ -486,7 +531,9 @@ fn test_require_positive_preserves_negative_zero_in_error() {
         "value",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(-0.0_f64),
-            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(0.0_f64)),
+            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(
+                0.0_f64,
+            )),
         },
     );
 }
@@ -511,5 +558,23 @@ fn test_require_methods_support_float_infinities() {
             .require_in_range("value", ..)
             .expect("an unbounded range accepts infinity"),
         f32::INFINITY,
+    );
+    assert_eq!(
+        0.5_f32
+            .require_in_range(
+                "value",
+                (Bound::Excluded(0.0_f32), Bound::Included(1.0_f32)),
+            )
+            .expect("the float lies above the excluded lower bound"),
+        0.5_f32,
+    );
+    assert_eq!(
+        0.5_f64
+            .require_in_range(
+                "value",
+                (Bound::Excluded(0.0_f64), Bound::Included(1.0_f64)),
+            )
+            .expect("the float lies above the excluded lower bound"),
+        0.5_f64,
     );
 }

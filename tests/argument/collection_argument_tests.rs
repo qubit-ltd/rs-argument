@@ -5,7 +5,11 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-use qubit_argument::{ArgumentErrorKind, CollectionArgument, LengthConstraint};
+use qubit_argument::{
+    ArgumentErrorKind,
+    CollectionArgument,
+    LengthConstraint,
+};
 
 /// A value that cannot be cloned, used to verify ownership-preserving APIs.
 #[derive(Debug, PartialEq, Eq)]
@@ -146,5 +150,76 @@ fn test_require_len_in_reports_invalid_constraint() {
         &ArgumentErrorKind::InvalidLengthConstraint {
             constraint: LengthConstraint::InRange { min: 3, max: 1 },
         },
+    );
+}
+
+/// Verifies every vector length method on both successful and failing paths.
+#[test]
+fn test_vec_supports_all_length_methods() {
+    assert_eq!(
+        vec![1, 2]
+            .require_len("values", 2)
+            .expect("vector has the exact length"),
+        vec![1, 2],
+    );
+    assert_eq!(
+        vec![1, 2]
+            .require_len_at_least("values", 2)
+            .expect("vector meets the minimum length"),
+        vec![1, 2],
+    );
+    assert!(vec![1].require_len_at_least("values", 2).is_err());
+    assert!(vec![1, 2].require_len_at_most("values", 1).is_err());
+    assert!(vec![1].require_len_in("values", 2, 3).is_err());
+}
+
+/// Verifies every borrowed-slice length method and its error propagation.
+#[test]
+fn test_borrowed_slice_supports_all_length_methods() {
+    let empty: &[i32] = &[];
+    assert!(empty.require_non_empty("values").is_err());
+
+    let values = [1, 2, 3];
+    let slice: &[i32] = &values;
+    assert!(std::ptr::eq(
+        slice
+            .require_len("values", 3)
+            .expect("slice has the exact length"),
+        slice,
+    ));
+    assert!(slice.require_len("values", 2).is_err());
+    assert!(slice.require_len_at_least("values", 4).is_err());
+    assert!(std::ptr::eq(
+        slice
+            .require_len_at_most("values", 3)
+            .expect("slice meets the maximum length"),
+        slice,
+    ));
+    assert!(slice.require_len_at_most("values", 2).is_err());
+    assert!(std::ptr::eq(
+        slice
+            .require_len_in("values", 2, 3)
+            .expect("slice lies in the inclusive length range"),
+        slice,
+    ));
+    assert!(slice.require_len_in("values", 4, 5).is_err());
+}
+
+/// Verifies the remaining empty and successful array validation paths.
+#[test]
+fn test_array_supports_all_collection_paths() {
+    assert!([0_i32; 0].require_non_empty("values").is_err());
+    assert!([1, 2].require_len("values", 1).is_err());
+    assert_eq!(
+        [1, 2]
+            .require_len_at_least("values", 2)
+            .expect("array meets the minimum length"),
+        [1, 2],
+    );
+    assert_eq!(
+        [1, 2]
+            .require_len_at_most("values", 2)
+            .expect("array meets the maximum length"),
+        [1, 2],
     );
 }

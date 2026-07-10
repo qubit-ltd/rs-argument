@@ -80,8 +80,24 @@
 mod argument;
 
 pub use argument::{
-    ArgumentBound, ArgumentError, ArgumentErrorKind, ArgumentPath, ArgumentResult, ArgumentValue,
-    CollectionArgument, ComparisonConstraint, IndexRole, LengthConstraint, NumericArgument,
-    OptionArgument, PatternExpectation, RangeConstraint, StringArgument, check_bounds,
-    check_element_index, check_position_index, check_position_range, require_that,
+    ArgumentBound,
+    ArgumentError,
+    ArgumentErrorKind,
+    ArgumentPath,
+    ArgumentResult,
+    ArgumentValue,
+    CollectionArgument,
+    ComparisonConstraint,
+    IndexRole,
+    LengthConstraint,
+    NumericArgument,
+    OptionArgument,
+    PatternExpectation,
+    RangeConstraint,
+    StringArgument,
+    check_bounds,
+    check_element_index,
+    check_position_index,
+    check_position_range,
+    require_that,
 };

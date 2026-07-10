@@ -8,8 +8,13 @@
 //! Bounds and custom predicate validation tests.
 
 use qubit_argument::{
-    ArgumentErrorKind, IndexRole, check_bounds, check_element_index, check_position_index,
-    check_position_range, require_that,
+    ArgumentErrorKind,
+    IndexRole,
+    check_bounds,
+    check_element_index,
+    check_position_index,
+    check_position_range,
+    require_that,
 };
 
 /// Verifies that successful custom validation returns the original value.
@@ -58,7 +63,8 @@ fn test_check_bounds_accepts_valid_regions() {
 /// Verifies that an offset after the total length reports structured bounds.
 #[test]
 fn test_check_bounds_rejects_offset_after_total_length() {
-    let error = check_bounds("buffer", 6, 0, 5).expect_err("offset after the buffer must fail");
+    let error = check_bounds("buffer", 6, 0, 5)
+        .expect_err("offset after the buffer must fail");
     assert_eq!(error.path().as_str(), "buffer");
     assert_eq!(
         error.kind(),
@@ -73,8 +79,8 @@ fn test_check_bounds_rejects_offset_after_total_length() {
 /// Verifies that a length exceeding the remainder reports structured bounds.
 #[test]
 fn test_check_bounds_rejects_length_after_remaining_region() {
-    let error =
-        check_bounds("buffer", 3, 3, 5).expect_err("region extending after the buffer must fail");
+    let error = check_bounds("buffer", 3, 3, 5)
+        .expect_err("region extending after the buffer must fail");
     assert_eq!(error.path().as_str(), "buffer");
     assert_eq!(
         error.kind(),
@@ -113,7 +119,8 @@ fn test_check_element_index_returns_valid_index() {
 /// Verifies that an invalid element index carries the element role.
 #[test]
 fn test_check_element_index_reports_element_role() {
-    let error = check_element_index("items", 5, 5).expect_err("the size is not an element index");
+    let error = check_element_index("items", 5, 5)
+        .expect_err("the size is not an element index");
     assert_eq!(error.path().as_str(), "items");
     assert_eq!(
         error.kind(),
@@ -129,11 +136,13 @@ fn test_check_element_index_reports_element_role() {
 #[test]
 fn test_check_position_index_returns_valid_index() {
     assert_eq!(
-        check_position_index("items", 5, 5).expect("the position after the final element is valid"),
+        check_position_index("items", 5, 5)
+            .expect("the position after the final element is valid"),
         5,
     );
     assert_eq!(
-        check_position_index("items", 0, 0).expect("an empty collection has one position"),
+        check_position_index("items", 0, 0)
+            .expect("an empty collection has one position"),
         0,
     );
 }
@@ -165,11 +174,13 @@ fn test_check_position_range_returns_validated_range() {
 #[test]
 fn test_check_position_range_accepts_empty_ranges() {
     assert_eq!(
-        check_position_range("items", 0, 0, 5).expect("empty range at the start is valid"),
+        check_position_range("items", 0, 0, 5)
+            .expect("empty range at the start is valid"),
         0..0,
     );
     assert_eq!(
-        check_position_range("items", 5, 5, 5).expect("empty range at the end is valid"),
+        check_position_range("items", 5, 5, 5)
+            .expect("empty range at the end is valid"),
         5..5,
     );
 }
@@ -177,8 +188,8 @@ fn test_check_position_range_accepts_empty_ranges() {
 /// Verifies that a reversed position range reports its exact endpoints.
 #[test]
 fn test_check_position_range_rejects_start_after_end() {
-    let error =
-        check_position_range("items", 4, 3, 8).expect_err("range start must not follow its end");
+    let error = check_position_range("items", 4, 3, 8)
+        .expect_err("range start must not follow its end");
     assert_eq!(error.path().as_str(), "items");
     assert_eq!(
         error.kind(),

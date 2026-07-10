@@ -7,101 +7,22 @@
 // =============================================================================
 //! Structured errors produced by argument validation.
 
-use std::fmt::{self, Display, Formatter};
-
-use crate::argument::{
-    ArgumentBound, ArgumentPath, ArgumentValue, ComparisonConstraint, IndexRole, LengthConstraint,
-    PatternExpectation, RangeConstraint,
+use std::fmt::{
+    self,
+    Display,
+    Formatter,
 };
 
-/// Identifies the validation rule that an argument failed.
-///
-/// Each variant stores only structured context needed to inspect and format
-/// the failure. Validated string contents are never captured implicitly.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ArgumentErrorKind {
-    /// The required argument was absent.
-    Missing,
-    /// The string argument contained no non-whitespace characters.
-    Blank,
-    /// The collection argument was empty.
-    Empty,
-    /// The argument length did not satisfy a length constraint.
-    Length {
-        /// The observed length.
-        actual: usize,
-        /// The required length relationship.
-        constraint: LengthConstraint,
-    },
-    /// The numeric argument did not satisfy a comparison constraint.
-    Comparison {
-        /// The observed numeric value.
-        actual: ArgumentValue,
-        /// The required comparison relationship.
-        constraint: ComparisonConstraint,
-    },
-    /// The numeric argument was outside a required range.
-    Range {
-        /// The observed numeric value.
-        actual: ArgumentValue,
-        /// The required range.
-        constraint: RangeConstraint,
-    },
-    /// The supplied length constraint was internally invalid.
-    InvalidLengthConstraint {
-        /// The invalid length constraint.
-        constraint: LengthConstraint,
-    },
-    /// The supplied numeric range was internally invalid.
-    InvalidRangeConstraint {
-        /// The invalid numeric range.
-        constraint: RangeConstraint,
-    },
-    /// The numeric argument was a floating-point NaN value.
-    NotANumber,
-    /// An element or position index was outside its valid domain.
-    Index {
-        /// The rejected index.
-        index: usize,
-        /// The collection size used for validation.
-        size: usize,
-        /// Whether the index identifies an element or a position.
-        role: IndexRole,
-    },
-    /// A position range was invalid for a collection size.
-    IndexRange {
-        /// The inclusive start position.
-        start: usize,
-        /// The exclusive end position.
-        end: usize,
-        /// The collection size used for validation.
-        size: usize,
-    },
-    /// An offset and length did not fit within a total length.
-    Bounds {
-        /// The rejected starting offset.
-        offset: usize,
-        /// The rejected span length.
-        length: usize,
-        /// The available total length.
-        total_length: usize,
-    },
-    /// A string did not satisfy a pattern expectation.
-    Pattern {
-        /// The pattern text used for validation.
-        pattern: String,
-        /// Whether a match or non-match was required.
-        expectation: PatternExpectation,
-    },
-    /// A caller-defined validation rule failed.
-    Custom {
-        /// A machine-readable caller-defined code.
-        code: String,
-        /// A human-readable caller-defined explanation.
-        message: String,
-    },
-}
+use crate::argument::{
+    ArgumentBound,
+    ArgumentErrorKind,
+    ArgumentPath,
+    ComparisonConstraint,
+    IndexRole,
+    LengthConstraint,
+    PatternExpectation,
+    RangeConstraint,
+};
 
 /// A structured argument validation failure.
 ///
@@ -155,8 +76,12 @@ impl Display for ArgumentError {
         write!(formatter, "argument '{}'", self.path)?;
         match self.kind.as_ref() {
             ArgumentErrorKind::Missing => formatter.write_str(" is missing"),
-            ArgumentErrorKind::Blank => formatter.write_str(" must not be blank"),
-            ArgumentErrorKind::Empty => formatter.write_str(" must not be empty"),
+            ArgumentErrorKind::Blank => {
+                formatter.write_str(" must not be blank")
+            }
+            ArgumentErrorKind::Empty => {
+                formatter.write_str(" must not be empty")
+            }
             ArgumentErrorKind::Length { actual, constraint } => {
                 write!(formatter, " has length {actual}, expected ")?;
                 write_length_constraint(formatter, constraint)
@@ -177,7 +102,9 @@ impl Display for ArgumentError {
                 formatter.write_str(" has invalid range constraint ")?;
                 write_range_constraint(formatter, constraint)
             }
-            ArgumentErrorKind::NotANumber => formatter.write_str(" must be a number"),
+            ArgumentErrorKind::NotANumber => {
+                formatter.write_str(" must be a number")
+            }
             ArgumentErrorKind::Index { index, size, role } => match role {
                 IndexRole::Element => write!(
                     formatter,
@@ -229,10 +156,14 @@ fn write_length_constraint(
     constraint: &LengthConstraint,
 ) -> fmt::Result {
     match constraint {
-        LengthConstraint::Exact(expected) => write!(formatter, "exactly {expected}"),
+        LengthConstraint::Exact(expected) => {
+            write!(formatter, "exactly {expected}")
+        }
         LengthConstraint::AtLeast(min) => write!(formatter, "at least {min}"),
         LengthConstraint::AtMost(max) => write!(formatter, "at most {max}"),
-        LengthConstraint::InRange { min, max } => write!(formatter, "between {min} and {max}"),
+        LengthConstraint::InRange { min, max } => {
+            write!(formatter, "between {min} and {max}")
+        }
     }
 }
 
@@ -245,14 +176,24 @@ fn write_comparison_constraint(
     constraint: &ComparisonConstraint,
 ) -> fmt::Result {
     match constraint {
-        ComparisonConstraint::EqualTo(expected) => write!(formatter, "equal to {expected}"),
+        ComparisonConstraint::EqualTo(expected) => {
+            write!(formatter, "equal to {expected}")
+        }
         ComparisonConstraint::NotEqualTo(expected) => {
             write!(formatter, "not equal to {expected}")
         }
-        ComparisonConstraint::LessThan(bound) => write!(formatter, "less than {bound}"),
-        ComparisonConstraint::AtMost(bound) => write!(formatter, "at most {bound}"),
-        ComparisonConstraint::GreaterThan(bound) => write!(formatter, "greater than {bound}"),
-        ComparisonConstraint::AtLeast(bound) => write!(formatter, "at least {bound}"),
+        ComparisonConstraint::LessThan(bound) => {
+            write!(formatter, "less than {bound}")
+        }
+        ComparisonConstraint::AtMost(bound) => {
+            write!(formatter, "at most {bound}")
+        }
+        ComparisonConstraint::GreaterThan(bound) => {
+            write!(formatter, "greater than {bound}")
+        }
+        ComparisonConstraint::AtLeast(bound) => {
+            write!(formatter, "at least {bound}")
+        }
     }
 }
 

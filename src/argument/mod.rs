@@ -18,8 +18,8 @@
 //!   count. With the `regex` feature, it also provides unanchored
 //!   `Regex::is_match` validation.
 //! - [`CollectionArgument`] validates `Vec<T>`, `&[T]`, and arrays.
-//! - [`OptionArgument`] extracts required values or validates present values
-//!   by shared borrow.
+//! - [`OptionArgument`] extracts required values or validates present values by
+//!   shared borrow.
 //! - [`require_that`] applies a caller-defined predicate.
 //! - [`check_bounds`], [`check_element_index`], [`check_position_index`], and
 //!   [`check_position_range`] validate slice-style bounds and indexes.
@@ -40,6 +40,7 @@
 //! distinguishes required regex matches from required non-matches.
 
 mod argument_error;
+mod argument_error_kind;
 mod argument_path;
 mod argument_value;
 mod bounds;
@@ -49,15 +50,27 @@ mod numeric_argument;
 mod option_argument;
 mod string_argument;
 
-pub use argument_error::{ArgumentError, ArgumentErrorKind, ArgumentResult};
+pub use argument_error::{
+    ArgumentError,
+    ArgumentResult,
+};
+pub use argument_error_kind::ArgumentErrorKind;
 pub use argument_path::ArgumentPath;
 pub use argument_value::ArgumentValue;
 pub use bounds::{
-    check_bounds, check_element_index, check_position_index, check_position_range, require_that,
+    check_bounds,
+    check_element_index,
+    check_position_index,
+    check_position_range,
+    require_that,
 };
 pub use collection_argument::CollectionArgument;
 pub use constraint::{
-    ArgumentBound, ComparisonConstraint, IndexRole, LengthConstraint, PatternExpectation,
+    ArgumentBound,
+    ComparisonConstraint,
+    IndexRole,
+    LengthConstraint,
+    PatternExpectation,
     RangeConstraint,
 };
 pub use numeric_argument::NumericArgument;

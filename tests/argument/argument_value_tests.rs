@@ -103,3 +103,15 @@ fn test_fmt_display_reconstructs_special_floats() {
     assert_eq!(ArgumentValue::from(f32::NEG_INFINITY).to_string(), "-inf");
     assert_eq!(ArgumentValue::from(f64::NAN).to_string(), "NaN");
 }
+
+/// Verifies debug and display formatting for signed and unsigned integers.
+#[test]
+fn test_fmt_formats_integer_variants() {
+    let signed = ArgumentValue::from(-7_i32);
+    assert_eq!(format!("{signed:?}"), "Signed(-7)");
+    assert_eq!(signed.to_string(), "-7");
+
+    let unsigned = ArgumentValue::from(7_u32);
+    assert_eq!(format!("{unsigned:?}"), "Unsigned(7)");
+    assert_eq!(unsigned.to_string(), "7");
+}

@@ -9,7 +9,12 @@
 
 use std::ops::Range;
 
-use crate::argument::{ArgumentError, ArgumentErrorKind, ArgumentResult, IndexRole};
+use crate::argument::{
+    ArgumentError,
+    ArgumentErrorKind,
+    ArgumentResult,
+    IndexRole,
+};
 
 /// Validates a value with a caller-provided predicate.
 ///
@@ -96,7 +101,11 @@ pub fn check_bounds(
 /// Returns [`ArgumentErrorKind::Index`] with [`IndexRole::Element`] when
 /// `index` is greater than or equal to `size`.
 #[inline]
-pub fn check_element_index(path: &str, index: usize, size: usize) -> ArgumentResult<usize> {
+pub fn check_element_index(
+    path: &str,
+    index: usize,
+    size: usize,
+) -> ArgumentResult<usize> {
     if index >= size {
         return Err(ArgumentError::new(
             path,
@@ -121,7 +130,11 @@ pub fn check_element_index(path: &str, index: usize, size: usize) -> ArgumentRes
 /// Returns [`ArgumentErrorKind::Index`] with [`IndexRole::Position`] when
 /// `index` exceeds `size`.
 #[inline]
-pub fn check_position_index(path: &str, index: usize, size: usize) -> ArgumentResult<usize> {
+pub fn check_position_index(
+    path: &str,
+    index: usize,
+    size: usize,
+) -> ArgumentResult<usize> {
     if index > size {
         return Err(ArgumentError::new(
             path,
