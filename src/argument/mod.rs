@@ -34,6 +34,7 @@
 //! use qubit_argument::argument::{
 //!     NumericArgument, StringArgument, CollectionArgument, ArgumentResult
 //! };
+//! #[cfg(feature = "regex")]
 //! use regex::Regex;
 //!
 //! fn process_user_input(
@@ -42,13 +43,16 @@
 //!     tags: &[String],
 //! ) -> ArgumentResult<()> {
 //!     // Numeric validation
-//!     let age = age.require_in_closed_range("age", 0, 150)?;
+//!     let age = age.require_in_range("age", 0..=150)?;
 //!
-//!     // String validation (regex + chaining)
-//!     let username_pattern = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_]{2,19}$").unwrap();
-//!     let username = username
-//!         .require_non_blank("username")?
-//!         .require_match("username", &username_pattern)?;
+//!     // String validation, with optional regex validation when enabled
+//!     let username = username.require_non_blank("username")?;
+//!     #[cfg(feature = "regex")]
+//!     let username = {
+//!         let username_pattern = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_]{2,19}$")
+//!             .expect("username pattern is valid");
+//!         username.require_match("username", &username_pattern)?
+//!     };
 //!
 //!     // Collection validation (chaining)
 //!     let tags = tags
