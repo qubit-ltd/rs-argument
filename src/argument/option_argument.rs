@@ -41,7 +41,7 @@ impl<T> OptionArgument<T> for Option<T> {
     fn require_some(self, path: &str) -> ArgumentResult<T> {
         match self {
             Some(value) => Ok(value),
-            None => Err(ArgumentError::structured(path, ArgumentErrorKind::Missing)),
+            None => Err(ArgumentError::new(path, ArgumentErrorKind::Missing)),
         }
     }
 
@@ -59,36 +59,4 @@ impl<T> OptionArgument<T> for Option<T> {
         }
         Ok(self)
     }
-}
-
-/// Validates a legacy optional value with a predicate when it is present.
-///
-/// `path` identifies predicate failures, `value` is returned unchanged on
-/// success, `predicate` receives a shared reference only when `value` is
-/// present, and `error_message` describes a rejected value. An absent value
-/// skips `predicate`. A rejected value returns a structured custom error.
-/// This transitional export is retained only until the public API cleanup.
-#[doc(hidden)]
-#[inline]
-pub fn require_null_or<T, F>(
-    path: &str,
-    value: Option<T>,
-    predicate: F,
-    error_message: &str,
-) -> ArgumentResult<Option<T>>
-where
-    F: FnOnce(&T) -> bool,
-{
-    if let Some(item) = value.as_ref()
-        && !predicate(item)
-    {
-        return Err(ArgumentError::structured(
-            path,
-            ArgumentErrorKind::Custom {
-                code: String::from("legacy_predicate"),
-                message: String::from(error_message),
-            },
-        ));
-    }
-    Ok(value)
 }

@@ -334,7 +334,7 @@ impl StringArgument for String {
 /// [`ArgumentErrorKind::Blank`] at `path` without storing `value`.
 fn validate_non_blank(value: &str, path: &str) -> ArgumentResult<()> {
     if value.chars().all(char::is_whitespace) {
-        Err(ArgumentError::structured(path, ArgumentErrorKind::Blank))
+        Err(ArgumentError::new(path, ArgumentErrorKind::Blank))
     } else {
         Ok(())
     }
@@ -351,7 +351,7 @@ fn validate_length(path: &str, actual: usize, constraint: LengthConstraint) -> A
     if let LengthConstraint::InRange { min, max } = &constraint
         && min > max
     {
-        return Err(ArgumentError::structured(
+        return Err(ArgumentError::new(
             path,
             ArgumentErrorKind::InvalidLengthConstraint { constraint },
         ));
@@ -366,7 +366,7 @@ fn validate_length(path: &str, actual: usize, constraint: LengthConstraint) -> A
     if is_valid {
         Ok(())
     } else {
-        Err(ArgumentError::structured(
+        Err(ArgumentError::new(
             path,
             ArgumentErrorKind::Length { actual, constraint },
         ))
@@ -394,7 +394,7 @@ fn validate_pattern(
     if is_valid {
         Ok(())
     } else {
-        Err(ArgumentError::structured(
+        Err(ArgumentError::new(
             path,
             ArgumentErrorKind::Pattern {
                 pattern: String::from(pattern.as_str()),

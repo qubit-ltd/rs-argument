@@ -56,7 +56,7 @@ impl<T> CollectionArgument for Vec<T> {
     #[inline]
     fn require_non_empty(self, path: &str) -> ArgumentResult<Self> {
         if self.is_empty() {
-            return Err(ArgumentError::structured(path, ArgumentErrorKind::Empty));
+            return Err(ArgumentError::new(path, ArgumentErrorKind::Empty));
         }
         Ok(self)
     }
@@ -107,7 +107,7 @@ impl<T> CollectionArgument for &[T] {
     #[inline]
     fn require_non_empty(self, path: &str) -> ArgumentResult<Self> {
         if self.is_empty() {
-            return Err(ArgumentError::structured(path, ArgumentErrorKind::Empty));
+            return Err(ArgumentError::new(path, ArgumentErrorKind::Empty));
         }
         Ok(self)
     }
@@ -158,7 +158,7 @@ impl<T, const N: usize> CollectionArgument for [T; N] {
     #[inline]
     fn require_non_empty(self, path: &str) -> ArgumentResult<Self> {
         if N == 0 {
-            return Err(ArgumentError::structured(path, ArgumentErrorKind::Empty));
+            return Err(ArgumentError::new(path, ArgumentErrorKind::Empty));
         }
         Ok(self)
     }
@@ -213,7 +213,7 @@ fn validate_length(path: &str, actual: usize, constraint: LengthConstraint) -> A
     if let LengthConstraint::InRange { min, max } = &constraint
         && min > max
     {
-        return Err(ArgumentError::structured(
+        return Err(ArgumentError::new(
             path,
             ArgumentErrorKind::InvalidLengthConstraint { constraint },
         ));
@@ -228,31 +228,9 @@ fn validate_length(path: &str, actual: usize, constraint: LengthConstraint) -> A
     if is_valid {
         Ok(())
     } else {
-        Err(ArgumentError::structured(
+        Err(ArgumentError::new(
             path,
             ArgumentErrorKind::Length { actual, constraint },
         ))
-    }
-}
-
-/// Validates that every legacy optional collection element is present.
-///
-/// `path` identifies the collection and `collection` is inspected by borrow.
-/// The function returns `Ok(())` when every element is present; otherwise it
-/// returns a structured custom error identifying the first missing index.
-/// This transitional export is retained only until the public API cleanup.
-#[doc(hidden)]
-#[inline]
-pub fn require_element_non_null<T>(path: &str, collection: &[Option<T>]) -> ArgumentResult<()> {
-    if let Some(index) = collection.iter().position(Option::is_none) {
-        Err(ArgumentError::structured(
-            path,
-            ArgumentErrorKind::Custom {
-                code: String::from("missing_element"),
-                message: format!("element at index {index} is missing"),
-            },
-        ))
-    } else {
-        Ok(())
     }
 }

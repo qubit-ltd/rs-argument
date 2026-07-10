@@ -23,10 +23,7 @@ impl From<ArgumentError> for WrappedDomainError {
 
 /// Produces a missing-argument error and converts it with the `?` operator.
 fn fail_with_missing_argument() -> Result<(), WrappedDomainError> {
-    Err(ArgumentError::structured(
-        "token",
-        ArgumentErrorKind::Missing,
-    ))?;
+    Err(ArgumentError::new("token", ArgumentErrorKind::Missing))?;
     Ok(())
 }
 
@@ -51,7 +48,7 @@ impl From<ArgumentError> for DomainError {
 
 /// Produces a zero-pool-size comparison error converted by `?`.
 fn fail_with_zero_pool_size() -> Result<(), DomainError> {
-    Err(ArgumentError::structured(
+    Err(ArgumentError::new(
         "pool_size",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(0_usize),
@@ -63,10 +60,7 @@ fn fail_with_zero_pool_size() -> Result<(), DomainError> {
 
 /// Produces an unrelated error to exercise the conversion fallback.
 fn fail_with_other_argument() -> Result<(), DomainError> {
-    Err(ArgumentError::structured(
-        "token",
-        ArgumentErrorKind::Missing,
-    ))?;
+    Err(ArgumentError::new("token", ArgumentErrorKind::Missing))?;
     Ok(())
 }
 
@@ -76,7 +70,7 @@ fn test_from_wraps_argument_error_with_question_mark() {
     let error = fail_with_missing_argument().expect_err("missing token must fail");
     assert_eq!(
         error,
-        WrappedDomainError::InvalidArgument(ArgumentError::structured(
+        WrappedDomainError::InvalidArgument(ArgumentError::new(
             "token",
             ArgumentErrorKind::Missing,
         )),
@@ -96,9 +90,6 @@ fn test_from_preserves_unmatched_argument_error() {
     let error = fail_with_other_argument().expect_err("missing token must fail");
     assert_eq!(
         error,
-        DomainError::InvalidArgument(ArgumentError::structured(
-            "token",
-            ArgumentErrorKind::Missing,
-        )),
+        DomainError::InvalidArgument(ArgumentError::new("token", ArgumentErrorKind::Missing)),
     );
 }

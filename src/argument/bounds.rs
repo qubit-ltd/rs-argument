@@ -36,7 +36,7 @@ where
     if predicate(&value) {
         Ok(value)
     } else {
-        Err(ArgumentError::structured(
+        Err(ArgumentError::new(
             path,
             ArgumentErrorKind::Custom {
                 code: String::from(code),
@@ -64,7 +64,7 @@ pub fn check_bounds(
     total_length: usize,
 ) -> ArgumentResult<()> {
     if offset > total_length {
-        return Err(ArgumentError::structured(
+        return Err(ArgumentError::new(
             path,
             ArgumentErrorKind::Bounds {
                 offset,
@@ -74,7 +74,7 @@ pub fn check_bounds(
         ));
     }
     if length > total_length - offset {
-        return Err(ArgumentError::structured(
+        return Err(ArgumentError::new(
             path,
             ArgumentErrorKind::Bounds {
                 offset,
@@ -98,7 +98,7 @@ pub fn check_bounds(
 #[inline]
 pub fn check_element_index(path: &str, index: usize, size: usize) -> ArgumentResult<usize> {
     if index >= size {
-        return Err(ArgumentError::structured(
+        return Err(ArgumentError::new(
             path,
             ArgumentErrorKind::Index {
                 index,
@@ -123,7 +123,7 @@ pub fn check_element_index(path: &str, index: usize, size: usize) -> ArgumentRes
 #[inline]
 pub fn check_position_index(path: &str, index: usize, size: usize) -> ArgumentResult<usize> {
     if index > size {
-        return Err(ArgumentError::structured(
+        return Err(ArgumentError::new(
             path,
             ArgumentErrorKind::Index {
                 index,
@@ -153,13 +153,13 @@ pub fn check_position_range(
     size: usize,
 ) -> ArgumentResult<Range<usize>> {
     if start > end {
-        return Err(ArgumentError::structured(
+        return Err(ArgumentError::new(
             path,
             ArgumentErrorKind::IndexRange { start, end, size },
         ));
     }
     if end > size {
-        return Err(ArgumentError::structured(
+        return Err(ArgumentError::new(
             path,
             ArgumentErrorKind::IndexRange { start, end, size },
         ));
