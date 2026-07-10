@@ -35,9 +35,11 @@
 //! [`ArgumentError::into_parts`] expose a failure without parsing its display
 //! text. [`ArgumentValue`] losslessly captures primitive numeric values.
 //! [`LengthConstraint`], [`ComparisonConstraint`], [`ArgumentBound`], and
-//! [`RangeConstraint`] describe failed constraints. [`IndexRole`] distinguishes
-//! element indexes from boundary positions, while [`PatternExpectation`]
-//! distinguishes required regex matches from required non-matches.
+//! [`RangeConstraint`] describe failed constraints, while [`LengthMetric`]
+//! distinguishes byte length, Unicode scalar count, and collection element
+//! count. [`IndexRole`] distinguishes element indexes from boundary positions,
+//! while [`PatternExpectation`] distinguishes required regex matches from
+//! required non-matches.
 
 mod argument_error;
 mod argument_error_kind;
@@ -70,6 +72,7 @@ pub use constraint::{
     ComparisonConstraint,
     IndexRole,
     LengthConstraint,
+    LengthMetric,
     PatternExpectation,
     RangeConstraint,
 };

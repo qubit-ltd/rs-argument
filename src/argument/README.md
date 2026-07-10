@@ -24,11 +24,15 @@ All error-model types are also exported from the crate root:
 | `ArgumentErrorKind` | Match `Missing`, `Blank`, `Empty`, `Length`, `Comparison`, `Range`, invalid-constraint, NaN, index, bounds, pattern, and custom failures |
 | `ArgumentValue` | Preserve signed, unsigned, `f32`, or `f64` values without numeric loss |
 | `LengthConstraint`, `ComparisonConstraint` | Describe length and numeric-comparison requirements |
+| `LengthMetric` | Distinguish UTF-8 byte length, Unicode scalar count, and collection element count in length errors |
 | `ArgumentBound`, `RangeConstraint::new`, `lower`, `upper`, `into_bounds` | Describe inclusive, exclusive, or unbounded numeric ranges |
 | `IndexRole`, `PatternExpectation` | Distinguish index domains and regex match expectations |
 
 `ArgumentError` owns this context and implements `std::error::Error`. Its
-`Display` output is diagnostic text rather than a stable parsing protocol.
+`Display` output is escaped into one line and is diagnostic text rather than a
+stable parsing protocol; the structured fields retain their original values.
+Both `Length` and `InvalidLengthConstraint` retain their `LengthMetric`, so
+equal numeric lengths from different validators are not equal errors.
 
 ## Ownership-Preserving Chains
 

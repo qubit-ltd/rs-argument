@@ -11,6 +11,7 @@ use qubit_argument::{
     ArgumentError,
     ArgumentErrorKind,
     LengthConstraint,
+    LengthMetric,
     StringArgument,
 };
 
@@ -84,6 +85,7 @@ fn test_require_byte_len_returns_exact_length_error() {
         ArgumentErrorKind::Length {
             actual: 2,
             constraint: LengthConstraint::Exact(3),
+            metric: LengthMetric::Bytes,
         },
     );
 }
@@ -106,6 +108,7 @@ fn test_require_byte_len_at_least_returns_minimum_length_error() {
         ArgumentErrorKind::Length {
             actual: 2,
             constraint: LengthConstraint::AtLeast(3),
+            metric: LengthMetric::Bytes,
         },
     );
 }
@@ -128,6 +131,7 @@ fn test_require_byte_len_at_most_returns_maximum_length_error() {
         ArgumentErrorKind::Length {
             actual: 4,
             constraint: LengthConstraint::AtMost(3),
+            metric: LengthMetric::Bytes,
         },
     );
 }
@@ -151,6 +155,7 @@ fn test_require_byte_len_in_returns_range_length_errors() {
             ArgumentErrorKind::Length {
                 actual: value.len(),
                 constraint: LengthConstraint::InRange { min: 3, max: 4 },
+                metric: LengthMetric::Bytes,
             },
         );
     }
@@ -167,6 +172,7 @@ fn test_require_byte_len_in_rejects_invalid_constraint_first() {
         "value",
         ArgumentErrorKind::InvalidLengthConstraint {
             constraint: LengthConstraint::InRange { min: 3, max: 1 },
+            metric: LengthMetric::Bytes,
         },
     );
 }
@@ -189,6 +195,7 @@ fn test_require_char_count_returns_exact_length_error() {
         ArgumentErrorKind::Length {
             actual: 2,
             constraint: LengthConstraint::Exact(3),
+            metric: LengthMetric::UnicodeScalars,
         },
     );
 }
@@ -211,6 +218,7 @@ fn test_require_char_count_at_least_returns_minimum_length_error() {
         ArgumentErrorKind::Length {
             actual: 1,
             constraint: LengthConstraint::AtLeast(2),
+            metric: LengthMetric::UnicodeScalars,
         },
     );
 }
@@ -233,6 +241,7 @@ fn test_require_char_count_at_most_returns_maximum_length_error() {
         ArgumentErrorKind::Length {
             actual: 3,
             constraint: LengthConstraint::AtMost(2),
+            metric: LengthMetric::UnicodeScalars,
         },
     );
 }
@@ -256,6 +265,7 @@ fn test_require_char_count_in_returns_range_length_errors() {
             ArgumentErrorKind::Length {
                 actual: value.chars().count(),
                 constraint: LengthConstraint::InRange { min: 1, max: 2 },
+                metric: LengthMetric::UnicodeScalars,
             },
         );
     }
@@ -272,6 +282,7 @@ fn test_require_char_count_in_rejects_invalid_constraint_first() {
         "value",
         ArgumentErrorKind::InvalidLengthConstraint {
             constraint: LengthConstraint::InRange { min: 3, max: 1 },
+            metric: LengthMetric::UnicodeScalars,
         },
     );
 }

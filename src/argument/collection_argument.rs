@@ -12,13 +12,15 @@ use crate::argument::{
     ArgumentErrorKind,
     ArgumentResult,
     LengthConstraint,
+    LengthMetric,
 };
 
 /// Validates collection lengths while preserving the original collection.
 ///
 /// Every successful method consumes and returns the same collection value
 /// without cloning its elements. Implementations are provided for owned
-/// vectors, borrowed slices, and arrays.
+/// vectors, borrowed slices, and arrays. Length failures carry
+/// [`LengthMetric::Elements`].
 pub trait CollectionArgument: Sized {
     /// Requires this collection to contain at least one element.
     ///
@@ -287,7 +289,10 @@ fn validate_length(
     {
         return Err(ArgumentError::new(
             path,
-            ArgumentErrorKind::InvalidLengthConstraint { constraint },
+            ArgumentErrorKind::InvalidLengthConstraint {
+                constraint,
+                metric: LengthMetric::Elements,
+            },
         ));
     }
 
@@ -304,7 +309,11 @@ fn validate_length(
     } else {
         Err(ArgumentError::new(
             path,
-            ArgumentErrorKind::Length { actual, constraint },
+            ArgumentErrorKind::Length {
+                actual,
+                constraint,
+                metric: LengthMetric::Elements,
+            },
         ))
     }
 }

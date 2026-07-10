@@ -33,6 +33,7 @@
 - `src/argument/argument_path.rs` — owned argument-path newtype.
 - `src/argument/argument_value.rs` — equality-safe representation of primitive numeric values.
 - `src/argument/constraint.rs` — public length, comparison, range, index, and pattern constraint types.
+- `src/argument/constraint/length_metric.rs` — public byte, Unicode-scalar, and element-count metric.
 - `tests/argument/mod.rs` — test-module index required by the repository test-layout rules.
 - `tests/argument/argument_path_tests.rs` — path behavior.
 - `tests/argument/argument_value_tests.rs` — numeric representation behavior.
@@ -85,7 +86,7 @@
 
 **Interfaces:**
 
-- Produces `ArgumentPath`, `ArgumentValue`, `LengthConstraint`, `ComparisonConstraint`, `ArgumentBound`, `RangeConstraint`, `IndexRole`, and `PatternExpectation`.
+- Produces `ArgumentPath`, `ArgumentValue`, `LengthConstraint`, `LengthMetric`, `ComparisonConstraint`, `ArgumentBound`, `RangeConstraint`, `IndexRole`, and `PatternExpectation`.
 - Later tasks consume these types from `crate::argument` internally and from `qubit_argument` in integration tests.
 
 - [ ] **Step 1: Normalize the external test module layout**
@@ -218,6 +219,13 @@ pub enum LengthConstraint {
     InRange { min: usize, max: usize },
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LengthMetric {
+    Bytes,
+    UnicodeScalars,
+    Elements,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ComparisonConstraint {
     EqualTo(ArgumentValue),
@@ -310,6 +318,7 @@ fn test_argument_error_exposes_structured_parts() {
     let kind = ArgumentErrorKind::Length {
         actual: 12,
         constraint: LengthConstraint::AtMost(10),
+        metric: LengthMetric::Elements,
     };
     let error = ArgumentError::structured("tags", kind.clone());
     assert_eq!(error.path().as_str(), "tags");
@@ -375,10 +384,10 @@ pub enum ArgumentErrorKind {
     Missing,
     Blank,
     Empty,
-    Length { actual: usize, constraint: LengthConstraint },
+    Length { actual: usize, constraint: LengthConstraint, metric: LengthMetric },
     Comparison { actual: ArgumentValue, constraint: ComparisonConstraint },
     Range { actual: ArgumentValue, constraint: RangeConstraint },
-    InvalidLengthConstraint { constraint: LengthConstraint },
+    InvalidLengthConstraint { constraint: LengthConstraint, metric: LengthMetric },
     InvalidRangeConstraint { constraint: RangeConstraint },
     NotANumber,
     Index { index: usize, size: usize, role: IndexRole },
@@ -530,7 +539,7 @@ pub trait NumericArgument: Sized {
 
 Use a private `NumericValue: Copy + PartialOrd` trait with `zero`, `to_argument_value`, and `is_nan`. Implement it only for supported primitives. Private helpers create comparison and range errors and have complete documentation.
 
-For equal endpoints, accept only `Included`/`Included`; reject any pair containing `Excluded`. Reject reversed endpoints before validating the actual value. Compare without arithmetic.
+For equal endpoints, accept only `Included`/`Included`; reject any pair containing `Excluded`. Reject reversed endpoints before validating the actual value. At the `require_in_range` entry, call `start_bound` and `end_bound` exactly once, copy them into owned `Bound<T>` values, and use that same snapshot for constraint construction, NaN/structure validation, and membership. Compare without arithmetic.
 
 Keep the old free `require_equal` and `require_not_equal` functions as hidden transitional exports until Task 7 so the crate-root export table remains compilable during the task sequence. Do not use them in new tests or documentation.
 
@@ -981,6 +990,15 @@ Delete the transitional `message()` accessor and the hidden `require_equal`, `re
 
 In `src/lib.rs`, declare `mod argument;`, not `pub mod argument;`. Re-export only the approved v0.4 public types, traits, and functions. In `src/argument/mod.rs`, keep all child modules private and re-export their public items for the crate root.
 
+The final crate-root export table is:
+
+| Category | Exports |
+| --- | --- |
+| Error model | `ArgumentError`, `ArgumentErrorKind`, `ArgumentPath`, `ArgumentResult` |
+| Values and constraints | `ArgumentValue`, `LengthConstraint`, `LengthMetric`, `ComparisonConstraint`, `ArgumentBound`, `RangeConstraint`, `IndexRole`, `PatternExpectation` |
+| Validator traits | `NumericArgument`, `StringArgument`, `CollectionArgument`, `OptionArgument` |
+| Checking functions | `require_that`, `check_bounds`, `check_element_index`, `check_position_index`, `check_position_range` |
+
 - [ ] **Step 4: Remove stale APIs and verify source references**
 
 Search Rust source and tests for the removed names:
@@ -1069,7 +1087,7 @@ qubit-argument = "0.4"
 qubit-argument = { version = "0.4", features = ["regex"] }
 ```
 
-State that byte length and Unicode scalar count are distinct, regex matching is not implicitly anchored, and raw string inputs are not stored in validation errors.
+State that byte length, Unicode scalar count, and collection element count are distinguished by `LengthMetric`, regex matching is not implicitly anchored, and raw string inputs are not stored in validation errors. Document that caller-provided display fields are escaped into one-line diagnostics without changing their structured values.
 
 - [ ] **Step 3: Rewrite module guides and rustdoc**
 

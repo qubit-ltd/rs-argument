@@ -7,8 +7,12 @@
 // =============================================================================
 //! Tests for ownership-preserving numeric argument validation.
 
+use std::cell::Cell;
 use std::fmt::Debug;
-use std::ops::Bound;
+use std::ops::{
+    Bound,
+    RangeBounds,
+};
 
 use qubit_argument::{
     ArgumentBound,
@@ -19,6 +23,28 @@ use qubit_argument::{
     NumericArgument,
     RangeConstraint,
 };
+
+/// A valid range that records how often each endpoint is requested.
+struct CountingRange<'a> {
+    start: i32,
+    end: i32,
+    start_reads: &'a Cell<usize>,
+    end_reads: &'a Cell<usize>,
+}
+
+impl RangeBounds<i32> for CountingRange<'_> {
+    /// Returns the included lower endpoint and records this access.
+    fn start_bound(&self) -> Bound<&i32> {
+        self.start_reads.set(self.start_reads.get() + 1);
+        Bound::Included(&self.start)
+    }
+
+    /// Returns the included upper endpoint and records this access.
+    fn end_bound(&self) -> Bound<&i32> {
+        self.end_reads.set(self.end_reads.get() + 1);
+        Bound::Included(&self.end)
+    }
+}
 
 /// Asserts that an error has the requested path and structured kind.
 fn assert_structured_error(
@@ -372,6 +398,28 @@ fn test_require_in_range_supports_standard_bounds() {
             .expect("fully unbounded range"),
         5,
     );
+}
+
+/// Verifies that range validation uses one stable snapshot of both endpoints.
+#[test]
+fn test_require_in_range_reads_each_endpoint_once() {
+    let start_reads = Cell::new(0);
+    let end_reads = Cell::new(0);
+    let range = CountingRange {
+        start: 1,
+        end: 5,
+        start_reads: &start_reads,
+        end_reads: &end_reads,
+    };
+
+    assert_eq!(
+        3_i32
+            .require_in_range("value", range)
+            .expect("three lies within the custom range"),
+        3,
+    );
+    assert_eq!(start_reads.get(), 1);
+    assert_eq!(end_reads.get(), 1);
 }
 
 /// Verifies that an out-of-range value produces an exact range constraint.

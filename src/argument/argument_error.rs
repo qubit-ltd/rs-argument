@@ -20,6 +20,7 @@ use crate::argument::{
     ComparisonConstraint,
     IndexRole,
     LengthConstraint,
+    LengthMetric,
     PatternExpectation,
     RangeConstraint,
 };
@@ -28,6 +29,8 @@ use crate::argument::{
 ///
 /// The error owns its argument path and failure kind, allowing downstream
 /// error types to inspect or preserve it without parsing display text.
+/// [`Display`] escapes caller-provided fields into a single-line diagnostic;
+/// accessors and [`Debug`] continue to expose the original structured values.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArgumentError {
     path: ArgumentPath,
@@ -73,7 +76,8 @@ impl ArgumentError {
 impl Display for ArgumentError {
     /// Formats a single-line diagnostic entirely from the structured fields.
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        write!(formatter, "argument '{}'", self.path)?;
+        let path = escape_for_display(self.path.as_ref(), Some('\''));
+        write!(formatter, "argument '{path}'")?;
         match self.kind.as_ref() {
             ArgumentErrorKind::Missing => formatter.write_str(" is missing"),
             ArgumentErrorKind::Blank => {
@@ -82,8 +86,13 @@ impl Display for ArgumentError {
             ArgumentErrorKind::Empty => {
                 formatter.write_str(" must not be empty")
             }
-            ArgumentErrorKind::Length { actual, constraint } => {
-                write!(formatter, " has length {actual}, expected ")?;
+            ArgumentErrorKind::Length {
+                actual,
+                constraint,
+                metric,
+            } => {
+                let label = length_metric_label(metric);
+                write!(formatter, " has {label} {actual}, expected ")?;
                 write_length_constraint(formatter, constraint)
             }
             ArgumentErrorKind::Comparison { actual, constraint } => {
@@ -94,8 +103,12 @@ impl Display for ArgumentError {
                 write!(formatter, " has value {actual}, expected range ")?;
                 write_range_constraint(formatter, constraint)
             }
-            ArgumentErrorKind::InvalidLengthConstraint { constraint } => {
-                formatter.write_str(" has invalid length constraint ")?;
+            ArgumentErrorKind::InvalidLengthConstraint {
+                constraint,
+                metric,
+            } => {
+                let label = length_metric_label(metric);
+                write!(formatter, " has invalid {label} constraint ")?;
                 write_length_constraint(formatter, constraint)
             }
             ArgumentErrorKind::InvalidRangeConstraint { constraint } => {
@@ -132,13 +145,17 @@ impl Display for ArgumentError {
                 expectation,
             } => match expectation {
                 PatternExpectation::Match => {
+                    let pattern = escape_for_display(pattern, Some('\''));
                     write!(formatter, " must match pattern '{pattern}'")
                 }
                 PatternExpectation::NoMatch => {
+                    let pattern = escape_for_display(pattern, Some('\''));
                     write!(formatter, " must not match pattern '{pattern}'")
                 }
             },
             ArgumentErrorKind::Custom { code, message } => {
+                let code = escape_for_display(code, Some(']'));
+                let message = escape_for_display(message, None);
                 write!(formatter, " failed validation [{code}]: {message}")
             }
         }
@@ -146,6 +163,44 @@ impl Display for ArgumentError {
 }
 
 impl std::error::Error for ArgumentError {}
+
+/// Escapes caller-provided text for a single-line diagnostic.
+///
+/// The returned string represents `value` with backslashes, carriage returns,
+/// line feeds, tabs, other control characters, and the optional active
+/// `delimiter` escaped. The input remains unchanged.
+fn escape_for_display(value: &str, delimiter: Option<char>) -> String {
+    let mut escaped = String::with_capacity(value.len());
+    for character in value.chars() {
+        match character {
+            '\\' => escaped.push_str("\\\\"),
+            '\r' => escaped.push_str("\\r"),
+            '\n' => escaped.push_str("\\n"),
+            '\t' => escaped.push_str("\\t"),
+            character if Some(character) == delimiter => {
+                escaped.push('\\');
+                escaped.push(character);
+            }
+            character if character.is_control() => {
+                escaped.extend(character.escape_unicode());
+            }
+            character => escaped.push(character),
+        }
+    }
+    escaped
+}
+
+/// Returns the human-readable unit label for a measured length.
+///
+/// `metric` determines whether diagnostics describe UTF-8 byte length,
+/// Unicode scalar count, or collection element count.
+fn length_metric_label(metric: &LengthMetric) -> &'static str {
+    match metric {
+        LengthMetric::Bytes => "byte length",
+        LengthMetric::UnicodeScalars => "Unicode scalar count",
+        LengthMetric::Elements => "element count",
+    }
+}
 
 /// Writes a length constraint in human-readable form.
 ///
