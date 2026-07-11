@@ -378,7 +378,7 @@ where
     }
 }
 
-/// Rejects a NaN numeric value at the supplied argument path.
+/// Rejects a NaN numeric value or constraint at the supplied argument path.
 ///
 /// `value` is inspected without normalization. Integer values always succeed;
 /// floating-point NaN values return `ArgumentErrorKind::NotANumber` at `path`.

@@ -208,7 +208,7 @@ fn test_display_formats_every_error_kind_and_constraint() {
         ),
         (
             ArgumentErrorKind::NotANumber,
-            "argument 'value' must be a number",
+            "argument 'value' contains a NaN value",
         ),
         (
             ArgumentErrorKind::NotFinite {

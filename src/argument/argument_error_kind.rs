@@ -65,7 +65,7 @@ pub enum ArgumentErrorKind {
         /// The invalid numeric range.
         constraint: RangeConstraint,
     },
-    /// The numeric argument was a floating-point NaN value.
+    /// The argument or numeric constraint contained a floating-point NaN value.
     NotANumber,
     /// The floating-point argument was positive or negative infinity.
     NotFinite {
