@@ -38,6 +38,17 @@ pub trait OptionArgument<T>: Sealed + Sized {
     fn validate_if_some<F>(self, validator: F) -> ArgumentResult<Self>
     where
         F: FnOnce(&T) -> ArgumentResult<()>;
+
+    /// Validates and returns a present owned value.
+    ///
+    /// `validator` receives ownership of the contained value when this option
+    /// is present and must return the validated value. A successful validator
+    /// is wrapped in [`Some`] and returned; it may transform the value without
+    /// requiring [`Clone`] or [`Copy`]. An absent option is returned without
+    /// executing `validator`. Validator errors are propagated unchanged.
+    fn validate_some<F>(self, validator: F) -> ArgumentResult<Self>
+    where
+        F: FnOnce(T) -> ArgumentResult<T>;
 }
 
 impl<T> OptionArgument<T> for Option<T> {
@@ -66,5 +77,20 @@ impl<T> OptionArgument<T> for Option<T> {
             validator(value)?;
         }
         Ok(self)
+    }
+
+    /// Moves a present value through `validator` and rewraps it on success.
+    ///
+    /// A validator error is returned unchanged. When this option is absent,
+    /// `validator` is not executed.
+    #[inline]
+    fn validate_some<F>(self, validator: F) -> ArgumentResult<Self>
+    where
+        F: FnOnce(T) -> ArgumentResult<T>,
+    {
+        match self {
+            Some(value) => validator(value).map(Some),
+            None => Ok(None),
+        }
     }
 }
