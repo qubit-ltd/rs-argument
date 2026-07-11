@@ -39,9 +39,9 @@ pub enum ArgumentErrorKind {
         /// The unit used to measure the observed and required lengths.
         metric: LengthMetric,
     },
-    /// The numeric argument did not satisfy a comparison constraint.
+    /// A scalar argument did not satisfy a comparison constraint.
     Comparison {
-        /// The observed numeric value.
+        /// The observed numeric or duration value.
         actual: ArgumentValue,
         /// The required comparison relationship.
         constraint: ComparisonConstraint,
@@ -67,6 +67,11 @@ pub enum ArgumentErrorKind {
     },
     /// The numeric argument was a floating-point NaN value.
     NotANumber,
+    /// The floating-point argument was positive or negative infinity.
+    NotFinite {
+        /// The rejected infinite floating-point value.
+        actual: ArgumentValue,
+    },
     /// An element or position index was outside its valid domain.
     Index {
         /// The rejected index.

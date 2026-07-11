@@ -12,7 +12,8 @@ Ownership-preserving argument validation for Rust.
 ## Overview
 
 Qubit Argument provides extension traits and focused checking functions for
-numeric values, strings, collections, optional values, indexes, and bounds.
+numeric values, durations, strings, collections, optional values, indexes, and
+bounds.
 Every validation failure is an `ArgumentError` with an owned argument path and
 an inspectable `ArgumentErrorKind`. Validation APIs return `Result`; callers
 choose whether to recover, convert the error, or explicitly treat a failure as
@@ -20,6 +21,11 @@ an internal invariant violation.
 
 Successful validation returns the original owned value or borrow without
 cloning it, so checks can be chained while preserving ownership.
+
+Validation extension traits are sealed and implemented only for their
+documented standard-library types. `ArgumentErrorKind`, `ArgumentValue`, and
+`LengthMetric` are non-exhaustive; downstream matches must include a wildcard
+arm so new structured cases can be added compatibly.
 
 ## Installation
 
@@ -84,6 +90,10 @@ decisions. The `Display` text is intended for diagnostics, not parsing;
 caller-provided paths, patterns, custom codes, and messages are escaped so the
 diagnostic remains on one line without changing the structured values.
 
+Nested validators can keep local field names and add parent context only when
+they fail. `ArgumentResultExt::with_path_prefix` leaves `Ok` values unchanged
+and turns a local path such as `connect` into `timeouts.connect` on `Err`.
+
 Validation remains recoverable by default. When a value is an internal
 invariant rather than external input, the caller may explicitly use `expect`
 with a meaningful explanation:
@@ -113,6 +123,18 @@ fn built_in_retry_limit() -> u32 {
 Floating-point values and range endpoints that are `NaN` are rejected. A
 reversed or structurally empty range is reported separately from a value that
 falls outside a valid range.
+
+### Durations and finite floats
+
+`DurationArgument` is implemented for `std::time::Duration`. It provides a
+strictly positive check plus strict and inclusive comparisons. Structured
+comparison errors retain the exact `Duration`, including its unit, rather than
+converting it to an ambiguous integer.
+
+`FloatArgument::require_finite` is implemented only for `f32` and `f64`. It
+returns `NotANumber` for NaN and `NotFinite { actual }` for positive or negative
+infinity. Finite values can continue into the comparison and range methods from
+`NumericArgument`.
 
 ### Strings
 

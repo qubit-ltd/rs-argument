@@ -9,7 +9,7 @@
 
 use crate::argument::ArgumentValue;
 
-/// A comparison between an argument and a captured numeric value.
+/// A comparison between an argument and a captured scalar value.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ComparisonConstraint {
     /// Requires equality with the captured value.

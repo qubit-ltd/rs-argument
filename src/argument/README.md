@@ -13,17 +13,22 @@ Every validation function returns `ArgumentResult<T>`, an alias for
 non-exhaustive `ArgumentErrorKind`, allowing downstream code to match failures
 without parsing diagnostic text.
 
+Validation extension traits are sealed and implemented only for the types
+listed in this guide. `ArgumentErrorKind`, `ArgumentValue`, and `LengthMetric`
+are non-exhaustive; downstream matches must include a wildcard arm.
+
 ## Error Model and Constraint Types
 
 All error-model types are also exported from the crate root:
 
 | API | Purpose |
 | --- | --- |
-| `ArgumentError::new`, `path`, `kind`, `into_parts` | Construct or inspect an owned structured failure |
-| `ArgumentPath::new`, `as_str` | Store and borrow an argument or nested-field path |
-| `ArgumentErrorKind` | Match `Missing`, `Blank`, `Empty`, `Length`, `Comparison`, `Range`, invalid-constraint, NaN, index, bounds, pattern, and custom failures |
-| `ArgumentValue` | Preserve signed, unsigned, `f32`, or `f64` values without numeric loss |
-| `LengthConstraint`, `ComparisonConstraint` | Describe length and numeric-comparison requirements |
+| `ArgumentError::new`, `path`, `kind`, `with_path_prefix`, `into_parts` | Construct, inspect, or prefix an owned structured failure |
+| `ArgumentPath::new`, `as_str`, `with_prefix` | Store, borrow, or prefix an argument or nested-field path |
+| `ArgumentResultExt::with_path_prefix` | Add parent context only to failed nested validation |
+| `ArgumentErrorKind` | Match missing, blank, empty, length, comparison, range, invalid-constraint, NaN, non-finite, index, bounds, pattern, and custom failures |
+| `ArgumentValue` | Preserve signed, unsigned, `f32`, `f64`, or `Duration` values without loss |
+| `LengthConstraint`, `ComparisonConstraint` | Describe length and scalar-comparison requirements |
 | `LengthMetric` | Distinguish UTF-8 byte length, Unicode scalar count, and collection element count in length errors |
 | `ArgumentBound`, `RangeConstraint::new`, `lower`, `upper`, `into_bounds` | Describe inclusive, exclusive, or unbounded numeric ranges |
 | `IndexRole`, `PatternExpectation` | Distinguish index domains and regex match expectations |
@@ -78,6 +83,10 @@ The conversion preserves the complete structured error and lets `?` propagate
 it naturally. Inspect `error.path()` and `error.kind()` for program logic;
 reserve `Display` for human-readable diagnostics.
 
+When a nested validator reports a local path, call
+`ArgumentResultExt::with_path_prefix` before `?`. The method preserves `Ok`
+without allocating and prefixes only the `ArgumentError` branch.
+
 For a value that is guaranteed by program construction, the caller may
 explicitly escalate a validation error with a documented `expect`:
 
@@ -104,6 +113,22 @@ Successful methods return the original numeric value without cloning.
 `require_in_range` accepts standard `RangeBounds`, including inclusive,
 exclusive, and unbounded endpoints. Reversed bounds and equal endpoints with an
 excluded side produce `InvalidRangeConstraint`.
+
+## Duration and Floating-Point Validation
+
+`DurationArgument` is implemented for `std::time::Duration`. Successful methods
+return the exact duration, while comparison failures use unit-bearing
+`ArgumentValue::Duration` values.
+
+| Methods | Failure kinds |
+| --- | --- |
+| `require_positive` | `Comparison` against `Duration::ZERO` |
+| `require_less_than`, `require_at_most`, `require_greater_than`, `require_at_least` | `Comparison` with the exact duration bound |
+
+`FloatArgument::require_finite` is implemented only for `f32` and `f64`. NaN
+returns `NotANumber`; positive and negative infinity return
+`NotFinite { actual }`. A successful finite value retains its exact bits and can
+continue into `NumericArgument` methods.
 
 ## String Validation
 

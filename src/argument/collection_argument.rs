@@ -13,6 +13,7 @@ use crate::argument::{
     ArgumentResult,
     LengthConstraint,
     LengthMetric,
+    sealed::Sealed,
 };
 
 /// Validates collection lengths while preserving the original collection.
@@ -21,7 +22,9 @@ use crate::argument::{
 /// without cloning its elements. Implementations are provided for owned
 /// vectors, borrowed slices, and arrays. Length failures carry
 /// [`LengthMetric::Elements`].
-pub trait CollectionArgument: Sized {
+///
+/// The trait is sealed to those library-supported collection forms.
+pub trait CollectionArgument: Sealed + Sized {
     /// Requires this collection to contain at least one element.
     ///
     /// Success returns the original collection without cloning its elements.

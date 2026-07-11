@@ -62,6 +62,21 @@ impl ArgumentError {
         self.kind.as_ref()
     }
 
+    /// Prepends a parent path to this validation error.
+    ///
+    /// # Parameters
+    ///
+    /// - `prefix`: The parent path to place before the current error path.
+    ///
+    /// # Returns
+    ///
+    /// This error with its path prefixed and its failure kind unchanged.
+    #[inline]
+    pub fn with_path_prefix(mut self, prefix: &str) -> Self {
+        self.path = self.path.with_prefix(prefix);
+        self
+    }
+
     /// Consumes the error and returns its owned path and failure kind.
     ///
     /// The first tuple element is the argument path and the second is the
@@ -117,6 +132,9 @@ impl Display for ArgumentError {
             }
             ArgumentErrorKind::NotANumber => {
                 formatter.write_str(" must be a number")
+            }
+            ArgumentErrorKind::NotFinite { actual } => {
+                write!(formatter, " has non-finite value {actual}")
             }
             ArgumentErrorKind::Index { index, size, role } => match role {
                 IndexRole::Element => write!(

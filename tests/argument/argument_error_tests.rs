@@ -211,6 +211,12 @@ fn test_display_formats_every_error_kind_and_constraint() {
             "argument 'value' must be a number",
         ),
         (
+            ArgumentErrorKind::NotFinite {
+                actual: ArgumentValue::from(f64::INFINITY),
+            },
+            "argument 'value' has non-finite value inf",
+        ),
+        (
             ArgumentErrorKind::Index {
                 index: 3,
                 size: 3,

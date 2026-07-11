@@ -20,6 +20,7 @@ use crate::argument::{
     ArgumentValue,
     ComparisonConstraint,
     RangeConstraint,
+    sealed::Sealed,
 };
 
 /// Restricts numeric validation to supported primitive numeric values.
@@ -27,7 +28,7 @@ use crate::argument::{
 /// Implementations provide the type's zero value, an exact structured error
 /// representation, and NaN detection. The trait is private so arbitrary
 /// partially ordered caller types cannot opt into numeric validation.
-trait NumericValue: Copy + PartialOrd {
+trait NumericValue: Sealed + Copy + PartialOrd {
     /// Returns the zero value for this primitive numeric type.
     fn zero() -> Self;
 
@@ -116,7 +117,9 @@ impl NumericValue for f64 {
 /// normalization. Failures contain structured comparison or range data, and
 /// every method rejects floating-point NaN values with
 /// [`ArgumentErrorKind::NotANumber`].
-pub trait NumericArgument: Sized {
+///
+/// The trait is sealed and implemented only for primitive numeric types.
+pub trait NumericArgument: Sealed + Sized {
     /// Requires this value to equal zero.
     ///
     /// Success returns the original value without cloning. A nonzero value

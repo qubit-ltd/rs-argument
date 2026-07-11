@@ -42,6 +42,31 @@ impl ArgumentPath {
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
+
+    /// Prepends a parent path component to this path.
+    ///
+    /// # Parameters
+    ///
+    /// - `prefix`: The parent path to place before the stored path.
+    ///
+    /// # Returns
+    ///
+    /// The composed path. Non-empty components are separated by one dot. If
+    /// either component is empty, no separator is added.
+    #[inline]
+    pub fn with_prefix(self, prefix: &str) -> Self {
+        if prefix.is_empty() {
+            return self;
+        }
+        if self.0.is_empty() {
+            return Self(prefix.to_owned());
+        }
+        let mut path = String::with_capacity(prefix.len() + 1 + self.0.len());
+        path.push_str(prefix);
+        path.push('.');
+        path.push_str(&self.0);
+        Self(path)
+    }
 }
 
 impl AsRef<str> for ArgumentPath {

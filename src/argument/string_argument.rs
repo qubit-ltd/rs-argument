@@ -13,6 +13,7 @@ use crate::argument::{
     ArgumentResult,
     LengthConstraint,
     LengthMetric,
+    sealed::Sealed,
 };
 
 #[cfg(feature = "regex")]
@@ -27,7 +28,9 @@ use regex::Regex;
 /// without cloning it. String contents are inspected but never captured in an
 /// error. Length failures use [`LengthMetric::Bytes`] for byte methods and
 /// [`LengthMetric::UnicodeScalars`] for character-count methods.
-pub trait StringArgument: Sized {
+///
+/// The trait is sealed and implemented only for `String` and `&str`.
+pub trait StringArgument: Sealed + Sized {
     /// Requires this string to contain at least one non-whitespace character.
     ///
     /// Success returns the original value without cloning. Empty strings and

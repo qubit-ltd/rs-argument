@@ -8,13 +8,18 @@
 //! # Qubit Argument
 //!
 //! Ownership-preserving validation for arguments, configuration values,
-//! indexes, and bounds.
+//! durations, indexes, and bounds.
 //!
 //! All public traits, functions, and error types are exported from the crate
 //! root. Validation returns [`ArgumentResult`] instead of panicking, and each
 //! failure contains an owned [`ArgumentPath`] plus an inspectable
 //! [`ArgumentErrorKind`]. Successful validation returns the original owned
 //! value or borrow without cloning it.
+//!
+//! Validation extension traits are sealed and implemented only for the types
+//! documented by this crate. [`ArgumentErrorKind`], [`ArgumentValue`], and
+//! [`LengthMetric`] are non-exhaustive; downstream matches must include a
+//! wildcard arm so the structured vocabulary can evolve compatibly.
 //!
 //! # Ownership-preserving validation
 //!
@@ -66,6 +71,31 @@
 //! to call `expect` with a meaningful explanation. The validation APIs do not
 //! make that recovery-versus-panic decision on the caller's behalf.
 //!
+//! # Nested configuration and durations
+//!
+//! Nested validators can report local paths and add parent context only on
+//! failure. Durations retain their unit in structured comparison errors:
+//!
+//! ```rust
+//! use std::time::Duration;
+//!
+//! use qubit_argument::{
+//!     ArgumentResult,
+//!     ArgumentResultExt,
+//!     DurationArgument,
+//! };
+//!
+//! fn validate_timeouts(connect: Duration) -> ArgumentResult<()> {
+//!     connect.require_positive("connect")?;
+//!     Ok(())
+//! }
+//!
+//! let error = validate_timeouts(Duration::ZERO)
+//!     .with_path_prefix("timeouts")
+//!     .expect_err("a zero connection timeout is invalid");
+//! assert_eq!(error.path().as_str(), "timeouts.connect");
+//! ```
+//!
 //! # Strings and optional regex support
 //!
 //! Byte-length methods measure UTF-8 bytes. Character-count methods measure
@@ -87,9 +117,12 @@ pub use argument::{
     ArgumentErrorKind,
     ArgumentPath,
     ArgumentResult,
+    ArgumentResultExt,
     ArgumentValue,
     CollectionArgument,
     ComparisonConstraint,
+    DurationArgument,
+    FloatArgument,
     IndexRole,
     LengthConstraint,
     LengthMetric,

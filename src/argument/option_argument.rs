@@ -11,6 +11,7 @@ use crate::argument::{
     ArgumentError,
     ArgumentErrorKind,
     ArgumentResult,
+    sealed::Sealed,
 };
 
 /// Validates optional arguments without requiring their values to be cloned.
@@ -18,7 +19,9 @@ use crate::argument::{
 /// A required value can be extracted with [`Self::require_some`]. Conditional
 /// validation borrows a present value only for the validator call and returns
 /// the original option on success.
-pub trait OptionArgument<T>: Sized {
+///
+/// The trait is sealed and implemented only for `Option<T>`.
+pub trait OptionArgument<T>: Sealed + Sized {
     /// Requires this option to contain a value.
     ///
     /// A present value is moved out and returned without cloning. An absent

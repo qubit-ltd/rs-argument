@@ -5,7 +5,7 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-//! Lossless representations of primitive numeric argument values.
+//! Lossless representations of scalar argument values.
 
 use std::fmt::{
     self,
@@ -13,13 +13,32 @@ use std::fmt::{
     Display,
     Formatter,
 };
+use std::time::Duration;
 
-/// A primitive numeric value captured for a validation constraint or error.
+/// A scalar value captured for a validation constraint or error.
 ///
 /// Floating-point values are stored as raw IEEE 754 bits, so equality and
 /// hashing preserve distinctions such as signed zero and NaN payloads.
-/// Formatting reconstructs the original float so negative zero, infinities,
-/// and NaN remain visible as floating-point values.
+/// Duration values retain their exact seconds and nanoseconds. Formatting
+/// reconstructs floats and preserves unit-bearing duration diagnostics.
+///
+/// This enum is non-exhaustive. Downstream matches must include a wildcard arm
+/// so future scalar representations can be added without a breaking release.
+///
+/// ```compile_fail
+/// use qubit_argument::ArgumentValue;
+///
+/// fn classify(value: ArgumentValue) -> &'static str {
+///     match value {
+///         ArgumentValue::Signed(_) => "signed",
+///         ArgumentValue::Unsigned(_) => "unsigned",
+///         ArgumentValue::Float32(_) => "f32",
+///         ArgumentValue::Float64(_) => "f64",
+///         ArgumentValue::Duration(_) => "duration",
+///     }
+/// }
+/// ```
+#[non_exhaustive]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgumentValue {
     /// A signed integer represented without loss.
@@ -30,6 +49,8 @@ pub enum ArgumentValue {
     Float32(u32),
     /// The raw bits of a 64-bit floating-point value.
     Float64(u64),
+    /// An exact standard-library duration value.
+    Duration(Duration),
 }
 
 macro_rules! impl_from_signed_integer {
@@ -79,8 +100,16 @@ impl From<f64> for ArgumentValue {
     }
 }
 
+impl From<Duration> for ArgumentValue {
+    /// Captures an exact standard-library duration value.
+    #[inline]
+    fn from(value: Duration) -> Self {
+        Self::Duration(value)
+    }
+}
+
 impl Debug for ArgumentValue {
-    /// Formats the variant with a reconstructed primitive numeric value.
+    /// Formats the variant with its reconstructed scalar value.
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Signed(value) => {
@@ -97,6 +126,9 @@ impl Debug for ArgumentValue {
                 .debug_tuple("Float64")
                 .field(&f64::from_bits(*bits))
                 .finish(),
+            Self::Duration(value) => {
+                formatter.debug_tuple("Duration").field(value).finish()
+            }
         }
     }
 }
@@ -113,6 +145,7 @@ impl Display for ArgumentValue {
             Self::Float64(bits) => {
                 Display::fmt(&f64::from_bits(*bits), formatter)
             }
+            Self::Duration(value) => Debug::fmt(value, formatter),
         }
     }
 }
