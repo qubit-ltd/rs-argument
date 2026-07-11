@@ -109,3 +109,64 @@ fn test_validate_if_some_propagates_structured_error() {
         },
     );
 }
+
+/// Verifies owned validation can transform a non-clone value.
+#[test]
+fn test_validate_some_transforms_owned_non_clone_value() {
+    let validated = Some(NonClone(7))
+        .validate_some(|item| Ok(NonClone(item.0 + 1)))
+        .expect("present value satisfies validator");
+    assert_eq!(validated, Some(NonClone(8)));
+}
+
+/// Verifies `None` bypasses the owned validator.
+#[test]
+fn test_validate_some_skips_validator_for_none() {
+    let validator_called = Cell::new(false);
+    let validated = None::<NonClone>
+        .validate_some(|item| {
+            validator_called.set(true);
+            Ok(item)
+        })
+        .expect("missing optional value does not require validation");
+    assert_eq!(validated, None);
+    assert!(!validator_called.get());
+}
+
+/// Verifies a present value invokes the owned validator exactly once.
+#[test]
+fn test_validate_some_executes_validator_once_for_some() {
+    let call_count = Cell::new(0_u32);
+    let validated = Some(NonClone(9))
+        .validate_some(|item| {
+            call_count.set(call_count.get() + 1);
+            Ok(item)
+        })
+        .expect("present value satisfies validator");
+    assert_eq!(validated, Some(NonClone(9)));
+    assert_eq!(call_count.get(), 1);
+}
+
+/// Verifies owned validation propagates structured errors unchanged.
+#[test]
+fn test_validate_some_propagates_structured_error() {
+    let error = Some(NonClone(1))
+        .validate_some(|_| {
+            Err(ArgumentError::new(
+                "item",
+                ArgumentErrorKind::Custom {
+                    code: String::from("rejected"),
+                    message: String::from("item was rejected"),
+                },
+            ))
+        })
+        .expect_err("validator failure must propagate");
+    assert_eq!(error.path().as_str(), "item");
+    assert_eq!(
+        error.kind(),
+        &ArgumentErrorKind::Custom {
+            code: String::from("rejected"),
+            message: String::from("item was rejected"),
+        },
+    );
+}
