@@ -11,7 +11,7 @@
 
 ## 概述
 
-Qubit Argument 提供扩展 trait 和职责单一的检查函数，用于校验数值、
+Qubit Argument 提供扩展 trait 和职责单一的检查函数，用于校验数值、持续时间、
 字符串、集合、可选值、索引和边界。每次校验失败都会返回 `ArgumentError`；
 错误中包含持有所有权的参数路径和可匹配的 `ArgumentErrorKind`。校验 API
 统一返回 `Result`，由调用方决定恢复、转换错误，还是明确将失败视为内部
@@ -19,6 +19,10 @@ Qubit Argument 提供扩展 trait 和职责单一的检查函数，用于校验�
 
 校验成功时，API 会原样返回传入的所有权值或借用，不会隐式克隆，因此可以
 在链式校验中继续使用原值。
+
+校验扩展 trait 是封闭的，只为文档列出的标准库类型提供实现。
+`ArgumentErrorKind`、`ArgumentValue` 和 `LengthMetric` 都是非穷尽类型；下游
+进行模式匹配时必须保留通配分支，以便后续兼容地增加新的结构化情况。
 
 ## 安装
 
@@ -82,6 +86,10 @@ fn validate_pool_size(size: u32) -> Result<u32, DomainError> {
 协议。调用方提供的路径、pattern、custom code/message 会在显示时转义，使
 诊断保持单行，但不会改变结构字段中的原值。
 
+嵌套校验器可以只报告局部字段名，并仅在失败时补充父级上下文。
+`ArgumentResultExt::with_path_prefix` 会原样保留 `Ok`，并在 `Err` 时将
+`connect` 这样的局部路径组合成 `timeouts.connect`。
+
 默认情况下，校验失败是可恢复错误。若被校验值属于内部不变量而不是外部输入，
 调用方可以明确使用带有说明的 `expect`：
 
@@ -109,6 +117,16 @@ fn built_in_retry_limit() -> u32 {
 
 浮点实参或区间端点为 `NaN` 时校验失败。反向区间和结构上为空的区间会与
 “数值不在有效区间内”分别报告。
+
+### 持续时间与有限浮点数
+
+`DurationArgument` 为 `std::time::Duration` 提供实现，包括严格正值、严格比较
+和包含边界的比较。结构化比较错误会保存精确的 `Duration` 及其单位，不会将
+持续时间降级成语义不明的整数。
+
+`FloatArgument::require_finite` 只为 `f32` 和 `f64` 提供实现。NaN 返回
+`NotANumber`，正负无穷返回 `NotFinite { actual }`；有限值可以继续链式使用
+`NumericArgument` 的比较和范围校验。
 
 ### 字符串
 

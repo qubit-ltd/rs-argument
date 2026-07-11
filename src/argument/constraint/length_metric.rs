@@ -11,6 +11,20 @@
 ///
 /// The metric is retained in structured errors so equal numeric lengths and
 /// constraints remain distinguishable across strings and collections.
+/// This enum is non-exhaustive; downstream matches must include a wildcard arm.
+///
+/// ```compile_fail
+/// use qubit_argument::LengthMetric;
+///
+/// fn label(metric: LengthMetric) -> &'static str {
+///     match metric {
+///         LengthMetric::Bytes => "bytes",
+///         LengthMetric::UnicodeScalars => "Unicode scalars",
+///         LengthMetric::Elements => "elements",
+///     }
+/// }
+/// ```
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LengthMetric {
     /// The number of bytes in a UTF-8 string.

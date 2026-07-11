@@ -12,17 +12,22 @@ Qubit Argument 用于在 API 和配置边界校验值，同时保持值原有的
 `ArgumentPath` 和非穷尽的 `ArgumentErrorKind`，下游代码可以直接匹配
 结构化错误，不必解析诊断文本。
 
+校验扩展 trait 是封闭的，只为本指南列出的类型提供实现。
+`ArgumentErrorKind`、`ArgumentValue` 和 `LengthMetric` 都是非穷尽类型；下游
+模式匹配必须保留通配分支。
+
 ## 错误模型与约束类型
 
 错误模型中的所有类型也都直接从 crate 根导出：
 
 | API | 用途 |
 | --- | --- |
-| `ArgumentError::new`、`path`、`kind`、`into_parts` | 构造或检查持有所有权的结构化错误 |
-| `ArgumentPath::new`、`as_str` | 保存并借用参数路径或嵌套字段路径 |
-| `ArgumentErrorKind` | 匹配缺失、空白、空值、长度、比较、范围、非法约束、NaN、索引、边界、正则和自定义错误 |
-| `ArgumentValue` | 无损保存有符号数、无符号数、`f32` 或 `f64` |
-| `LengthConstraint`、`ComparisonConstraint` | 描述长度约束和数值比较约束 |
+| `ArgumentError::new`、`path`、`kind`、`with_path_prefix`、`into_parts` | 构造、检查或添加前缀到持有所有权的结构化错误 |
+| `ArgumentPath::new`、`as_str`、`with_prefix` | 保存、借用或添加前缀到参数路径或嵌套字段路径 |
+| `ArgumentResultExt::with_path_prefix` | 只为失败的嵌套校验补充父级上下文 |
+| `ArgumentErrorKind` | 匹配缺失、空白、空值、长度、比较、范围、非法约束、NaN、非有限值、索引、边界、正则和自定义错误 |
+| `ArgumentValue` | 无损保存有符号数、无符号数、`f32`、`f64` 或 `Duration` |
+| `LengthConstraint`、`ComparisonConstraint` | 描述长度约束和标量比较约束 |
 | `LengthMetric` | 在长度错误中区分 UTF-8 字节数、Unicode 标量值数量和集合元素数量 |
 | `ArgumentBound`、`RangeConstraint::new`、`lower`、`upper`、`into_bounds` | 描述包含、排除或无界的数值范围 |
 | `IndexRole`、`PatternExpectation` | 区分索引语义和正则匹配预期 |
@@ -75,6 +80,10 @@ fn validate_workers(workers: usize) -> Result<usize, DomainError> {
 `error.path()` 和 `error.kind()` 检查错误；`Display` 只用于面向用户的
 诊断信息。
 
+当嵌套校验器只报告局部路径时，可在 `?` 前调用
+`ArgumentResultExt::with_path_prefix`。该方法不会为 `Ok` 分配路径字符串，
+只会为 `ArgumentError` 分支添加父级前缀。
+
 若某个值由程序构造过程保证，调用方可以显式使用带说明的 `expect`，将校验
 错误升级为内部不变量错误：
 
@@ -101,6 +110,20 @@ assert_eq!(workers, 4);
 `require_in_range` 接受标准 `RangeBounds`，支持包含端点、排除端点和无界
 端点。反向边界，以及端点相等但至少一侧排除的区间，会返回
 `InvalidRangeConstraint`。
+
+## Duration 与浮点校验
+
+`DurationArgument` 为 `std::time::Duration` 提供实现。成功时原样返回精确的
+持续时间，比较失败时使用带单位的 `ArgumentValue::Duration`。
+
+| 方法 | 错误种类 |
+| --- | --- |
+| `require_positive` | 与 `Duration::ZERO` 比较的 `Comparison` |
+| `require_less_than`、`require_at_most`、`require_greater_than`、`require_at_least` | 保存精确持续时间边界的 `Comparison` |
+
+`FloatArgument::require_finite` 只为 `f32` 和 `f64` 提供实现。NaN 返回
+`NotANumber`，正负无穷返回 `NotFinite { actual }`。成功的有限值保留精确位
+模式，并可继续调用 `NumericArgument` 方法。
 
 ## 字符串校验
 

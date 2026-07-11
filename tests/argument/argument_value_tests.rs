@@ -7,6 +7,8 @@
 // =============================================================================
 //! Tests for captured argument values.
 
+use std::time::Duration;
+
 use qubit_argument::ArgumentValue;
 
 /// Verifies conversions from every signed primitive integer type.
@@ -114,4 +116,23 @@ fn test_fmt_formats_integer_variants() {
     let unsigned = ArgumentValue::from(7_u32);
     assert_eq!(format!("{unsigned:?}"), "Unsigned(7)");
     assert_eq!(unsigned.to_string(), "7");
+}
+
+/// Verifies that duration values retain their exact seconds and nanoseconds.
+#[test]
+fn test_from_preserves_duration() {
+    let duration = Duration::new(12, 345);
+    assert_eq!(
+        ArgumentValue::from(duration),
+        ArgumentValue::Duration(duration),
+    );
+}
+
+/// Verifies that duration diagnostics retain their unit-bearing representation.
+#[test]
+fn test_fmt_formats_duration() {
+    let duration = Duration::from_millis(1_500);
+    let value = ArgumentValue::from(duration);
+    assert_eq!(format!("{value:?}"), "Duration(1.5s)");
+    assert_eq!(value.to_string(), "1.5s");
 }
