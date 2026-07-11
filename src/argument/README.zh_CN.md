@@ -163,7 +163,20 @@ assert_eq!(workers, 4);
 `OptionArgument::require_some` 会移出存在的值而不克隆；`None` 对应
 `Missing`。`validate_if_some` 将存在的值借给调用方校验器，成功后原样返回
 `Option`，不会克隆；遇到 `None` 时不执行校验器，并原样传播校验器返回的
-`ArgumentError`。
+`ArgumentError`。`validate_some` 会把存在值的所有权交给校验器，并重新包装
+校验后的值；`None` 会原样返回。
+
+```rust
+use qubit_argument::{ArgumentResult, NumericArgument, OptionArgument};
+
+fn validate_stack_size(
+    stack_size: Option<usize>,
+) -> ArgumentResult<Option<usize>> {
+    stack_size.validate_some(|value| {
+        value.require_positive("stack_size")
+    })
+}
+```
 
 ## 自定义规则与边界校验
 

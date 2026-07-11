@@ -85,6 +85,22 @@ fn validate_pool_size(size: u32) -> Result<u32, DomainError> {
 }
 ```
 
+Optional values can use the same ownership-preserving validators without a
+manual `if let`. `None` is left unchanged, while `Some` is validated and
+rewrapped:
+
+```rust
+use qubit_argument::{ArgumentResult, NumericArgument, OptionArgument};
+
+fn validate_stack_size(
+    stack_size: Option<usize>,
+) -> ArgumentResult<Option<usize>> {
+    stack_size.validate_some(|value| {
+        value.require_positive("stack_size")
+    })
+}
+```
+
 Use `ArgumentError::path()` and `ArgumentError::kind()` for programmatic
 decisions. The `Display` text is intended for diagnostics, not parsing;
 caller-provided paths, patterns, custom codes, and messages are escaped so the
@@ -93,6 +109,34 @@ diagnostic remains on one line without changing the structured values.
 Nested validators can keep local field names and add parent context only when
 they fail. `ArgumentResultExt::with_path_prefix` leaves `Ok` values unchanged
 and turns a local path such as `connect` into `timeouts.connect` on `Err`.
+
+```rust
+use qubit_argument::{ArgumentResult, ArgumentResultExt, DurationArgument};
+use std::time::Duration;
+
+fn validate_timeouts(connect: Duration) -> ArgumentResult<Duration> {
+    connect
+        .require_positive("connect")
+        .with_path_prefix("timeouts")
+}
+```
+
+Domain-specific rules can retain a stable machine code and human-readable
+message while still participating in the same structured error flow:
+
+```rust
+use qubit_argument::{ArgumentResult, require_that};
+
+fn validate_retry_limit(limit: u32) -> ArgumentResult<u32> {
+    require_that(
+        limit,
+        "retry_limit",
+        |value| *value <= 10,
+        "retry_limit",
+        "retry limit must not exceed ten",
+    )
+}
+```
 
 Validation remains recoverable by default. When a value is an internal
 invariant rather than external input, the caller may explicitly use `expect`
@@ -162,7 +206,9 @@ and inclusive length-range checks.
 `OptionArgument::require_some` moves a present value out of its option.
 `OptionArgument::validate_if_some` borrows a present value for validation,
 skips the validator for `None`, and returns the original option without
-cloning.
+cloning. `OptionArgument::validate_some` moves a present value through an
+ownership-preserving validator, allowing validation or transformation without
+requiring `Clone` or `Copy`; `None` is returned unchanged.
 
 ### Custom rules and bounds
 
