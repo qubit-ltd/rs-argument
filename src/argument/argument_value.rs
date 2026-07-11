@@ -134,7 +134,7 @@ impl Debug for ArgumentValue {
 }
 
 impl Display for ArgumentValue {
-    /// Formats the represented primitive value without a variant label.
+    /// Formats the represented scalar value without a variant label.
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Signed(value) => Display::fmt(value, formatter),

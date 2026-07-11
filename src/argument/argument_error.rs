@@ -131,7 +131,7 @@ impl Display for ArgumentError {
                 write_range_constraint(formatter, constraint)
             }
             ArgumentErrorKind::NotANumber => {
-                formatter.write_str(" must be a number")
+                formatter.write_str(" contains a NaN value")
             }
             ArgumentErrorKind::NotFinite { actual } => {
                 write!(formatter, " has non-finite value {actual}")
@@ -240,7 +240,7 @@ fn write_length_constraint(
     }
 }
 
-/// Writes a numeric comparison constraint in human-readable form.
+/// Writes a scalar comparison constraint in human-readable form.
 ///
 /// `formatter` receives only text derived from `constraint`. Formatting errors
 /// from the destination are returned unchanged.
