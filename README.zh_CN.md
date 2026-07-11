@@ -186,7 +186,7 @@ cargo test --all-features
 ./ci-check.sh
 ```
 
-覆盖率详情请参见 [COVERAGE.zh_CN.md](COVERAGE.zh_CN.md)。
+覆盖率详情请参见 [COVERAGE.zh_CN.md](https://github.com/qubit-ltd/rs-argument/blob/main/COVERAGE.zh_CN.md)。
 
 ## 许可证
 
