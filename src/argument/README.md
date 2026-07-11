@@ -171,7 +171,21 @@ elements.
 returns `Missing` for `None`. `validate_if_some` borrows a present value for a
 caller-supplied validator and returns the original option without cloning. It
 does not call the validator for `None` and propagates the validator's
-`ArgumentError` unchanged.
+`ArgumentError` unchanged. `validate_some` moves a present value through an
+ownership-preserving validator and rewraps the validated value, while returning
+`None` unchanged.
+
+```rust
+use qubit_argument::{ArgumentResult, NumericArgument, OptionArgument};
+
+fn validate_stack_size(
+    stack_size: Option<usize>,
+) -> ArgumentResult<Option<usize>> {
+    stack_size.validate_some(|value| {
+        value.require_positive("stack_size")
+    })
+}
+```
 
 ## Custom and Bounds Validation
 

@@ -81,6 +81,21 @@ fn validate_pool_size(size: u32) -> Result<u32, DomainError> {
 }
 ```
 
+可选值也可以使用相同的所有权保留校验器，无需手写 `if let`。`None` 会原样
+返回，`Some` 中的值则会经过校验并重新包装：
+
+```rust
+use qubit_argument::{ArgumentResult, NumericArgument, OptionArgument};
+
+fn validate_stack_size(
+    stack_size: Option<usize>,
+) -> ArgumentResult<Option<usize>> {
+    stack_size.validate_some(|value| {
+        value.require_positive("stack_size")
+    })
+}
+```
+
 程序需要根据错误分支处理时，应使用 `ArgumentError::path()` 和
 `ArgumentError::kind()`；`Display` 文本面向诊断日志，不是供程序解析的稳定
 协议。调用方提供的路径、pattern、custom code/message 会在显示时转义，使
@@ -89,6 +104,34 @@ fn validate_pool_size(size: u32) -> Result<u32, DomainError> {
 嵌套校验器可以只报告局部字段名，并仅在失败时补充父级上下文。
 `ArgumentResultExt::with_path_prefix` 会原样保留 `Ok`，并在 `Err` 时将
 `connect` 这样的局部路径组合成 `timeouts.connect`。
+
+```rust
+use qubit_argument::{ArgumentResult, ArgumentResultExt, DurationArgument};
+use std::time::Duration;
+
+fn validate_timeouts(connect: Duration) -> ArgumentResult<Duration> {
+    connect
+        .require_positive("connect")
+        .with_path_prefix("timeouts")
+}
+```
+
+领域规则也可以保留稳定的机器代码和可读文案，同时进入相同的结构化错误传播
+流程：
+
+```rust
+use qubit_argument::{ArgumentResult, require_that};
+
+fn validate_retry_limit(limit: u32) -> ArgumentResult<u32> {
+    require_that(
+        limit,
+        "retry_limit",
+        |value| *value <= 10,
+        "retry_limit",
+        "retry limit must not exceed ten",
+    )
+}
+```
 
 默认情况下，校验失败是可恢复错误。若被校验值属于内部不变量而不是外部输入，
 调用方可以明确使用带有说明的 `expect`：
@@ -154,6 +197,8 @@ UTF-8 字节，但只包含两个 Unicode 标量值；标量值数量也不等�
 `OptionArgument::require_some` 会移出并返回存在的值。
 `OptionArgument::validate_if_some` 只借用存在的值进行校验；遇到 `None` 时
 不会执行校验器，成功后原样返回 `Option`，不会克隆内部值。
+`OptionArgument::validate_some` 会将存在值的所有权交给校验器，在不要求
+`Clone` 或 `Copy` 的情况下完成校验或转换；`None` 会原样返回。
 
 ### 自定义规则和边界
 
