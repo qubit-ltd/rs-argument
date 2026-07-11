@@ -199,7 +199,7 @@ cargo test --all-features
 ./ci-check.sh
 ```
 
-See [COVERAGE.md](COVERAGE.md) for coverage details.
+See [COVERAGE.md](https://github.com/qubit-ltd/rs-argument/blob/main/COVERAGE.md) for coverage details.
 
 ## License
 
