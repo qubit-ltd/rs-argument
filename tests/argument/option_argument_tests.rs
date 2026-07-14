@@ -19,6 +19,38 @@ use qubit_argument::{
 #[derive(Debug, PartialEq, Eq)]
 struct NonClone(u32);
 
+/// Validates a borrowed value, rejecting zero for coverage across one function
+/// type.
+fn validate_non_zero_borrowed(value: &NonClone) -> Result<(), ArgumentError> {
+    if value.0 == 0 {
+        Err(ArgumentError::new(
+            "value",
+            ArgumentErrorKind::Custom {
+                code: String::from("zero"),
+                message: String::from("value must not be zero"),
+            },
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+/// Validates an owned value, rejecting zero for coverage across one function
+/// type.
+fn validate_non_zero_owned(value: NonClone) -> Result<NonClone, ArgumentError> {
+    if value.0 == 0 {
+        Err(ArgumentError::new(
+            "value",
+            ArgumentErrorKind::Custom {
+                code: String::from("zero"),
+                message: String::from("value must not be zero"),
+            },
+        ))
+    } else {
+        Ok(value)
+    }
+}
+
 #[test]
 fn test_require_some_preserves_non_clone_value() {
     let value = Some(NonClone(7));
@@ -110,6 +142,24 @@ fn test_validate_if_some_propagates_structured_error() {
     );
 }
 
+#[test]
+fn test_validate_if_some_covers_all_outcomes_for_one_validator_type() {
+    let present = Some(NonClone(1))
+        .validate_if_some(validate_non_zero_borrowed)
+        .expect("non-zero value satisfies validator");
+    assert_eq!(present, Some(NonClone(1)));
+
+    let error = Some(NonClone(0))
+        .validate_if_some(validate_non_zero_borrowed)
+        .expect_err("zero value must fail validation");
+    assert_eq!(error.path().as_str(), "value");
+
+    let absent = None::<NonClone>
+        .validate_if_some(validate_non_zero_borrowed)
+        .expect("missing optional value bypasses validation");
+    assert_eq!(absent, None);
+}
+
 /// Verifies owned validation can transform a non-clone value.
 #[test]
 fn test_validate_some_transforms_owned_non_clone_value() {
@@ -169,4 +219,22 @@ fn test_validate_some_propagates_structured_error() {
             message: String::from("item was rejected"),
         },
     );
+}
+
+#[test]
+fn test_validate_some_covers_all_outcomes_for_one_validator_type() {
+    let present = Some(NonClone(1))
+        .validate_some(validate_non_zero_owned)
+        .expect("non-zero value satisfies validator");
+    assert_eq!(present, Some(NonClone(1)));
+
+    let error = Some(NonClone(0))
+        .validate_some(validate_non_zero_owned)
+        .expect_err("zero value must fail validation");
+    assert_eq!(error.path().as_str(), "value");
+
+    let absent = None::<NonClone>
+        .validate_some(validate_non_zero_owned)
+        .expect("missing optional value bypasses validation");
+    assert_eq!(absent, None);
 }
