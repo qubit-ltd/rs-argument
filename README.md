@@ -243,13 +243,14 @@ cargo test --all-features
 
 # Project CI checks
 ./ci-check.sh
-```
 
-See [COVERAGE.md](https://github.com/qubit-ltd/rs-argument/blob/main/COVERAGE.md) for coverage details.
+# Check code coverage
+./coverage.sh
+```
 
 ## License
 
-Copyright (c) 2025 - 2026. Haixing Hu, Qubit Co. Ltd. All rights reserved.
+Copyright (c) 2025 - 2026. Haixing Hu. All rights reserved.
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for the
 full license text.
@@ -257,8 +258,8 @@ full license text.
 ## Contributing
 
 Contributions are welcome. Please follow the Rust API guidelines, keep public
-API documentation and tests current, and run `./ci-check.sh` before submitting
-a pull request.
+API documentation and tests current, and run `./align-ci.sh` to format code and
+`./ci-check.sh` to satisfy CI requirements before submitting a pull request.
 
 ## Author
 
