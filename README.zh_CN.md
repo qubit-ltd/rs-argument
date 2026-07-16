@@ -229,13 +229,14 @@ cargo test --all-features
 
 # 运行项目 CI 检查
 ./ci-check.sh
-```
 
-覆盖率详情请参见 [COVERAGE.zh_CN.md](https://github.com/qubit-ltd/rs-argument/blob/main/COVERAGE.zh_CN.md)。
+# 检查代码覆盖率
+./coverage.sh
+```
 
 ## 许可证
 
-Copyright (c) 2025 - 2026. Haixing Hu, Qubit Co. Ltd. All rights reserved.
+Copyright (c) 2025 - 2026. Haixing Hu. All rights reserved.
 
 本项目基于 Apache License 2.0 授权。完整许可证文本请参阅
 [LICENSE](LICENSE)。
@@ -243,10 +244,10 @@ Copyright (c) 2025 - 2026. Haixing Hu, Qubit Co. Ltd. All rights reserved.
 ## 贡献
 
 欢迎贡献。请遵循 Rust API 指南，及时更新公共 API 文档与测试，并在提交
-Pull Request 前运行 `./ci-check.sh`。
+Pull Request 前运行 `./align-ci.sh`格式化代码，运行`./ci-check.sh`对齐CI要求。
 
 ## 作者
 
-**胡海星** - *Qubit Co. Ltd.*
+**Haixing Hu** - *Qubit Co. Ltd.*
 
 仓库地址：[https://github.com/qubit-ltd/rs-argument](https://github.com/qubit-ltd/rs-argument)
