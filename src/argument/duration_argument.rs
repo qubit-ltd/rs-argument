@@ -15,7 +15,7 @@ use crate::argument::{
     ArgumentResult,
     ArgumentValue,
     ComparisonConstraint,
-    sealed::Sealed,
+    internal::Sealed,
 };
 
 /// Validates standard-library duration arguments without losing their unit.
@@ -144,6 +144,7 @@ impl DurationArgument for Duration {
 /// `actual` and `bound` are passed to `predicate` exactly once. If the
 /// predicate returns `false`, the error records `actual`, `constraint`, and
 /// `path` without converting the duration to a unitless number.
+#[inline]
 fn validate_duration_comparison<F>(
     actual: Duration,
     path: &str,

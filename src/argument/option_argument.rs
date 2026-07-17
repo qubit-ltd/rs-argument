@@ -11,7 +11,7 @@ use crate::argument::{
     ArgumentError,
     ArgumentErrorKind,
     ArgumentResult,
-    sealed::Sealed,
+    internal::Sealed,
 };
 
 /// Validates optional arguments without requiring their values to be cloned.

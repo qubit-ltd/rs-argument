@@ -63,9 +63,9 @@ mod collection_argument;
 mod constraint;
 mod duration_argument;
 mod float_argument;
+mod internal;
 mod numeric_argument;
 mod option_argument;
-mod sealed;
 mod string_argument;
 
 pub use argument_error::{

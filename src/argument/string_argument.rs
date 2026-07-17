@@ -13,7 +13,7 @@ use crate::argument::{
     ArgumentResult,
     LengthConstraint,
     LengthMetric,
-    sealed::Sealed,
+    internal::Sealed,
 };
 
 #[cfg(feature = "regex")]
@@ -546,6 +546,7 @@ impl StringArgument for String {
 /// `value` is inspected without allocation. The function returns `Ok(())`
 /// when at least one scalar value is not whitespace; otherwise, it returns
 /// [`ArgumentErrorKind::Blank`] at `path` without storing `value`.
+#[inline]
 fn validate_non_blank(value: &str, path: &str) -> ArgumentResult<()> {
     if value.chars().all(char::is_whitespace) {
         Err(ArgumentError::new(path, ArgumentErrorKind::Blank))
@@ -606,6 +607,7 @@ fn validate_length(
 /// [`ArgumentErrorKind::Pattern`] containing only the pattern text and
 /// expectation, never `value`.
 #[cfg(feature = "regex")]
+#[inline]
 fn validate_pattern(
     value: &str,
     path: &str,
