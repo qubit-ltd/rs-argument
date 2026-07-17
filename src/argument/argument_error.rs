@@ -31,6 +31,14 @@ use crate::argument::{
 /// error types to inspect or preserve it without parsing display text.
 /// [`Display`] escapes caller-provided fields into a single-line diagnostic;
 /// accessors and [`Debug`] continue to expose the original structured values.
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::{ArgumentError, ArgumentErrorKind};
+///
+/// ArgumentError::new("value", ArgumentErrorKind::Missing);
+/// ```
+#[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArgumentError {
     path: ArgumentPath,
@@ -51,13 +59,13 @@ impl ArgumentError {
     }
 
     /// Returns the path of the argument that failed validation.
-    #[inline]
+    #[inline(always)]
     pub fn path(&self) -> &ArgumentPath {
         &self.path
     }
 
     /// Returns the structured validation failure kind.
-    #[inline]
+    #[inline(always)]
     pub fn kind(&self) -> &ArgumentErrorKind {
         self.kind.as_ref()
     }
@@ -212,6 +220,7 @@ fn escape_for_display(value: &str, delimiter: Option<char>) -> String {
 ///
 /// `metric` determines whether diagnostics describe UTF-8 byte length,
 /// Unicode scalar count, or collection element count.
+#[inline]
 fn length_metric_label(metric: &LengthMetric) -> &'static str {
     match metric {
         LengthMetric::Bytes => "byte length",

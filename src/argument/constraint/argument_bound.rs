@@ -10,6 +10,14 @@
 use crate::argument::ArgumentValue;
 
 /// One side of a numeric range constraint.
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::ArgumentBound;
+///
+/// ArgumentBound::Unbounded;
+/// ```
+#[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ArgumentBound {
     /// Places no limit on this side of the range.

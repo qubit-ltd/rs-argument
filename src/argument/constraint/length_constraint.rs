@@ -11,6 +11,14 @@
 ///
 /// [`LengthMetric`](super::LengthMetric) identifies the measurement unit in a
 /// structured validation error.
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::LengthConstraint;
+///
+/// LengthConstraint::Exact(1);
+/// ```
+#[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LengthConstraint {
     /// Requires exactly the specified length.

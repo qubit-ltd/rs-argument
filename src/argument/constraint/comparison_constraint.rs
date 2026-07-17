@@ -10,6 +10,14 @@
 use crate::argument::ArgumentValue;
 
 /// A comparison between an argument and a captured scalar value.
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::{ArgumentValue, ComparisonConstraint};
+///
+/// ComparisonConstraint::EqualTo(ArgumentValue::Signed(1));
+/// ```
+#[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ComparisonConstraint {
     /// Requires equality with the captured value.

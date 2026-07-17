@@ -8,6 +8,14 @@
 //! Pattern expectations used by string validation.
 
 /// Whether a string is expected to match a pattern.
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::PatternExpectation;
+///
+/// PatternExpectation::Match;
+/// ```
+#[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PatternExpectation {
     /// Requires the string to match the pattern.
