@@ -12,7 +12,7 @@ use crate::argument::{
     ArgumentErrorKind,
     ArgumentResult,
     ArgumentValue,
-    sealed::Sealed,
+    internal::Sealed,
 };
 
 /// Validates properties specific to floating-point arguments.

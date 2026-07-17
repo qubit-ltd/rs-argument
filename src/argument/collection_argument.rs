@@ -13,7 +13,7 @@ use crate::argument::{
     ArgumentResult,
     LengthConstraint,
     LengthMetric,
-    sealed::Sealed,
+    internal::Sealed,
 };
 
 /// Validates collection lengths while preserving the original collection.

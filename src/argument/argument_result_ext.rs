@@ -9,7 +9,7 @@
 
 use crate::argument::{
     ArgumentResult,
-    sealed::Sealed,
+    internal::Sealed,
 };
 
 /// Adds nested argument-path context to validation results.
@@ -35,7 +35,7 @@ pub trait ArgumentResultExt<T>: Sealed + Sized {
 
 impl<T> ArgumentResultExt<T> for ArgumentResult<T> {
     /// Prefixes only the error branch and leaves success values untouched.
-    #[inline]
+    #[inline(always)]
     fn with_path_prefix(self, prefix: &str) -> ArgumentResult<T> {
         self.map_err(|error| error.with_path_prefix(prefix))
     }

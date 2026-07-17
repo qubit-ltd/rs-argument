@@ -17,99 +17,13 @@ use crate::argument::{
     ArgumentError,
     ArgumentErrorKind,
     ArgumentResult,
-    ArgumentValue,
     ComparisonConstraint,
     RangeConstraint,
-    sealed::Sealed,
+    internal::{
+        NumericValue,
+        Sealed,
+    },
 };
-
-/// Restricts numeric validation to supported primitive numeric values.
-///
-/// Implementations provide the type's zero value, an exact structured error
-/// representation, and NaN detection. The trait is private so arbitrary
-/// partially ordered caller types cannot opt into numeric validation.
-trait NumericValue: Sealed + Copy + PartialOrd {
-    /// Returns the zero value for this primitive numeric type.
-    fn zero() -> Self;
-
-    /// Captures this value without losing integer magnitude or floating bits.
-    fn to_argument_value(self) -> ArgumentValue;
-
-    /// Returns whether this value is a floating-point NaN.
-    ///
-    /// Integer implementations always return `false`.
-    fn is_nan(self) -> bool;
-}
-
-/// Implements primitive numeric conversion and non-NaN behavior for integers.
-macro_rules! impl_numeric_value_for_integer {
-    ($($numeric_type:ty),+ $(,)?) => {
-        $(
-            impl NumericValue for $numeric_type {
-                /// Returns integer zero.
-                #[inline]
-                fn zero() -> Self {
-                    0
-                }
-
-                /// Captures the integer without losing its value.
-                #[inline]
-                fn to_argument_value(self) -> ArgumentValue {
-                    ArgumentValue::from(self)
-                }
-
-                /// Reports that an integer can never be NaN.
-                #[inline]
-                fn is_nan(self) -> bool {
-                    false
-                }
-            }
-        )+
-    };
-}
-
-impl_numeric_value_for_integer!(i8, i16, i32, i64, i128, isize);
-impl_numeric_value_for_integer!(u8, u16, u32, u64, u128, usize);
-
-impl NumericValue for f32 {
-    /// Returns positive floating-point zero.
-    #[inline]
-    fn zero() -> Self {
-        0.0
-    }
-
-    /// Captures the exact IEEE 754 bit pattern of this value.
-    #[inline]
-    fn to_argument_value(self) -> ArgumentValue {
-        ArgumentValue::from(self)
-    }
-
-    /// Returns whether this value is NaN.
-    #[inline]
-    fn is_nan(self) -> bool {
-        self.is_nan()
-    }
-}
-
-impl NumericValue for f64 {
-    /// Returns positive floating-point zero.
-    #[inline]
-    fn zero() -> Self {
-        0.0
-    }
-
-    /// Captures the exact IEEE 754 bit pattern of this value.
-    #[inline]
-    fn to_argument_value(self) -> ArgumentValue {
-        ArgumentValue::from(self)
-    }
-
-    /// Returns whether this value is NaN.
-    #[inline]
-    fn is_nan(self) -> bool {
-        self.is_nan()
-    }
-}
 
 /// Validates primitive numeric arguments while preserving their values.
 ///
@@ -382,6 +296,7 @@ where
 ///
 /// `value` is inspected without normalization. Integer values always succeed;
 /// floating-point NaN values return `ArgumentErrorKind::NotANumber` at `path`.
+#[inline]
 fn validate_not_nan<T>(path: &str, value: T) -> ArgumentResult<()>
 where
     T: NumericValue,
@@ -428,6 +343,7 @@ where
 ///
 /// Included and excluded endpoints are copied exactly; an unbounded endpoint
 /// remains unbounded.
+#[inline]
 fn copy_range_bound<T>(bound: Bound<&T>) -> Bound<T>
 where
     T: NumericValue,
@@ -444,6 +360,7 @@ where
 /// The lower and upper endpoint accessors are each invoked exactly once. The
 /// returned values are reused for constraint construction, validation, and
 /// membership checks.
+#[inline(always)]
 fn snapshot_range_bounds<T, R>(range: &R) -> (Bound<T>, Bound<T>)
 where
     T: NumericValue,
@@ -458,6 +375,7 @@ where
 ///
 /// Included and excluded endpoints are converted without losing numeric bits;
 /// an unbounded endpoint remains unbounded.
+#[inline]
 fn capture_argument_bound<T>(bound: Bound<T>) -> ArgumentBound
 where
     T: NumericValue,
@@ -477,6 +395,7 @@ where
 ///
 /// The returned constraint preserves inclusive, exclusive, unbounded, and
 /// floating-point bit-pattern details exactly.
+#[inline(always)]
 fn capture_range_constraint<T>(
     lower_bound: Bound<T>,
     upper_bound: Bound<T>,
@@ -529,6 +448,7 @@ where
 /// Rejects a NaN endpoint while accepting unbounded and ordinary endpoints.
 ///
 /// A NaN included or excluded endpoint returns `NotANumber` at `path`.
+#[inline]
 fn validate_range_bound_not_nan<T>(
     path: &str,
     bound: Bound<T>,
