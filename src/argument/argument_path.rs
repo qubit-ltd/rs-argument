@@ -17,6 +17,14 @@ use std::fmt::{
 ///
 /// The path is stored exactly as supplied; this type does not parse or
 /// normalize separators.
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::ArgumentPath;
+///
+/// ArgumentPath::new("value");
+/// ```
+#[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ArgumentPath(String);
 
@@ -38,7 +46,7 @@ impl ArgumentPath {
     /// Returns the stored path text.
     ///
     /// The returned string slice remains valid for the lifetime of this path.
-    #[inline]
+    #[inline(always)]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
@@ -71,7 +79,7 @@ impl ArgumentPath {
 
 impl AsRef<str> for ArgumentPath {
     /// Borrows the stored path as a string slice.
-    #[inline]
+    #[inline(always)]
     fn as_ref(&self) -> &str {
         self.as_str()
     }
@@ -79,6 +87,7 @@ impl AsRef<str> for ArgumentPath {
 
 impl Display for ArgumentPath {
     /// Writes the stored path text without additional decoration.
+    #[inline(always)]
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         formatter.write_str(self.as_str())
     }

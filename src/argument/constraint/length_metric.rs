@@ -24,7 +24,15 @@
 ///     }
 /// }
 /// ```
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::LengthMetric;
+///
+/// LengthMetric::Bytes;
+/// ```
 #[non_exhaustive]
+#[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LengthMetric {
     /// The number of bytes in a UTF-8 string.

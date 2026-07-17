@@ -8,6 +8,14 @@
 //! Index roles used by indexed argument validation.
 
 /// The role of an index in an indexed argument operation.
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::IndexRole;
+///
+/// IndexRole::Element;
+/// ```
+#[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IndexRole {
     /// Identifies an existing element and therefore excludes the collection

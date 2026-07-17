@@ -10,6 +10,14 @@
 use crate::argument::ArgumentBound;
 
 /// A numeric range with independently inclusive, exclusive, or absent bounds.
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::{ArgumentBound, RangeConstraint};
+///
+/// RangeConstraint::new(ArgumentBound::Unbounded, ArgumentBound::Unbounded);
+/// ```
+#[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RangeConstraint {
     lower: ArgumentBound,
@@ -27,13 +35,13 @@ impl RangeConstraint {
     }
 
     /// Returns the lower bound of this range.
-    #[inline]
+    #[inline(always)]
     pub fn lower(&self) -> &ArgumentBound {
         &self.lower
     }
 
     /// Returns the upper bound of this range.
-    #[inline]
+    #[inline(always)]
     pub fn upper(&self) -> &ArgumentBound {
         &self.upper
     }

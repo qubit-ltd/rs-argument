@@ -38,7 +38,15 @@ use std::time::Duration;
 ///     }
 /// }
 /// ```
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::ArgumentValue;
+///
+/// ArgumentValue::Signed(1);
+/// ```
 #[non_exhaustive]
+#[must_use]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgumentValue {
     /// A signed integer represented without loss.
@@ -58,7 +66,7 @@ macro_rules! impl_from_signed_integer {
         $(
             impl From<$source> for ArgumentValue {
                 /// Converts a signed primitive integer without losing its value.
-                #[inline]
+                #[inline(always)]
                 fn from(value: $source) -> Self {
                     Self::Signed(value as i128)
                 }
@@ -72,7 +80,7 @@ macro_rules! impl_from_unsigned_integer {
         $(
             impl From<$source> for ArgumentValue {
                 /// Converts an unsigned primitive integer without losing its value.
-                #[inline]
+                #[inline(always)]
                 fn from(value: $source) -> Self {
                     Self::Unsigned(value as u128)
                 }
@@ -86,7 +94,7 @@ impl_from_unsigned_integer!(u8, u16, u32, u64, u128, usize);
 
 impl From<f32> for ArgumentValue {
     /// Captures the exact IEEE 754 bit pattern of a 32-bit float.
-    #[inline]
+    #[inline(always)]
     fn from(value: f32) -> Self {
         Self::Float32(value.to_bits())
     }
@@ -94,7 +102,7 @@ impl From<f32> for ArgumentValue {
 
 impl From<f64> for ArgumentValue {
     /// Captures the exact IEEE 754 bit pattern of a 64-bit float.
-    #[inline]
+    #[inline(always)]
     fn from(value: f64) -> Self {
         Self::Float64(value.to_bits())
     }
@@ -102,7 +110,7 @@ impl From<f64> for ArgumentValue {
 
 impl From<Duration> for ArgumentValue {
     /// Captures an exact standard-library duration value.
-    #[inline]
+    #[inline(always)]
     fn from(value: Duration) -> Self {
         Self::Duration(value)
     }

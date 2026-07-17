@@ -21,7 +21,15 @@ use crate::argument::{
 ///
 /// Each variant stores only structured context needed to inspect and format
 /// the failure. Validated string contents are never captured implicitly.
+///
+/// ```compile_fail
+/// #![deny(unused_must_use)]
+/// use qubit_argument::ArgumentErrorKind;
+///
+/// ArgumentErrorKind::Missing;
+/// ```
 #[non_exhaustive]
+#[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ArgumentErrorKind {
     /// The required argument was absent.
