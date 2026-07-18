@@ -38,4 +38,4 @@ default = []
 regex = ["dep:regex"]
 
 [dependencies]
-regex = { version = "1.12", optional = true }
+regex = { version = "1.13", optional = true }
