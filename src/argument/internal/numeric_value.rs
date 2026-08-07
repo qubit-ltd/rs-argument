@@ -7,10 +7,8 @@
 // =============================================================================
 //! Primitive numeric values supported by numeric validation.
 
-use crate::argument::{
-    ArgumentValue,
-    internal::Sealed,
-};
+use crate::argument::ArgumentValue;
+use crate::argument::internal::Sealed;
 
 /// Restricts numeric validation to supported primitive numeric values.
 ///

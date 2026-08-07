@@ -7,11 +7,9 @@
 // =============================================================================
 //! Structured paths that identify arguments in validation errors.
 
-use std::fmt::{
-    self,
-    Display,
-    Formatter,
-};
+use std::fmt;
+use std::fmt::Display;
+use std::fmt::Formatter;
 
 /// An owned path identifying an argument or one of its nested components.
 ///

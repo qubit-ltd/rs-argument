@@ -7,19 +7,17 @@
 // =============================================================================
 //! Ownership-preserving validation for string arguments.
 
-use crate::argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-    LengthConstraint,
-    LengthMetric,
-    internal::Sealed,
-};
-
-#[cfg(feature = "regex")]
-use crate::argument::PatternExpectation;
 #[cfg(feature = "regex")]
 use regex::Regex;
+
+use crate::argument::ArgumentError;
+use crate::argument::ArgumentErrorKind;
+use crate::argument::ArgumentResult;
+use crate::argument::LengthConstraint;
+use crate::argument::LengthMetric;
+#[cfg(feature = "regex")]
+use crate::argument::PatternExpectation;
+use crate::argument::internal::Sealed;
 
 /// Validates string arguments while preserving ownership or borrowing.
 ///

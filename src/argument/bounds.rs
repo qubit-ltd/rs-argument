@@ -9,12 +9,10 @@
 
 use std::ops::Range;
 
-use crate::argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-    IndexRole,
-};
+use crate::argument::ArgumentError;
+use crate::argument::ArgumentErrorKind;
+use crate::argument::ArgumentResult;
+use crate::argument::IndexRole;
 
 /// Validates a value with a caller-provided predicate.
 ///

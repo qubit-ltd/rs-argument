@@ -111,29 +111,27 @@
 /// Argument validation implementations re-exported at the crate root.
 mod argument;
 
-pub use argument::{
-    ArgumentBound,
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentPath,
-    ArgumentResult,
-    ArgumentResultExt,
-    ArgumentValue,
-    CollectionArgument,
-    ComparisonConstraint,
-    DurationArgument,
-    FloatArgument,
-    IndexRole,
-    LengthConstraint,
-    LengthMetric,
-    NumericArgument,
-    OptionArgument,
-    PatternExpectation,
-    RangeConstraint,
-    StringArgument,
-    check_bounds,
-    check_element_index,
-    check_position_index,
-    check_position_range,
-    require_that,
-};
+pub use argument::ArgumentBound;
+pub use argument::ArgumentError;
+pub use argument::ArgumentErrorKind;
+pub use argument::ArgumentPath;
+pub use argument::ArgumentResult;
+pub use argument::ArgumentResultExt;
+pub use argument::ArgumentValue;
+pub use argument::CollectionArgument;
+pub use argument::ComparisonConstraint;
+pub use argument::DurationArgument;
+pub use argument::FloatArgument;
+pub use argument::IndexRole;
+pub use argument::LengthConstraint;
+pub use argument::LengthMetric;
+pub use argument::NumericArgument;
+pub use argument::OptionArgument;
+pub use argument::PatternExpectation;
+pub use argument::RangeConstraint;
+pub use argument::StringArgument;
+pub use argument::check_bounds;
+pub use argument::check_element_index;
+pub use argument::check_position_index;
+pub use argument::check_position_range;
+pub use argument::require_that;

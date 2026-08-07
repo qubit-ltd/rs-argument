@@ -7,10 +7,8 @@
 // =============================================================================
 //! Nested path propagation for argument validation results.
 
-use crate::argument::{
-    ArgumentResult,
-    internal::Sealed,
-};
+use crate::argument::ArgumentResult;
+use crate::argument::internal::Sealed;
 
 /// Adds nested argument-path context to validation results.
 ///

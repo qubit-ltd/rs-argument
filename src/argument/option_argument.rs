@@ -7,12 +7,10 @@
 // =============================================================================
 //! Ownership-preserving validation for optional arguments.
 
-use crate::argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-    internal::Sealed,
-};
+use crate::argument::ArgumentError;
+use crate::argument::ArgumentErrorKind;
+use crate::argument::ArgumentResult;
+use crate::argument::internal::Sealed;
 
 /// Validates optional arguments without requiring their values to be cloned.
 ///
