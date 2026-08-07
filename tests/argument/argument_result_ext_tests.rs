@@ -7,12 +7,10 @@
 // =============================================================================
 //! Tests for nested path propagation on argument results.
 
-use qubit_argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-    ArgumentResultExt,
-};
+use qubit_argument::ArgumentError;
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::ArgumentResult;
+use qubit_argument::ArgumentResultExt;
 
 /// Verifies that successful results remain unchanged by path prefixing.
 #[test]

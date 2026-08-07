@@ -7,10 +7,8 @@
 // =============================================================================
 //! Tests for numeric range bound constraints.
 
-use qubit_argument::{
-    ArgumentBound,
-    ArgumentValue,
-};
+use qubit_argument::ArgumentBound;
+use qubit_argument::ArgumentValue;
 
 /// Verifies that argument bounds distinguish unbounded, included, and excluded
 /// endpoints.

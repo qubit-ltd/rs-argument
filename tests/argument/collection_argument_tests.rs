@@ -5,12 +5,10 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-use qubit_argument::{
-    ArgumentErrorKind,
-    CollectionArgument,
-    LengthConstraint,
-    LengthMetric,
-};
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::CollectionArgument;
+use qubit_argument::LengthConstraint;
+use qubit_argument::LengthMetric;
 
 /// A value that cannot be cloned, used to verify ownership-preserving APIs.
 #[derive(Debug, PartialEq, Eq)]

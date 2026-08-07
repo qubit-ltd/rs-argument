@@ -9,11 +9,9 @@
 
 use std::cell::Cell;
 
-use qubit_argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    OptionArgument,
-};
+use qubit_argument::ArgumentError;
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::OptionArgument;
 
 /// A value that cannot be cloned, used to verify ownership-preserving APIs.
 #[derive(Debug, PartialEq, Eq)]

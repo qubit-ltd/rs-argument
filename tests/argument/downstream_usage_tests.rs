@@ -9,19 +9,17 @@
 
 use std::time::Duration;
 
-use qubit_argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-    ArgumentResultExt,
-    ArgumentValue,
-    ComparisonConstraint,
-    DurationArgument,
-    FloatArgument,
-    NumericArgument,
-    OptionArgument,
-    StringArgument,
-};
+use qubit_argument::ArgumentError;
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::ArgumentResult;
+use qubit_argument::ArgumentResultExt;
+use qubit_argument::ArgumentValue;
+use qubit_argument::ComparisonConstraint;
+use qubit_argument::DurationArgument;
+use qubit_argument::FloatArgument;
+use qubit_argument::NumericArgument;
+use qubit_argument::OptionArgument;
+use qubit_argument::StringArgument;
 
 #[derive(Debug, PartialEq, Eq)]
 enum DomainError {

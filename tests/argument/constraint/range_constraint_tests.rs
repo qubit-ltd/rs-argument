@@ -7,11 +7,9 @@
 // =============================================================================
 //! Tests for numeric range constraints.
 
-use qubit_argument::{
-    ArgumentBound,
-    ArgumentValue,
-    RangeConstraint,
-};
+use qubit_argument::ArgumentBound;
+use qubit_argument::ArgumentValue;
+use qubit_argument::RangeConstraint;
 
 /// Verifies that a range constraint exposes its lower and upper bounds.
 #[test]

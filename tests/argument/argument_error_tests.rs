@@ -7,19 +7,17 @@
 // =============================================================================
 //! Tests for structured argument validation errors.
 
-use qubit_argument::{
-    ArgumentBound,
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentPath,
-    ArgumentValue,
-    ComparisonConstraint,
-    IndexRole,
-    LengthConstraint,
-    LengthMetric,
-    PatternExpectation,
-    RangeConstraint,
-};
+use qubit_argument::ArgumentBound;
+use qubit_argument::ArgumentError;
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::ArgumentPath;
+use qubit_argument::ArgumentValue;
+use qubit_argument::ComparisonConstraint;
+use qubit_argument::IndexRole;
+use qubit_argument::LengthConstraint;
+use qubit_argument::LengthMetric;
+use qubit_argument::PatternExpectation;
+use qubit_argument::RangeConstraint;
 
 /// Asserts that diagnostic text contains no literal control characters.
 fn assert_single_line_diagnostic(diagnostic: &str) {

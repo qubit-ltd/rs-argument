@@ -7,10 +7,8 @@
 // =============================================================================
 //! Tests for scalar comparison constraints.
 
-use qubit_argument::{
-    ArgumentValue,
-    ComparisonConstraint,
-};
+use qubit_argument::ArgumentValue;
+use qubit_argument::ComparisonConstraint;
 
 /// Verifies that every comparison constraint variant retains its target value.
 #[test]

@@ -7,15 +7,13 @@
 // =============================================================================
 //! Tests for reusable argument constraints.
 
-use qubit_argument::{
-    ArgumentBound,
-    ArgumentValue,
-    ComparisonConstraint,
-    IndexRole,
-    LengthConstraint,
-    PatternExpectation,
-    RangeConstraint,
-};
+use qubit_argument::ArgumentBound;
+use qubit_argument::ArgumentValue;
+use qubit_argument::ComparisonConstraint;
+use qubit_argument::IndexRole;
+use qubit_argument::LengthConstraint;
+use qubit_argument::PatternExpectation;
+use qubit_argument::RangeConstraint;
 
 /// Verifies that a range constraint retains inclusive and exclusive bounds.
 #[test]

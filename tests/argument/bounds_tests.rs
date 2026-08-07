@@ -7,15 +7,13 @@
 // =============================================================================
 //! Bounds and custom predicate validation tests.
 
-use qubit_argument::{
-    ArgumentErrorKind,
-    IndexRole,
-    check_bounds,
-    check_element_index,
-    check_position_index,
-    check_position_range,
-    require_that,
-};
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::IndexRole;
+use qubit_argument::check_bounds;
+use qubit_argument::check_element_index;
+use qubit_argument::check_position_index;
+use qubit_argument::check_position_range;
+use qubit_argument::require_that;
 
 /// Verifies that successful custom validation returns the original value.
 #[test]
