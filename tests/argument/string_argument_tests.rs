@@ -7,18 +7,16 @@
 // =============================================================================
 //! Tests for ownership-preserving string argument validation.
 
-use qubit_argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    LengthConstraint,
-    LengthMetric,
-    StringArgument,
-};
-
-#[cfg(feature = "regex")]
-use qubit_argument::PatternExpectation;
 #[cfg(feature = "regex")]
 use regex::Regex;
+
+use qubit_argument::ArgumentError;
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::LengthConstraint;
+use qubit_argument::LengthMetric;
+#[cfg(feature = "regex")]
+use qubit_argument::PatternExpectation;
+use qubit_argument::StringArgument;
 
 /// Asserts that an error has the requested path and structured kind.
 fn assert_structured_error(

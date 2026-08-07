@@ -9,20 +9,16 @@
 
 use std::cell::Cell;
 use std::fmt::Debug;
-use std::ops::{
-    Bound,
-    RangeBounds,
-};
+use std::ops::Bound;
+use std::ops::RangeBounds;
 
-use qubit_argument::{
-    ArgumentBound,
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentValue,
-    ComparisonConstraint,
-    NumericArgument,
-    RangeConstraint,
-};
+use qubit_argument::ArgumentBound;
+use qubit_argument::ArgumentError;
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::ArgumentValue;
+use qubit_argument::ComparisonConstraint;
+use qubit_argument::NumericArgument;
+use qubit_argument::RangeConstraint;
 
 /// A valid range that records how often each endpoint is requested.
 struct CountingRange<'a> {

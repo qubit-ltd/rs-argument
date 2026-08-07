@@ -7,11 +7,9 @@
 // =============================================================================
 //! Tests for finite floating-point argument validation.
 
-use qubit_argument::{
-    ArgumentErrorKind,
-    ArgumentValue,
-    FloatArgument,
-};
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::ArgumentValue;
+use qubit_argument::FloatArgument;
 
 /// Verifies that finite 32-bit and 64-bit values are returned unchanged.
 #[test]

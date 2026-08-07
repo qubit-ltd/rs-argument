@@ -7,11 +7,10 @@
 // =============================================================================
 //! Tests for behavior backed by private argument internals.
 
-use qubit_argument::{
-    ArgumentErrorKind,
-    ArgumentValue,
-    NumericArgument,
-};
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::ArgumentValue;
+use qubit_argument::ComparisonConstraint;
+use qubit_argument::NumericArgument;
 
 /// Verifies that private numeric internals preserve the public integer
 /// validation contract.
@@ -26,7 +25,7 @@ fn test_internal_numeric_support_preserves_integer_contract() {
         error.kind(),
         &ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(0_i32),
-            constraint: qubit_argument::ComparisonConstraint::GreaterThan(
+            constraint: ComparisonConstraint::GreaterThan(
                 ArgumentValue::from(0_i32),
             ),
         },

@@ -7,12 +7,10 @@
 // =============================================================================
 //! Simulated downstream error-conversion tests.
 
-use qubit_argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentValue,
-    ComparisonConstraint,
-};
+use qubit_argument::ArgumentError;
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::ArgumentValue;
+use qubit_argument::ComparisonConstraint;
 
 #[derive(Debug, PartialEq, Eq)]
 enum WrappedDomainError {

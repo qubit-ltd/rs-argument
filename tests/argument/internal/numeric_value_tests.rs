@@ -7,11 +7,10 @@
 // =============================================================================
 //! Tests for public behavior provided by private numeric value support.
 
-use qubit_argument::{
-    ArgumentErrorKind,
-    ArgumentValue,
-    NumericArgument,
-};
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::ArgumentValue;
+use qubit_argument::ComparisonConstraint;
+use qubit_argument::NumericArgument;
 
 /// Verifies that integer numeric support captures the signed value exactly.
 #[test]
@@ -24,7 +23,7 @@ fn test_numeric_value_support_captures_signed_integer() {
         error.kind(),
         &ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(-1_i32),
-            constraint: qubit_argument::ComparisonConstraint::AtLeast(
+            constraint: ComparisonConstraint::AtLeast(
                 ArgumentValue::from(0_i32),
             ),
         },

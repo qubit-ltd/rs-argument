@@ -7,12 +7,10 @@
 // =============================================================================
 //! Tests for public validation traits backed by private sealing.
 
-use qubit_argument::{
-    CollectionArgument,
-    NumericArgument,
-    OptionArgument,
-    StringArgument,
-};
+use qubit_argument::CollectionArgument;
+use qubit_argument::NumericArgument;
+use qubit_argument::OptionArgument;
+use qubit_argument::StringArgument;
 
 /// Verifies that sealed public validation traits are implemented for the
 /// documented primitive and standard-library types.

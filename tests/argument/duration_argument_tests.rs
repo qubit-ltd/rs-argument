@@ -9,13 +9,11 @@
 
 use std::time::Duration;
 
-use qubit_argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentValue,
-    ComparisonConstraint,
-    DurationArgument,
-};
+use qubit_argument::ArgumentError;
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::ArgumentValue;
+use qubit_argument::ComparisonConstraint;
+use qubit_argument::DurationArgument;
 
 /// Asserts that a duration failure retains its path and comparison details.
 fn assert_duration_error(

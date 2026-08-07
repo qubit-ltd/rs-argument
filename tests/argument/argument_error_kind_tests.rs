@@ -7,11 +7,9 @@
 // =============================================================================
 //! Tests for argument error kind values.
 
-use qubit_argument::{
-    ArgumentErrorKind,
-    LengthConstraint,
-    LengthMetric,
-};
+use qubit_argument::ArgumentErrorKind;
+use qubit_argument::LengthConstraint;
+use qubit_argument::LengthMetric;
 
 /// Verifies that simple argument error kinds retain their derived semantics.
 #[test]
