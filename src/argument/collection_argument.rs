@@ -7,14 +7,12 @@
 // =============================================================================
 //! Ownership-preserving validation for collection arguments.
 
-use crate::argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-    LengthConstraint,
-    LengthMetric,
-    internal::Sealed,
-};
+use crate::argument::ArgumentError;
+use crate::argument::ArgumentErrorKind;
+use crate::argument::ArgumentResult;
+use crate::argument::LengthConstraint;
+use crate::argument::LengthMetric;
+use crate::argument::internal::Sealed;
 
 /// Validates collection lengths while preserving the original collection.
 ///

@@ -7,13 +7,11 @@
 // =============================================================================
 //! Ownership-preserving validation for floating-point arguments.
 
-use crate::argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-    ArgumentValue,
-    internal::Sealed,
-};
+use crate::argument::ArgumentError;
+use crate::argument::ArgumentErrorKind;
+use crate::argument::ArgumentResult;
+use crate::argument::ArgumentValue;
+use crate::argument::internal::Sealed;
 
 /// Validates properties specific to floating-point arguments.
 ///

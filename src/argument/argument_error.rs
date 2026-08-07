@@ -7,23 +7,19 @@
 // =============================================================================
 //! Structured errors produced by argument validation.
 
-use std::fmt::{
-    self,
-    Display,
-    Formatter,
-};
+use std::fmt;
+use std::fmt::Display;
+use std::fmt::Formatter;
 
-use crate::argument::{
-    ArgumentBound,
-    ArgumentErrorKind,
-    ArgumentPath,
-    ComparisonConstraint,
-    IndexRole,
-    LengthConstraint,
-    LengthMetric,
-    PatternExpectation,
-    RangeConstraint,
-};
+use crate::argument::ArgumentBound;
+use crate::argument::ArgumentErrorKind;
+use crate::argument::ArgumentPath;
+use crate::argument::ComparisonConstraint;
+use crate::argument::IndexRole;
+use crate::argument::LengthConstraint;
+use crate::argument::LengthMetric;
+use crate::argument::PatternExpectation;
+use crate::argument::RangeConstraint;
 
 /// A structured argument validation failure.
 ///

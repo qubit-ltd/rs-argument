@@ -7,12 +7,10 @@
 // =============================================================================
 //! Lossless representations of scalar argument values.
 
-use std::fmt::{
-    self,
-    Debug,
-    Display,
-    Formatter,
-};
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
 use std::time::Duration;
 
 /// A scalar value captured for a validation constraint or error.

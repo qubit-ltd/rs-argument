@@ -7,15 +7,13 @@
 // =============================================================================
 //! Structured kinds of argument validation failure.
 
-use crate::argument::{
-    ArgumentValue,
-    ComparisonConstraint,
-    IndexRole,
-    LengthConstraint,
-    LengthMetric,
-    PatternExpectation,
-    RangeConstraint,
-};
+use crate::argument::ArgumentValue;
+use crate::argument::ComparisonConstraint;
+use crate::argument::IndexRole;
+use crate::argument::LengthConstraint;
+use crate::argument::LengthMetric;
+use crate::argument::PatternExpectation;
+use crate::argument::RangeConstraint;
 
 /// Identifies the validation rule that an argument failed.
 ///

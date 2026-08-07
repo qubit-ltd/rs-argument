@@ -9,14 +9,12 @@
 
 use std::time::Duration;
 
-use crate::argument::{
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-    ArgumentValue,
-    ComparisonConstraint,
-    internal::Sealed,
-};
+use crate::argument::ArgumentError;
+use crate::argument::ArgumentErrorKind;
+use crate::argument::ArgumentResult;
+use crate::argument::ArgumentValue;
+use crate::argument::ComparisonConstraint;
+use crate::argument::internal::Sealed;
 
 /// Validates standard-library duration arguments without losing their unit.
 ///

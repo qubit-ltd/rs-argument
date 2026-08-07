@@ -7,23 +7,17 @@
 // =============================================================================
 //! Ownership-preserving validation for primitive numeric arguments.
 
-use std::ops::{
-    Bound,
-    RangeBounds,
-};
+use std::ops::Bound;
+use std::ops::RangeBounds;
 
-use crate::argument::{
-    ArgumentBound,
-    ArgumentError,
-    ArgumentErrorKind,
-    ArgumentResult,
-    ComparisonConstraint,
-    RangeConstraint,
-    internal::{
-        NumericValue,
-        Sealed,
-    },
-};
+use crate::argument::ArgumentBound;
+use crate::argument::ArgumentError;
+use crate::argument::ArgumentErrorKind;
+use crate::argument::ArgumentResult;
+use crate::argument::ComparisonConstraint;
+use crate::argument::RangeConstraint;
+use crate::argument::internal::NumericValue;
+use crate::argument::internal::Sealed;
 
 /// Validates primitive numeric arguments while preserving their values.
 ///

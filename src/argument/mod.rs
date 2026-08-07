@@ -68,31 +68,25 @@ mod numeric_argument;
 mod option_argument;
 mod string_argument;
 
-pub use argument_error::{
-    ArgumentError,
-    ArgumentResult,
-};
+pub use argument_error::ArgumentError;
+pub use argument_error::ArgumentResult;
 pub use argument_error_kind::ArgumentErrorKind;
 pub use argument_path::ArgumentPath;
 pub use argument_result_ext::ArgumentResultExt;
 pub use argument_value::ArgumentValue;
-pub use bounds::{
-    check_bounds,
-    check_element_index,
-    check_position_index,
-    check_position_range,
-    require_that,
-};
+pub use bounds::check_bounds;
+pub use bounds::check_element_index;
+pub use bounds::check_position_index;
+pub use bounds::check_position_range;
+pub use bounds::require_that;
 pub use collection_argument::CollectionArgument;
-pub use constraint::{
-    ArgumentBound,
-    ComparisonConstraint,
-    IndexRole,
-    LengthConstraint,
-    LengthMetric,
-    PatternExpectation,
-    RangeConstraint,
-};
+pub use constraint::ArgumentBound;
+pub use constraint::ComparisonConstraint;
+pub use constraint::IndexRole;
+pub use constraint::LengthConstraint;
+pub use constraint::LengthMetric;
+pub use constraint::PatternExpectation;
+pub use constraint::RangeConstraint;
 pub use duration_argument::DurationArgument;
 pub use float_argument::FloatArgument;
 pub use numeric_argument::NumericArgument;
