@@ -25,9 +25,9 @@ fn test_internal_numeric_support_preserves_integer_contract() {
         error.kind(),
         &ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(0_i32),
-            constraint: ComparisonConstraint::GreaterThan(
-                ArgumentValue::from(0_i32),
-            ),
+            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(
+                0_i32
+            ),),
         },
     );
 }
