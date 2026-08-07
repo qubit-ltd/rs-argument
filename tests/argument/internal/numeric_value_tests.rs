@@ -23,9 +23,9 @@ fn test_numeric_value_support_captures_signed_integer() {
         error.kind(),
         &ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(-1_i32),
-            constraint: ComparisonConstraint::AtLeast(
-                ArgumentValue::from(0_i32),
-            ),
+            constraint: ComparisonConstraint::AtLeast(ArgumentValue::from(
+                0_i32
+            ),),
         },
     );
 }
