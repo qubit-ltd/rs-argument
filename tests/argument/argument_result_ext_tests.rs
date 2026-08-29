@@ -22,8 +22,7 @@ fn test_with_path_prefix_preserves_success() {
 /// Verifies that an error receives a nested prefix without changing its kind.
 #[test]
 fn test_with_path_prefix_prefixes_error() {
-    let result: ArgumentResult<usize> =
-        Err(ArgumentError::new("connect", ArgumentErrorKind::Missing));
+    let result: ArgumentResult<usize> = Err(ArgumentError::new("connect", ArgumentErrorKind::Missing));
     let error = result
         .with_path_prefix("timeouts")
         .expect_err("a missing nested value must remain an error");
@@ -34,8 +33,7 @@ fn test_with_path_prefix_prefixes_error() {
 /// Verifies direct error prefixing preserves the structured failure kind.
 #[test]
 fn test_with_path_prefix_preserves_error_kind() {
-    let error = ArgumentError::new("host", ArgumentErrorKind::Blank)
-        .with_path_prefix("proxy");
+    let error = ArgumentError::new("host", ArgumentErrorKind::Blank).with_path_prefix("proxy");
     assert_eq!(error.path().as_str(), "proxy.host");
     assert_eq!(error.kind(), &ArgumentErrorKind::Blank);
 }

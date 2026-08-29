@@ -118,23 +118,11 @@ impl Debug for ArgumentValue {
     /// Formats the variant with its reconstructed scalar value.
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Signed(value) => {
-                formatter.debug_tuple("Signed").field(value).finish()
-            }
-            Self::Unsigned(value) => {
-                formatter.debug_tuple("Unsigned").field(value).finish()
-            }
-            Self::Float32(bits) => formatter
-                .debug_tuple("Float32")
-                .field(&f32::from_bits(*bits))
-                .finish(),
-            Self::Float64(bits) => formatter
-                .debug_tuple("Float64")
-                .field(&f64::from_bits(*bits))
-                .finish(),
-            Self::Duration(value) => {
-                formatter.debug_tuple("Duration").field(value).finish()
-            }
+            Self::Signed(value) => formatter.debug_tuple("Signed").field(value).finish(),
+            Self::Unsigned(value) => formatter.debug_tuple("Unsigned").field(value).finish(),
+            Self::Float32(bits) => formatter.debug_tuple("Float32").field(&f32::from_bits(*bits)).finish(),
+            Self::Float64(bits) => formatter.debug_tuple("Float64").field(&f64::from_bits(*bits)).finish(),
+            Self::Duration(value) => formatter.debug_tuple("Duration").field(value).finish(),
         }
     }
 }
@@ -145,12 +133,8 @@ impl Display for ArgumentValue {
         match self {
             Self::Signed(value) => Display::fmt(value, formatter),
             Self::Unsigned(value) => Display::fmt(value, formatter),
-            Self::Float32(bits) => {
-                Display::fmt(&f32::from_bits(*bits), formatter)
-            }
-            Self::Float64(bits) => {
-                Display::fmt(&f64::from_bits(*bits), formatter)
-            }
+            Self::Float32(bits) => Display::fmt(&f32::from_bits(*bits), formatter),
+            Self::Float64(bits) => Display::fmt(&f64::from_bits(*bits), formatter),
             Self::Duration(value) => Debug::fmt(value, formatter),
         }
     }

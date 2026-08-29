@@ -17,9 +17,7 @@ struct NonClone(u32);
 #[test]
 fn test_require_non_empty_preserves_vec_ownership() {
     let values = vec![NonClone(1), NonClone(2), NonClone(3)];
-    let validated: Vec<NonClone> = values
-        .require_non_empty("values")
-        .expect("vector is non-empty");
+    let validated: Vec<NonClone> = values.require_non_empty("values").expect("vector is non-empty");
     assert_eq!(validated, vec![NonClone(1), NonClone(2), NonClone(3)]);
 }
 
@@ -27,18 +25,14 @@ fn test_require_non_empty_preserves_vec_ownership() {
 fn test_require_non_empty_preserves_borrowed_slice() {
     let values = [1, 2, 3];
     let slice: &[i32] = &values;
-    let validated: &[i32] = slice
-        .require_non_empty("values")
-        .expect("slice is non-empty");
+    let validated: &[i32] = slice.require_non_empty("values").expect("slice is non-empty");
     assert!(std::ptr::eq(validated, slice));
 }
 
 #[test]
 fn test_require_non_empty_preserves_array_ownership() {
     let values = [NonClone(1), NonClone(2)];
-    let validated: [NonClone; 2] = values
-        .require_non_empty("values")
-        .expect("array is non-empty");
+    let validated: [NonClone; 2] = values.require_non_empty("values").expect("array is non-empty");
     assert_eq!(validated, [NonClone(1), NonClone(2)]);
 }
 
@@ -186,9 +180,7 @@ fn test_borrowed_slice_supports_all_length_methods() {
     let values = [1, 2, 3];
     let slice: &[i32] = &values;
     assert!(std::ptr::eq(
-        slice
-            .require_len("values", 3)
-            .expect("slice has the exact length"),
+        slice.require_len("values", 3).expect("slice has the exact length"),
         slice,
     ));
     assert!(slice.require_len("values", 2).is_err());

@@ -15,9 +15,7 @@ use crate::argument::internal::Sealed;
 /// Implementations provide the type's zero value, an exact structured error
 /// representation, and NaN detection. The trait is private so arbitrary
 /// partially ordered caller types cannot opt into numeric validation.
-pub(in crate::argument) trait NumericValue:
-    Sealed + Copy + PartialOrd
-{
+pub(in crate::argument) trait NumericValue: Sealed + Copy + PartialOrd {
     /// Returns the zero value for this primitive numeric type.
     ///
     /// # Returns

@@ -36,8 +36,7 @@ pub trait DurationArgument: Sealed + Sized {
     /// Success returns the original duration. An unsatisfied comparison
     /// returns [`ArgumentErrorKind::Comparison`] at `path` with the exact
     /// duration bound.
-    fn require_less_than(self, path: &str, bound: Self)
-    -> ArgumentResult<Self>;
+    fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this duration to be less than or equal to `bound`.
     ///
@@ -51,11 +50,7 @@ pub trait DurationArgument: Sealed + Sized {
     /// Success returns the original duration. An unsatisfied comparison
     /// returns [`ArgumentErrorKind::Comparison`] at `path` with the exact
     /// duration bound.
-    fn require_greater_than(
-        self,
-        path: &str,
-        bound: Self,
-    ) -> ArgumentResult<Self>;
+    fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this duration to be greater than or equal to `bound`.
     ///
@@ -73,20 +68,14 @@ impl DurationArgument for Duration {
             self,
             path,
             Duration::ZERO,
-            ComparisonConstraint::GreaterThan(ArgumentValue::from(
-                Duration::ZERO,
-            )),
+            ComparisonConstraint::GreaterThan(ArgumentValue::from(Duration::ZERO)),
             |actual, bound| actual > bound,
         )
     }
 
     /// Requires a duration strictly below the supplied bound.
     #[inline]
-    fn require_less_than(
-        self,
-        path: &str,
-        bound: Self,
-    ) -> ArgumentResult<Self> {
+    fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self> {
         validate_duration_comparison(
             self,
             path,
@@ -110,11 +99,7 @@ impl DurationArgument for Duration {
 
     /// Requires a duration strictly above the supplied bound.
     #[inline]
-    fn require_greater_than(
-        self,
-        path: &str,
-        bound: Self,
-    ) -> ArgumentResult<Self> {
+    fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self> {
         validate_duration_comparison(
             self,
             path,

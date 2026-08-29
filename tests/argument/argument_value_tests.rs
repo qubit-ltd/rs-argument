@@ -15,22 +15,13 @@ use qubit_argument::ArgumentValue;
 #[test]
 fn test_from_preserves_signed_integers() {
     assert_eq!(ArgumentValue::from(i8::MIN), ArgumentValue::Signed(-128));
-    assert_eq!(
-        ArgumentValue::from(i16::MIN),
-        ArgumentValue::Signed(-32_768)
-    );
-    assert_eq!(
-        ArgumentValue::from(i32::MIN),
-        ArgumentValue::Signed(-2_147_483_648)
-    );
+    assert_eq!(ArgumentValue::from(i16::MIN), ArgumentValue::Signed(-32_768));
+    assert_eq!(ArgumentValue::from(i32::MIN), ArgumentValue::Signed(-2_147_483_648));
     assert_eq!(
         ArgumentValue::from(i64::MIN),
         ArgumentValue::Signed(i128::from(i64::MIN))
     );
-    assert_eq!(
-        ArgumentValue::from(i128::MIN),
-        ArgumentValue::Signed(i128::MIN)
-    );
+    assert_eq!(ArgumentValue::from(i128::MIN), ArgumentValue::Signed(i128::MIN));
     assert_eq!(
         ArgumentValue::from(isize::MIN),
         ArgumentValue::Signed(isize::MIN as i128)
@@ -41,22 +32,13 @@ fn test_from_preserves_signed_integers() {
 #[test]
 fn test_from_preserves_unsigned_integers() {
     assert_eq!(ArgumentValue::from(u8::MAX), ArgumentValue::Unsigned(255));
-    assert_eq!(
-        ArgumentValue::from(u16::MAX),
-        ArgumentValue::Unsigned(65_535)
-    );
-    assert_eq!(
-        ArgumentValue::from(u32::MAX),
-        ArgumentValue::Unsigned(4_294_967_295)
-    );
+    assert_eq!(ArgumentValue::from(u16::MAX), ArgumentValue::Unsigned(65_535));
+    assert_eq!(ArgumentValue::from(u32::MAX), ArgumentValue::Unsigned(4_294_967_295));
     assert_eq!(
         ArgumentValue::from(u64::MAX),
         ArgumentValue::Unsigned(u128::from(u64::MAX))
     );
-    assert_eq!(
-        ArgumentValue::from(u128::MAX),
-        ArgumentValue::Unsigned(u128::MAX)
-    );
+    assert_eq!(ArgumentValue::from(u128::MAX), ArgumentValue::Unsigned(u128::MAX));
     assert_eq!(
         ArgumentValue::from(usize::MAX),
         ArgumentValue::Unsigned(usize::MAX as u128)
@@ -76,27 +58,15 @@ fn test_argument_value_preserves_float_bits() {
 #[test]
 fn test_from_preserves_float32_bits() {
     let value = -0.0_f32;
-    assert_eq!(
-        ArgumentValue::from(value),
-        ArgumentValue::Float32(value.to_bits())
-    );
+    assert_eq!(ArgumentValue::from(value), ArgumentValue::Float32(value.to_bits()));
 }
 
 /// Verifies that debug formatting reconstructs special floating-point values.
 #[test]
 fn test_fmt_debug_reconstructs_special_floats() {
-    assert_eq!(
-        format!("{:?}", ArgumentValue::from(-0.0_f32)),
-        "Float32(-0.0)"
-    );
-    assert_eq!(
-        format!("{:?}", ArgumentValue::from(f64::INFINITY)),
-        "Float64(inf)"
-    );
-    assert_eq!(
-        format!("{:?}", ArgumentValue::from(f64::NAN)),
-        "Float64(NaN)"
-    );
+    assert_eq!(format!("{:?}", ArgumentValue::from(-0.0_f32)), "Float32(-0.0)");
+    assert_eq!(format!("{:?}", ArgumentValue::from(f64::INFINITY)), "Float64(inf)");
+    assert_eq!(format!("{:?}", ArgumentValue::from(f64::NAN)), "Float64(NaN)");
 }
 
 /// Verifies that display formatting reconstructs special floating-point values.
@@ -122,10 +92,7 @@ fn test_fmt_formats_integer_variants() {
 #[test]
 fn test_from_preserves_duration() {
     let duration = Duration::new(12, 345);
-    assert_eq!(
-        ArgumentValue::from(duration),
-        ArgumentValue::Duration(duration),
-    );
+    assert_eq!(ArgumentValue::from(duration), ArgumentValue::Duration(duration),);
 }
 
 /// Verifies that duration diagnostics retain their unit-bearing representation.

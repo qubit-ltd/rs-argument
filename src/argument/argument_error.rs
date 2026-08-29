@@ -99,12 +99,8 @@ impl Display for ArgumentError {
         write!(formatter, "argument '{path}'")?;
         match self.kind.as_ref() {
             ArgumentErrorKind::Missing => formatter.write_str(" is missing"),
-            ArgumentErrorKind::Blank => {
-                formatter.write_str(" must not be blank")
-            }
-            ArgumentErrorKind::Empty => {
-                formatter.write_str(" must not be empty")
-            }
+            ArgumentErrorKind::Blank => formatter.write_str(" must not be blank"),
+            ArgumentErrorKind::Empty => formatter.write_str(" must not be empty"),
             ArgumentErrorKind::Length {
                 actual,
                 constraint,
@@ -122,10 +118,7 @@ impl Display for ArgumentError {
                 write!(formatter, " has value {actual}, expected range ")?;
                 write_range_constraint(formatter, constraint)
             }
-            ArgumentErrorKind::InvalidLengthConstraint {
-                constraint,
-                metric,
-            } => {
+            ArgumentErrorKind::InvalidLengthConstraint { constraint, metric } => {
                 let label = length_metric_label(metric);
                 write!(formatter, " has invalid {label} constraint ")?;
                 write_length_constraint(formatter, constraint)
@@ -134,9 +127,7 @@ impl Display for ArgumentError {
                 formatter.write_str(" has invalid range constraint ")?;
                 write_range_constraint(formatter, constraint)
             }
-            ArgumentErrorKind::NotANumber => {
-                formatter.write_str(" contains a NaN value")
-            }
+            ArgumentErrorKind::NotANumber => formatter.write_str(" contains a NaN value"),
             ArgumentErrorKind::NotFinite { actual } => {
                 write!(formatter, " has non-finite value {actual}")
             }
@@ -162,10 +153,7 @@ impl Display for ArgumentError {
                 formatter,
                 " has offset {offset} and length {length} outside total length {total_length}",
             ),
-            ArgumentErrorKind::Pattern {
-                pattern,
-                expectation,
-            } => match expectation {
+            ArgumentErrorKind::Pattern { pattern, expectation } => match expectation {
                 PatternExpectation::Match => {
                     let pattern = escape_for_display(pattern, Some('\''));
                     write!(formatter, " must match pattern '{pattern}'")
@@ -229,10 +217,7 @@ fn length_metric_label(metric: &LengthMetric) -> &'static str {
 ///
 /// `formatter` receives only text derived from `constraint`. Formatting errors
 /// from the destination are returned unchanged.
-fn write_length_constraint(
-    formatter: &mut Formatter<'_>,
-    constraint: &LengthConstraint,
-) -> fmt::Result {
+fn write_length_constraint(formatter: &mut Formatter<'_>, constraint: &LengthConstraint) -> fmt::Result {
     match constraint {
         LengthConstraint::Exact(expected) => {
             write!(formatter, "exactly {expected}")
@@ -249,10 +234,7 @@ fn write_length_constraint(
 ///
 /// `formatter` receives only text derived from `constraint`. Formatting errors
 /// from the destination are returned unchanged.
-fn write_comparison_constraint(
-    formatter: &mut Formatter<'_>,
-    constraint: &ComparisonConstraint,
-) -> fmt::Result {
+fn write_comparison_constraint(formatter: &mut Formatter<'_>, constraint: &ComparisonConstraint) -> fmt::Result {
     match constraint {
         ComparisonConstraint::EqualTo(expected) => {
             write!(formatter, "equal to {expected}")
@@ -279,10 +261,7 @@ fn write_comparison_constraint(
 ///
 /// `formatter` receives only text derived from `constraint`. Formatting errors
 /// from the destination are returned unchanged.
-fn write_range_constraint(
-    formatter: &mut Formatter<'_>,
-    constraint: &RangeConstraint,
-) -> fmt::Result {
+fn write_range_constraint(formatter: &mut Formatter<'_>, constraint: &RangeConstraint) -> fmt::Result {
     match constraint.lower() {
         ArgumentBound::Unbounded => formatter.write_str("(-infinity"),
         ArgumentBound::Included(value) => write!(formatter, "[{value}"),

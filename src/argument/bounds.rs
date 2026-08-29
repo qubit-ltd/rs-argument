@@ -26,13 +26,7 @@ use crate::argument::IndexRole;
 /// Returns [`ArgumentErrorKind::Custom`] when `predicate` returns `false`.
 /// The error owns copies of `path`, `code`, and `message`.
 #[inline]
-pub fn require_that<T, F>(
-    value: T,
-    path: &str,
-    predicate: F,
-    code: &str,
-    message: &str,
-) -> ArgumentResult<T>
+pub fn require_that<T, F>(value: T, path: &str, predicate: F, code: &str, message: &str) -> ArgumentResult<T>
 where
     F: FnOnce(&T) -> bool,
 {
@@ -60,12 +54,7 @@ where
 /// Returns [`ArgumentErrorKind::Bounds`] when `offset` exceeds `total_length`
 /// or when `length` exceeds the number of units remaining after `offset`.
 #[inline]
-pub fn check_bounds(
-    path: &str,
-    offset: usize,
-    length: usize,
-    total_length: usize,
-) -> ArgumentResult<()> {
+pub fn check_bounds(path: &str, offset: usize, length: usize, total_length: usize) -> ArgumentResult<()> {
     if offset > total_length {
         return Err(ArgumentError::new(
             path,
@@ -99,11 +88,7 @@ pub fn check_bounds(
 /// Returns [`ArgumentErrorKind::Index`] with [`IndexRole::Element`] when
 /// `index` is greater than or equal to `size`.
 #[inline]
-pub fn check_element_index(
-    path: &str,
-    index: usize,
-    size: usize,
-) -> ArgumentResult<usize> {
+pub fn check_element_index(path: &str, index: usize, size: usize) -> ArgumentResult<usize> {
     if index >= size {
         return Err(ArgumentError::new(
             path,
@@ -128,11 +113,7 @@ pub fn check_element_index(
 /// Returns [`ArgumentErrorKind::Index`] with [`IndexRole::Position`] when
 /// `index` exceeds `size`.
 #[inline]
-pub fn check_position_index(
-    path: &str,
-    index: usize,
-    size: usize,
-) -> ArgumentResult<usize> {
+pub fn check_position_index(path: &str, index: usize, size: usize) -> ArgumentResult<usize> {
     if index > size {
         return Err(ArgumentError::new(
             path,
@@ -157,12 +138,7 @@ pub fn check_position_index(
 /// Returns [`ArgumentErrorKind::IndexRange`] when `start` exceeds `end` or
 /// when `end` exceeds `size`.
 #[inline]
-pub fn check_position_range(
-    path: &str,
-    start: usize,
-    end: usize,
-    size: usize,
-) -> ArgumentResult<Range<usize>> {
+pub fn check_position_range(path: &str, start: usize, end: usize, size: usize) -> ArgumentResult<Range<usize>> {
     if start > end {
         return Err(ArgumentError::new(
             path,

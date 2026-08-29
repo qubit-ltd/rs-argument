@@ -54,8 +54,7 @@ fn test_event_bus_topic_uses_domain_conversion_without_map_err() {
         "orders.created",
     );
 
-    let error = build_topic(String::from("\u{2003}"))
-        .expect_err("blank topic name must fail");
+    let error = build_topic(String::from("\u{2003}")).expect_err("blank topic name must fail");
     let error = into_argument_error(error);
     assert_eq!(error.path().as_str(), "name");
     assert_eq!(error.kind(), &ArgumentErrorKind::Blank);
@@ -73,8 +72,7 @@ struct ThreadPoolOptions {
 impl ThreadPoolOptions {
     /// Validates count, cross-field, optional, and duration preconditions.
     fn validate(&self) -> Result<(), DomainError> {
-        self.maximum_pool_size
-            .require_positive("maximum_pool_size")?;
+        self.maximum_pool_size.require_positive("maximum_pool_size")?;
         self.core_pool_size
             .require_at_most("core_pool_size", self.maximum_pool_size)?;
         self.queue_capacity.validate_if_some(|capacity| {
@@ -100,18 +98,14 @@ fn test_thread_pool_builder_composes_argument_traits() {
         stack_size: Some(2 * 1024 * 1024),
         keep_alive: Duration::from_secs(30),
     };
-    let error = options
-        .validate()
-        .expect_err("zero optional queue capacity must fail");
+    let error = options.validate().expect_err("zero optional queue capacity must fail");
     let error = into_argument_error(error);
     assert_eq!(error.path().as_str(), "queue_capacity");
     assert_eq!(
         error.kind(),
         &ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(0_usize),
-            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(
-                0_usize
-            ),),
+            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(0_usize),),
         },
     );
 }
@@ -133,9 +127,7 @@ fn test_thread_pool_builder_reports_duration_value() {
         error.kind(),
         &ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(Duration::ZERO),
-            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(
-                Duration::ZERO
-            ),),
+            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(Duration::ZERO),),
         },
     );
 }
@@ -174,9 +166,7 @@ fn test_http_options_prefix_nested_error_path() {
             connect: Duration::ZERO,
         },
     };
-    let error = options
-        .validate()
-        .expect_err("zero connection timeout must fail");
+    let error = options.validate().expect_err("zero connection timeout must fail");
     let error = into_argument_error(error);
     assert_eq!(error.path().as_str(), "timeouts.connect");
     assert!(matches!(error.kind(), ArgumentErrorKind::Comparison { .. },));
@@ -224,9 +214,7 @@ fn test_retry_options_require_finite_multiplier() {
             multiplier: f64::INFINITY,
         },
     };
-    let error = options
-        .validate()
-        .expect_err("infinite retry multiplier must fail");
+    let error = options.validate().expect_err("infinite retry multiplier must fail");
     let error = into_argument_error(error);
     assert_eq!(error.path().as_str(), "delay.multiplier");
     assert_eq!(
@@ -258,9 +246,7 @@ fn test_retry_options_compare_duration_fields() {
         error.kind(),
         &ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(max),
-            constraint: ComparisonConstraint::AtLeast(ArgumentValue::from(
-                initial,
-            )),
+            constraint: ComparisonConstraint::AtLeast(ArgumentValue::from(initial,)),
         },
     );
 }

@@ -64,10 +64,7 @@ fn test_comparison_constraint_exposes_all_variants() {
         ComparisonConstraint::LessThan(value),
         ComparisonConstraint::LessThan(value)
     );
-    assert_eq!(
-        ComparisonConstraint::AtMost(value),
-        ComparisonConstraint::AtMost(value)
-    );
+    assert_eq!(ComparisonConstraint::AtMost(value), ComparisonConstraint::AtMost(value));
     assert_eq!(
         ComparisonConstraint::GreaterThan(value),
         ComparisonConstraint::GreaterThan(value)

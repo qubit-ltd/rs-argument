@@ -41,22 +41,14 @@ pub trait CollectionArgument: Sealed + Sized {
     /// Success returns the original collection without cloning its elements.
     /// A shorter collection returns [`ArgumentErrorKind::Length`] at `path`
     /// with a minimum constraint.
-    fn require_len_at_least(
-        self,
-        path: &str,
-        min: usize,
-    ) -> ArgumentResult<Self>;
+    fn require_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self>;
 
     /// Requires this collection to contain at most `max` elements.
     ///
     /// Success returns the original collection without cloning its elements.
     /// A longer collection returns [`ArgumentErrorKind::Length`] at `path`
     /// with a maximum constraint.
-    fn require_len_at_most(
-        self,
-        path: &str,
-        max: usize,
-    ) -> ArgumentResult<Self>;
+    fn require_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this collection's length to lie in `min..=max`.
     ///
@@ -65,12 +57,7 @@ pub trait CollectionArgument: Sealed + Sized {
     /// otherwise, an out-of-range length returns
     /// [`ArgumentErrorKind::Length`]. Success returns the original collection
     /// without cloning its elements.
-    fn require_len_in(
-        self,
-        path: &str,
-        min: usize,
-        max: usize,
-    ) -> ArgumentResult<Self>;
+    fn require_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self>;
 }
 
 impl<T> CollectionArgument for Vec<T> {
@@ -98,11 +85,7 @@ impl<T> CollectionArgument for Vec<T> {
     ///
     /// A length below `min` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_len_at_least(
-        self,
-        path: &str,
-        min: usize,
-    ) -> ArgumentResult<Self> {
+    fn require_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtLeast(min))?;
         Ok(self)
     }
@@ -111,11 +94,7 @@ impl<T> CollectionArgument for Vec<T> {
     ///
     /// A length above `max` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_len_at_most(
-        self,
-        path: &str,
-        max: usize,
-    ) -> ArgumentResult<Self> {
+    fn require_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtMost(max))?;
         Ok(self)
     }
@@ -126,17 +105,8 @@ impl<T> CollectionArgument for Vec<T> {
     /// [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`; an
     /// out-of-range length returns [`ArgumentErrorKind::Length`].
     #[inline]
-    fn require_len_in(
-        self,
-        path: &str,
-        min: usize,
-        max: usize,
-    ) -> ArgumentResult<Self> {
-        validate_length(
-            path,
-            self.len(),
-            LengthConstraint::InRange { min, max },
-        )?;
+    fn require_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
+        validate_length(path, self.len(), LengthConstraint::InRange { min, max })?;
         Ok(self)
     }
 }
@@ -166,11 +136,7 @@ impl<T> CollectionArgument for &[T] {
     ///
     /// A length below `min` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_len_at_least(
-        self,
-        path: &str,
-        min: usize,
-    ) -> ArgumentResult<Self> {
+    fn require_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtLeast(min))?;
         Ok(self)
     }
@@ -179,11 +145,7 @@ impl<T> CollectionArgument for &[T] {
     ///
     /// A length above `max` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_len_at_most(
-        self,
-        path: &str,
-        max: usize,
-    ) -> ArgumentResult<Self> {
+    fn require_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtMost(max))?;
         Ok(self)
     }
@@ -194,17 +156,8 @@ impl<T> CollectionArgument for &[T] {
     /// [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`; an
     /// out-of-range length returns [`ArgumentErrorKind::Length`].
     #[inline]
-    fn require_len_in(
-        self,
-        path: &str,
-        min: usize,
-        max: usize,
-    ) -> ArgumentResult<Self> {
-        validate_length(
-            path,
-            self.len(),
-            LengthConstraint::InRange { min, max },
-        )?;
+    fn require_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
+        validate_length(path, self.len(), LengthConstraint::InRange { min, max })?;
         Ok(self)
     }
 }
@@ -234,11 +187,7 @@ impl<T, const N: usize> CollectionArgument for [T; N] {
     ///
     /// A length below `min` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_len_at_least(
-        self,
-        path: &str,
-        min: usize,
-    ) -> ArgumentResult<Self> {
+    fn require_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(path, N, LengthConstraint::AtLeast(min))?;
         Ok(self)
     }
@@ -247,11 +196,7 @@ impl<T, const N: usize> CollectionArgument for [T; N] {
     ///
     /// A length above `max` returns [`ArgumentErrorKind::Length`] at `path`.
     #[inline]
-    fn require_len_at_most(
-        self,
-        path: &str,
-        max: usize,
-    ) -> ArgumentResult<Self> {
+    fn require_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(path, N, LengthConstraint::AtMost(max))?;
         Ok(self)
     }
@@ -262,12 +207,7 @@ impl<T, const N: usize> CollectionArgument for [T; N] {
     /// [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`; an
     /// out-of-range length returns [`ArgumentErrorKind::Length`].
     #[inline]
-    fn require_len_in(
-        self,
-        path: &str,
-        min: usize,
-        max: usize,
-    ) -> ArgumentResult<Self> {
+    fn require_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(path, N, LengthConstraint::InRange { min, max })?;
         Ok(self)
     }
@@ -280,11 +220,7 @@ impl<T, const N: usize> CollectionArgument for [T; N] {
 /// range returns [`ArgumentErrorKind::InvalidLengthConstraint`] before
 /// `actual` is checked. Any other unsatisfied constraint returns
 /// [`ArgumentErrorKind::Length`]; a satisfied constraint returns `Ok(())`.
-fn validate_length(
-    path: &str,
-    actual: usize,
-    constraint: LengthConstraint,
-) -> ArgumentResult<()> {
+fn validate_length(path: &str, actual: usize, constraint: LengthConstraint) -> ArgumentResult<()> {
     if let LengthConstraint::InRange { min, max } = &constraint
         && min > max
     {
@@ -301,9 +237,7 @@ fn validate_length(
         LengthConstraint::Exact(expected) => actual == *expected,
         LengthConstraint::AtLeast(min) => actual >= *min,
         LengthConstraint::AtMost(max) => actual <= *max,
-        LengthConstraint::InRange { min, max } => {
-            actual >= *min && actual <= *max
-        }
+        LengthConstraint::InRange { min, max } => actual >= *min && actual <= *max,
     };
     if is_valid {
         Ok(())

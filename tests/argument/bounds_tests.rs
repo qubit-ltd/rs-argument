@@ -18,28 +18,15 @@ use qubit_argument::require_that;
 /// Verifies that successful custom validation returns the original value.
 #[test]
 fn test_require_that_returns_original_value() {
-    let value = require_that(
-        4_u32,
-        "workers",
-        |value| *value % 2 == 0,
-        "even",
-        "must be even",
-    )
-    .expect("four is even");
+    let value = require_that(4_u32, "workers", |value| *value % 2 == 0, "even", "must be even").expect("four is even");
     assert_eq!(value, 4);
 }
 
 /// Verifies that failed custom validation preserves the supplied error data.
 #[test]
 fn test_require_that_reports_custom_failure() {
-    let error = require_that(
-        3_u32,
-        "workers",
-        |value| *value % 2 == 0,
-        "even",
-        "must be even",
-    )
-    .expect_err("three is not even");
+    let error =
+        require_that(3_u32, "workers", |value| *value % 2 == 0, "even", "must be even").expect_err("three is not even");
     assert_eq!(error.path().as_str(), "workers");
     assert_eq!(
         error.kind(),
@@ -61,8 +48,7 @@ fn test_check_bounds_accepts_valid_regions() {
 /// Verifies that an offset after the total length reports structured bounds.
 #[test]
 fn test_check_bounds_rejects_offset_after_total_length() {
-    let error = check_bounds("buffer", 6, 0, 5)
-        .expect_err("offset after the buffer must fail");
+    let error = check_bounds("buffer", 6, 0, 5).expect_err("offset after the buffer must fail");
     assert_eq!(error.path().as_str(), "buffer");
     assert_eq!(
         error.kind(),
@@ -77,8 +63,7 @@ fn test_check_bounds_rejects_offset_after_total_length() {
 /// Verifies that a length exceeding the remainder reports structured bounds.
 #[test]
 fn test_check_bounds_rejects_length_after_remaining_region() {
-    let error = check_bounds("buffer", 3, 3, 5)
-        .expect_err("region extending after the buffer must fail");
+    let error = check_bounds("buffer", 3, 3, 5).expect_err("region extending after the buffer must fail");
     assert_eq!(error.path().as_str(), "buffer");
     assert_eq!(
         error.kind(),
@@ -93,8 +78,8 @@ fn test_check_bounds_rejects_length_after_remaining_region() {
 /// Verifies that bounds validation detects overflow without unchecked addition.
 #[test]
 fn test_check_bounds_rejects_overflow_without_adding() {
-    let error = check_bounds("buffer", usize::MAX, 1, usize::MAX)
-        .expect_err("one byte cannot follow the final position");
+    let error =
+        check_bounds("buffer", usize::MAX, 1, usize::MAX).expect_err("one byte cannot follow the final position");
     assert_eq!(
         error.kind(),
         &ArgumentErrorKind::Bounds {
@@ -108,17 +93,13 @@ fn test_check_bounds_rejects_overflow_without_adding() {
 /// Verifies that an element index strictly before the size is returned.
 #[test]
 fn test_check_element_index_returns_valid_index() {
-    assert_eq!(
-        check_element_index("items", 4, 5).expect("index names an element"),
-        4,
-    );
+    assert_eq!(check_element_index("items", 4, 5).expect("index names an element"), 4,);
 }
 
 /// Verifies that an invalid element index carries the element role.
 #[test]
 fn test_check_element_index_reports_element_role() {
-    let error = check_element_index("items", 5, 5)
-        .expect_err("the size is not an element index");
+    let error = check_element_index("items", 5, 5).expect_err("the size is not an element index");
     assert_eq!(error.path().as_str(), "items");
     assert_eq!(
         error.kind(),
@@ -134,13 +115,11 @@ fn test_check_element_index_reports_element_role() {
 #[test]
 fn test_check_position_index_returns_valid_index() {
     assert_eq!(
-        check_position_index("items", 5, 5)
-            .expect("the position after the final element is valid"),
+        check_position_index("items", 5, 5).expect("the position after the final element is valid"),
         5,
     );
     assert_eq!(
-        check_position_index("items", 0, 0)
-            .expect("an empty collection has one position"),
+        check_position_index("items", 0, 0).expect("an empty collection has one position"),
         0,
     );
 }
@@ -148,8 +127,7 @@ fn test_check_position_index_returns_valid_index() {
 /// Verifies that an invalid position index carries the position role.
 #[test]
 fn test_check_position_index_reports_position_role() {
-    let error = check_position_index("items", 6, 5)
-        .expect_err("position after the collection boundary must fail");
+    let error = check_position_index("items", 6, 5).expect_err("position after the collection boundary must fail");
     assert_eq!(error.path().as_str(), "items");
     assert_eq!(
         error.kind(),
@@ -172,13 +150,11 @@ fn test_check_position_range_returns_validated_range() {
 #[test]
 fn test_check_position_range_accepts_empty_ranges() {
     assert_eq!(
-        check_position_range("items", 0, 0, 5)
-            .expect("empty range at the start is valid"),
+        check_position_range("items", 0, 0, 5).expect("empty range at the start is valid"),
         0..0,
     );
     assert_eq!(
-        check_position_range("items", 5, 5, 5)
-            .expect("empty range at the end is valid"),
+        check_position_range("items", 5, 5, 5).expect("empty range at the end is valid"),
         5..5,
     );
 }
@@ -186,8 +162,7 @@ fn test_check_position_range_accepts_empty_ranges() {
 /// Verifies that a reversed position range reports its exact endpoints.
 #[test]
 fn test_check_position_range_rejects_start_after_end() {
-    let error = check_position_range("items", 4, 3, 8)
-        .expect_err("range start must not follow its end");
+    let error = check_position_range("items", 4, 3, 8).expect_err("range start must not follow its end");
     assert_eq!(error.path().as_str(), "items");
     assert_eq!(
         error.kind(),
@@ -202,8 +177,7 @@ fn test_check_position_range_rejects_start_after_end() {
 /// Verifies that a position range ending after the size reports its bounds.
 #[test]
 fn test_check_position_range_rejects_end_after_size() {
-    let error = check_position_range("items", 3, 9, 8)
-        .expect_err("range end must not exceed the collection size");
+    let error = check_position_range("items", 3, 9, 8).expect_err("range end must not exceed the collection size");
     assert_eq!(error.path().as_str(), "items");
     assert_eq!(
         error.kind(),

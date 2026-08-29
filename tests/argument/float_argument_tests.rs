@@ -21,12 +21,7 @@ fn test_require_finite_preserves_finite_values() {
             .to_bits(),
         (-0.0_f32).to_bits(),
     );
-    assert_eq!(
-        1.5_f64
-            .require_finite("factor")
-            .expect("one and a half is finite"),
-        1.5,
-    );
+    assert_eq!(1.5_f64.require_finite("factor").expect("one and a half is finite"), 1.5,);
 }
 
 /// Verifies that positive infinity retains its exact 32-bit representation.
@@ -62,9 +57,7 @@ fn test_require_finite_rejects_negative_infinity() {
 /// Verifies that NaN keeps the established not-a-number classification.
 #[test]
 fn test_require_finite_reports_not_a_number_for_nan() {
-    let error = f64::NAN
-        .require_finite("multiplier")
-        .expect_err("NaN is not a number");
+    let error = f64::NAN.require_finite("multiplier").expect_err("NaN is not a number");
     assert_eq!(error.path().as_str(), "multiplier");
     assert_eq!(error.kind(), &ArgumentErrorKind::NotANumber);
 }

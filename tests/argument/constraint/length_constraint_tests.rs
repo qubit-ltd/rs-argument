@@ -25,8 +25,5 @@ fn test_length_constraint_distinguishes_relationships() {
 fn test_length_constraint_in_range_preserves_endpoints() {
     let constraint = LengthConstraint::InRange { min: 2, max: 5 };
 
-    assert!(matches!(
-        constraint,
-        LengthConstraint::InRange { min: 2, max: 5 },
-    ));
+    assert!(matches!(constraint, LengthConstraint::InRange { min: 2, max: 5 },));
 }
