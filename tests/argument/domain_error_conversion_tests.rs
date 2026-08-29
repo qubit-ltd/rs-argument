@@ -39,9 +39,7 @@ enum DomainError {
 impl From<ArgumentError> for DomainError {
     /// Maps the pool-size comparison failure and preserves all other errors.
     fn from(error: ArgumentError) -> Self {
-        if error.path().as_str() == "pool_size"
-            && matches!(error.kind(), ArgumentErrorKind::Comparison { .. })
-        {
+        if error.path().as_str() == "pool_size" && matches!(error.kind(), ArgumentErrorKind::Comparison { .. }) {
             Self::ZeroPoolSize
         } else {
             Self::InvalidArgument(error)
@@ -55,9 +53,7 @@ fn fail_with_zero_pool_size() -> Result<(), DomainError> {
         "pool_size",
         ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(0_usize),
-            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(
-                0_usize,
-            )),
+            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(0_usize)),
         },
     ))?;
     Ok(())
@@ -72,35 +68,26 @@ fn fail_with_other_argument() -> Result<(), DomainError> {
 /// Verifies transparent downstream wrapping through the `?` operator.
 #[test]
 fn test_from_wraps_argument_error_with_question_mark() {
-    let error =
-        fail_with_missing_argument().expect_err("missing token must fail");
+    let error = fail_with_missing_argument().expect_err("missing token must fail");
     assert_eq!(
         error,
-        WrappedDomainError::InvalidArgument(ArgumentError::new(
-            "token",
-            ArgumentErrorKind::Missing,
-        )),
+        WrappedDomainError::InvalidArgument(ArgumentError::new("token", ArgumentErrorKind::Missing,)),
     );
 }
 
 /// Verifies a downstream conversion can specialize by path and error kind.
 #[test]
 fn test_from_maps_structured_error_with_question_mark() {
-    let error =
-        fail_with_zero_pool_size().expect_err("zero pool size must fail");
+    let error = fail_with_zero_pool_size().expect_err("zero pool size must fail");
     assert_eq!(error, DomainError::ZeroPoolSize);
 }
 
 /// Verifies unmatched structured errors retain their original information.
 #[test]
 fn test_from_preserves_unmatched_argument_error() {
-    let error =
-        fail_with_other_argument().expect_err("missing token must fail");
+    let error = fail_with_other_argument().expect_err("missing token must fail");
     assert_eq!(
         error,
-        DomainError::InvalidArgument(ArgumentError::new(
-            "token",
-            ArgumentErrorKind::Missing
-        )),
+        DomainError::InvalidArgument(ArgumentError::new("token", ArgumentErrorKind::Missing)),
     );
 }

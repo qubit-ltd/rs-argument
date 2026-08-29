@@ -52,9 +52,7 @@ fn validate_non_zero_owned(value: NonClone) -> Result<NonClone, ArgumentError> {
 #[test]
 fn test_require_some_preserves_non_clone_value() {
     let value = Some(NonClone(7));
-    let validated: NonClone = value
-        .require_some("value")
-        .expect("option contains a value");
+    let validated: NonClone = value.require_some("value").expect("option contains a value");
     assert_eq!(validated, NonClone(7));
 }
 

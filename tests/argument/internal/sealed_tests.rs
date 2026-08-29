@@ -18,9 +18,7 @@ use qubit_argument::StringArgument;
 fn test_sealed_traits_support_documented_receiver_types() {
     assert_eq!(1_i32.require_positive("count").expect("one is positive"), 1);
     assert_eq!(
-        "name"
-            .require_non_blank("name")
-            .expect("non-blank string is valid"),
+        "name".require_non_blank("name").expect("non-blank string is valid"),
         "name",
     );
     assert_eq!(
@@ -30,9 +28,7 @@ fn test_sealed_traits_support_documented_receiver_types() {
         vec![1, 2],
     );
     assert_eq!(
-        Some("value")
-            .require_some("option")
-            .expect("present option is valid"),
+        Some("value").require_some("option").expect("present option is valid"),
         "value",
     );
 }

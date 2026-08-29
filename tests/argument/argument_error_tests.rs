@@ -68,10 +68,7 @@ fn test_argument_error_implements_standard_traits() {
 fn test_display_formats_every_error_kind_and_constraint() {
     let cases = [
         (ArgumentErrorKind::Missing, "argument 'value' is missing"),
-        (
-            ArgumentErrorKind::Empty,
-            "argument 'value' must not be empty",
-        ),
+        (ArgumentErrorKind::Empty, "argument 'value' must not be empty"),
         (
             ArgumentErrorKind::Length {
                 actual: 3,
@@ -107,64 +104,49 @@ fn test_display_formats_every_error_kind_and_constraint() {
         (
             ArgumentErrorKind::Comparison {
                 actual: ArgumentValue::from(1_i32),
-                constraint: ComparisonConstraint::EqualTo(ArgumentValue::from(
-                    2_i32,
-                )),
+                constraint: ComparisonConstraint::EqualTo(ArgumentValue::from(2_i32)),
             },
             "argument 'value' has value 1, expected equal to 2",
         ),
         (
             ArgumentErrorKind::Comparison {
                 actual: ArgumentValue::from(1_i32),
-                constraint: ComparisonConstraint::NotEqualTo(
-                    ArgumentValue::from(1_i32),
-                ),
+                constraint: ComparisonConstraint::NotEqualTo(ArgumentValue::from(1_i32)),
             },
             "argument 'value' has value 1, expected not equal to 1",
         ),
         (
             ArgumentErrorKind::Comparison {
                 actual: ArgumentValue::from(2_i32),
-                constraint: ComparisonConstraint::LessThan(
-                    ArgumentValue::from(1_i32),
-                ),
+                constraint: ComparisonConstraint::LessThan(ArgumentValue::from(1_i32)),
             },
             "argument 'value' has value 2, expected less than 1",
         ),
         (
             ArgumentErrorKind::Comparison {
                 actual: ArgumentValue::from(2_i32),
-                constraint: ComparisonConstraint::AtMost(ArgumentValue::from(
-                    1_i32,
-                )),
+                constraint: ComparisonConstraint::AtMost(ArgumentValue::from(1_i32)),
             },
             "argument 'value' has value 2, expected at most 1",
         ),
         (
             ArgumentErrorKind::Comparison {
                 actual: ArgumentValue::from(1_i32),
-                constraint: ComparisonConstraint::GreaterThan(
-                    ArgumentValue::from(2_i32),
-                ),
+                constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(2_i32)),
             },
             "argument 'value' has value 1, expected greater than 2",
         ),
         (
             ArgumentErrorKind::Comparison {
                 actual: ArgumentValue::from(1_i32),
-                constraint: ComparisonConstraint::AtLeast(ArgumentValue::from(
-                    2_i32,
-                )),
+                constraint: ComparisonConstraint::AtLeast(ArgumentValue::from(2_i32)),
             },
             "argument 'value' has value 1, expected at least 2",
         ),
         (
             ArgumentErrorKind::Range {
                 actual: ArgumentValue::from(3_i32),
-                constraint: RangeConstraint::new(
-                    ArgumentBound::Unbounded,
-                    ArgumentBound::Unbounded,
-                ),
+                constraint: RangeConstraint::new(ArgumentBound::Unbounded, ArgumentBound::Unbounded),
             },
             "argument 'value' has value 3, expected range (-infinity, infinity)",
         ),
@@ -204,10 +186,7 @@ fn test_display_formats_every_error_kind_and_constraint() {
             },
             "argument 'value' has invalid range constraint [2, 1)",
         ),
-        (
-            ArgumentErrorKind::NotANumber,
-            "argument 'value' contains a NaN value",
-        ),
+        (ArgumentErrorKind::NotANumber, "argument 'value' contains a NaN value"),
         (
             ArgumentErrorKind::NotFinite {
                 actual: ArgumentValue::from(f64::INFINITY),
@@ -372,10 +351,7 @@ fn test_display_escapes_pattern_on_one_line() {
     let error = ArgumentError::new("value", kind.clone());
     let diagnostic = error.to_string();
 
-    assert_eq!(
-        diagnostic,
-        r"argument 'value' must match pattern 'a\'b\\c\r\n\t\u{1b}'",
-    );
+    assert_eq!(diagnostic, r"argument 'value' must match pattern 'a\'b\\c\r\n\t\u{1b}'",);
     assert_single_line_diagnostic(&diagnostic);
     assert_eq!(error.kind(), &kind);
 }

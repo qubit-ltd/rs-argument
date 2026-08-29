@@ -18,11 +18,7 @@ use qubit_argument::StringArgument;
 use regex::Regex;
 
 /// Asserts that an error has the requested path and structured kind.
-fn assert_structured_error(
-    error: ArgumentError,
-    expected_path: &str,
-    expected_kind: ArgumentErrorKind,
-) {
+fn assert_structured_error(error: ArgumentError, expected_path: &str, expected_kind: ArgumentErrorKind) {
     assert_eq!(error.path().as_str(), expected_path);
     assert_eq!(error.kind(), &expected_kind);
 }
@@ -31,8 +27,7 @@ fn assert_structured_error(
 #[test]
 fn test_require_non_blank_preserves_owned_string() {
     let value = String::from("qubit");
-    let validated: String =
-        value.require_non_blank("name").expect("name is non-blank");
+    let validated: String = value.require_non_blank("name").expect("name is non-blank");
     assert_eq!(validated, "qubit");
 }
 
@@ -40,8 +35,7 @@ fn test_require_non_blank_preserves_owned_string() {
 #[test]
 fn test_require_non_blank_preserves_borrowed_str() {
     let value: &str = "qubit";
-    let validated: &str =
-        value.require_non_blank("name").expect("name is non-blank");
+    let validated: &str = value.require_non_blank("name").expect("name is non-blank");
     assert_eq!(validated, value);
 }
 
@@ -373,12 +367,7 @@ fn test_require_match_preserves_owned_string() {
     let pattern = Regex::new("^[a-z]+$").expect("test pattern is valid");
     let validated: String = String::from("qubit")
         .require_match("name", &pattern)
-        .and_then(|value| {
-            value.require_not_match(
-                "name",
-                &Regex::new("^[0-9]+$").expect("test pattern is valid"),
-            )
-        })
+        .and_then(|value| value.require_not_match("name", &Regex::new("^[0-9]+$").expect("test pattern is valid")))
         .expect("the owned string satisfies both pattern constraints");
     assert_eq!(validated, "qubit");
 }
@@ -389,16 +378,8 @@ fn test_require_match_preserves_owned_string() {
 fn test_pattern_methods_preserve_borrowed_str() {
     let value: &str = "qubit";
     let validated = value
-        .require_match(
-            "name",
-            &Regex::new("^[a-z]+$").expect("test pattern is valid"),
-        )
-        .and_then(|matched| {
-            matched.require_not_match(
-                "name",
-                &Regex::new("^[0-9]+$").expect("test pattern is valid"),
-            )
-        })
+        .require_match("name", &Regex::new("^[a-z]+$").expect("test pattern is valid"))
+        .and_then(|matched| matched.require_not_match("name", &Regex::new("^[0-9]+$").expect("test pattern is valid")))
         .expect("the borrowed string satisfies both pattern constraints");
     assert!(std::ptr::eq(validated, value));
 }

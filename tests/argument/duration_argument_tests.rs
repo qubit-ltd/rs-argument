@@ -37,11 +37,7 @@ fn assert_duration_error(
 fn test_require_methods_preserve_duration() {
     let one = Duration::from_secs(1);
     let two = Duration::from_secs(2);
-    assert_eq!(
-        one.require_positive("delay")
-            .expect("one second is positive"),
-        one,
-    );
+    assert_eq!(one.require_positive("delay").expect("one second is positive"), one,);
     assert_eq!(
         one.require_less_than("delay", two)
             .expect("one second is less than two seconds"),

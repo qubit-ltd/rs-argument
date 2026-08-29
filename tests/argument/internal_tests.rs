@@ -16,18 +16,14 @@ use qubit_argument::NumericArgument;
 /// validation contract.
 #[test]
 fn test_internal_numeric_support_preserves_integer_contract() {
-    let error = 0_i32
-        .require_positive("count")
-        .expect_err("zero is not positive");
+    let error = 0_i32.require_positive("count").expect_err("zero is not positive");
 
     assert_eq!(error.path().as_str(), "count");
     assert_eq!(
         error.kind(),
         &ArgumentErrorKind::Comparison {
             actual: ArgumentValue::from(0_i32),
-            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(
-                0_i32
-            ),),
+            constraint: ComparisonConstraint::GreaterThan(ArgumentValue::from(0_i32),),
         },
     );
 }
