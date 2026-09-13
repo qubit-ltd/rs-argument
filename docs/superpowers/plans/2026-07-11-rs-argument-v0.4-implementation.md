@@ -1099,7 +1099,7 @@ Run:
 
 ```bash
 cargo test --doc --all-features
-RS_CI_PROJECT_ROOT="$PWD" python3 .rs-ci/readme-version-check.py
+RS_CI_PROJECT_ROOT="$PWD" python3 .infra/tools/rs-ci/readme-version-check.py
 rg -n 'qubit_argument::argument|qubit-argument = "0\.3"|require_non_null|check_state' README.md README.zh_CN.md src
 git --no-pager diff --check
 ```
