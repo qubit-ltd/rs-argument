@@ -6,7 +6,7 @@
 
 **Architecture:** Keep `src/argument/` as a private implementation module. Model failures as `ArgumentError { path, kind }`, use public value and constraint types for stable matching, and implement type-specific extension traits over that shared error model. Keep the core dependency-free and expose regex validation only through an optional feature.
 
-**Tech Stack:** Rust 1.94, edition 2024, standard library, optional `regex` 1.12, integration tests under `tests/`, shared `.rs-ci` scripts.
+**Tech Stack:** Rust 1.94, edition 2024, standard library, optional `regex` 1.12, integration tests under `tests/`, revision-pinned `rs-infra` tools.
 
 ## Global Constraints
 
@@ -1099,7 +1099,7 @@ Run:
 
 ```bash
 cargo test --doc --all-features
-RS_CI_PROJECT_ROOT="$PWD" python3 .infra/tools/rs-ci/readme-version-check.py
+./.infra/tools/infra-tool.sh rs-infra-verify --project "$PWD" run --suite readme
 rg -n 'qubit_argument::argument|qubit-argument = "0\.3"|require_non_null|check_state' README.md README.zh_CN.md src
 git --no-pager diff --check
 ```
