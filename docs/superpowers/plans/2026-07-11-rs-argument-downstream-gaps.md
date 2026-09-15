@@ -6,7 +6,7 @@
 
 **Architecture:** Keep the existing structured `ArgumentError` model and add only three focused extension traits: result path-prefix propagation, `Duration` comparison, and float finiteness. Preserve the existing optional-value validator after tests showed that generalizing its success type weakens type inference. Validate the design through consumer-shaped integration tests while leaving real downstream repositories untouched.
 
-**Tech Stack:** Rust 1.94, edition 2024, standard library only for core features, optional `regex` 1.12, integration tests under `tests/`, shared `.rs-ci` scripts.
+**Tech Stack:** Rust 1.94, edition 2024, standard library only for core features, optional `regex` 1.12, integration tests under `tests/`, revision-pinned `rs-infra` tools.
 
 ## Global Constraints
 
