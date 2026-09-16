@@ -9,8 +9,6 @@ cleanup_build_artifacts() {
             "$project_root/target/debug" \
             "$project_root/target/release" \
             "$project_root/target/llvm-cov-target" \
-            "$project_root/target/rs-ci" \
-            "$project_root/target/rs-ci-feature-matrix" \
             "$project_root/fuzz/target"; do
             if [ -d "$directory" ]; then
                 echo "Cleaning transient build artifacts: $directory"
