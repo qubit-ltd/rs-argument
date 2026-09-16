@@ -63,14 +63,14 @@ for name, revision in updates.items():
     if name == "rs-infra-dependency-policy":
         continue
     pattern = rf"(\[{re.escape(name)}\].*?^revision\s*=\s*\")[0-9a-f]+(\")"
-    text, count = re.subn(pattern, rf"\g<1>{revision}\g<2>", text, count=1, flags=re.MULTILINE | re.DOTALL)
+    text, count = re.subn(pattern, lambda match: f"{match.group(1)}{revision}{match.group(2)}", text, count=1, flags=re.MULTILINE | re.DOTALL)
     if count != 1:
         raise SystemExit(f"unable to update revision for {name}")
 tools_path.write_text(text)
 
 if "rs-infra-dependency-policy" in updates:
     policy = policy_path.read_text()
-    policy, count = re.subn(r"(^revision\s*=\s*\")[0-9a-f]+(\")", rf"\g<1>{updates['rs-infra-dependency-policy']}\g<2>", policy, count=1, flags=re.MULTILINE)
+    policy, count = re.subn(r"(^revision\s*=\s*\")[0-9a-f]+(\")", lambda match: f"{match.group(1)}{updates['rs-infra-dependency-policy']}{match.group(2)}", policy, count=1, flags=re.MULTILINE)
     if count != 1:
         raise SystemExit("unable to update dependency policy revision")
     policy_path.write_text(policy)
