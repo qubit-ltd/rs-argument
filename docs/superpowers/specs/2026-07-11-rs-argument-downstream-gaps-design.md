@@ -110,8 +110,8 @@ NaN 返回 `ArgumentErrorKind::NotANumber`；正负无穷返回新增的
 每项能力按测试先行独立验证。最终依次执行：
 
 ```bash
-./align-ci.sh
-./ci-check.sh
+./.infra/bin/align-ci.sh
+./.infra/bin/ci-check.sh
 ```
 
 成功标准是消费端场景不需要 `map_err` 来完成领域错误转换；嵌套路径只使用专用

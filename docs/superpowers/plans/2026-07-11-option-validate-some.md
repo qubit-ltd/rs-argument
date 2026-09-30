@@ -14,7 +14,7 @@
 - Existing `OptionArgument` APIs remain compatible.
 - Validation must not require `T: Clone` or `T: Copy`.
 - English and Chinese READMEs show equivalent generic usage examples.
-- Run `./align-ci.sh` and `./ci-check.sh` before committing.
+- Run `./.infra/bin/align-ci.sh` and `./.infra/bin/ci-check.sh` before committing.
 
 ---
 
@@ -51,8 +51,8 @@
 **Files:**
 - Verify all changed files.
 
-- [ ] Run `./align-ci.sh`.
-- [ ] Run `./ci-check.sh`.
+- [ ] Run `./.infra/bin/align-ci.sh`.
+- [ ] Run `./.infra/bin/ci-check.sh`.
 - [ ] Inspect `git diff --check`, the complete diff, and repository status.
 - [ ] Create English commits grouped by API/release and documentation intent.
 - [ ] Fetch remote state, push the current branch, fast-forward `dev` and `main`, push them, and return to the original branch.
