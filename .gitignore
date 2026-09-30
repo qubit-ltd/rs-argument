@@ -91,3 +91,6 @@ external/
 /coverage.json
 /coverage.txt
 /lcov.info
+/.infra/*/bin/
+/.infra/*/.crates*
+/.infra/*/tool.revision*
