@@ -19,7 +19,7 @@
 - Export every new public API from the crate root and document every function and method in English.
 - Keep tests under `tests/` with names following `test_{method}_{scenario}`.
 - Do not commit or push unless separately authorized.
-- Final verification order is `./align-ci.sh` followed by `./ci-check.sh`.
+- Final verification order is `./.infra/bin/align-ci.sh` followed by `./.infra/bin/ci-check.sh`.
 
 ---
 
@@ -127,8 +127,8 @@
 
 - [ ] Run `cargo test --no-default-features` and `cargo test --all-features`.
 - [ ] Run `git --no-pager diff --check` and review `git --no-pager diff` for unrelated changes.
-- [ ] Run `./align-ci.sh` and inspect any generated changes.
-- [ ] Run `./ci-check.sh` and confirm every configured CI step succeeds.
+- [ ] Run `./.infra/bin/align-ci.sh` and inspect any generated changes.
+- [ ] Run `./.infra/bin/ci-check.sh` and confirm every configured CI step succeeds.
 - [ ] Re-read the design requirements and verify every public API and downstream scenario is covered.
 
 ### Task 7: Harden the public API before release
@@ -148,4 +148,4 @@
 - [ ] Seal `NumericArgument`, `FloatArgument`, `DurationArgument`, `StringArgument`, `CollectionArgument`, `OptionArgument`, and `ArgumentResultExt` with one private marker trait.
 - [ ] Mark `ArgumentValue` and `LengthMetric` as `#[non_exhaustive]`.
 - [ ] Document the extension boundary and non-exhaustive matching requirement in both language guides.
-- [ ] Run focused doctests, `./align-ci.sh`, `./ci-check.sh`, and a clean `cargo publish --dry-run`.
+- [ ] Run focused doctests, `./.infra/bin/align-ci.sh`, `./.infra/bin/ci-check.sh`, and a clean `cargo publish --dry-run`.

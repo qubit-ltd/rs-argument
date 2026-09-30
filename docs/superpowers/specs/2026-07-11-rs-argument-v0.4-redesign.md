@@ -343,8 +343,8 @@ cargo test --all-features
 最终严格按用户要求执行：
 
 ```bash
-./align-ci.sh
-./ci-check.sh
+./.infra/bin/align-ci.sh
+./.infra/bin/ci-check.sh
 ```
 
 `align-ci.sh` 产生的项目对齐改动属于本次范围。`ci-check.sh` 失败时修复本次重构引入的问题并重新运行，直至完整通过或报告无法在本地解决的外部阻塞。

@@ -22,7 +22,7 @@
 - The final default feature set is empty; `regex` is optional and disabled by default.
 - Local `git add` and `git commit` are authorized for task-sized commits; never run `git push`.
 - Use `git --no-pager diff --check` as the review checkpoint after each task.
-- Final verification order is exactly `./align-ci.sh` followed by `./ci-check.sh`.
+- Final verification order is exactly `./.infra/bin/align-ci.sh` followed by `./.infra/bin/ci-check.sh`.
 
 ---
 
@@ -1131,7 +1131,7 @@ git commit -m 'docs(用法): 更新0.4参数校验文档'
 Run:
 
 ```bash
-./align-ci.sh
+./.infra/bin/align-ci.sh
 ```
 
 Expected: exit code 0. Review any generated changes with `git --no-pager diff -- . ':!docs/superpowers'` before continuing.
@@ -1141,7 +1141,7 @@ Expected: exit code 0. Review any generated changes with `git --no-pager diff --
 Run:
 
 ```bash
-./ci-check.sh
+./.infra/bin/ci-check.sh
 ```
 
 Expected: formatting, style rules, clippy, feature checks, tests, doctests, coverage, audit, package checks, and README checks all pass.
@@ -1151,8 +1151,8 @@ Expected: formatting, style rules, clippy, feature checks, tests, doctests, cove
 For every failure, make the smallest scoped correction, rerun the directly failing command for rapid feedback, then rerun in the required final order:
 
 ```bash
-./align-ci.sh
-./ci-check.sh
+./.infra/bin/align-ci.sh
+./.infra/bin/ci-check.sh
 ```
 
 Expected: both scripts exit 0 in the same final working-tree state.
