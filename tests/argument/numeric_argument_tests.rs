@@ -60,7 +60,10 @@ where
     assert_eq!(one.require_non_zero("value").expect("one is non-zero"), one,);
     assert_eq!(one.require_positive("value").expect("one is positive"), one,);
     assert_eq!(zero.require_non_negative("value").expect("zero is non-negative"), zero,);
-    assert!(zero.require_negative("value").is_err());
+    assert!(
+        zero.require_negative("value").is_err(),
+        "zero must not satisfy a negative constraint",
+    );
     assert_eq!(zero.require_non_positive("value").expect("zero is non-positive"), zero,);
     assert_eq!(one.require_less_than("value", two).expect("one is less than two"), one,);
     assert_eq!(one.require_at_most("value", one).expect("one is at most one"), one,);

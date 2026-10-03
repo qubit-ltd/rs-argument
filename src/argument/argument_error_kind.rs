@@ -20,6 +20,15 @@ use crate::argument::RangeConstraint;
 /// Each variant stores only structured context needed to inspect and format
 /// the failure. Validated string contents are never captured implicitly.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::ArgumentErrorKind;
+///
+/// let error = ArgumentErrorKind::Missing;
+/// assert!(matches!(error, ArgumentErrorKind::Missing));
+/// ```
+///
 /// ```compile_fail
 /// #![deny(unused_must_use)]
 /// use qubit_argument::ArgumentErrorKind;

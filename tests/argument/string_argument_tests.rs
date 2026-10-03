@@ -317,8 +317,14 @@ fn test_string_error_does_not_expose_input() {
     let error = secret
         .require_byte_len_at_most("token", 4)
         .expect_err("secret is too long");
-    assert!(!format!("{error:?}").contains(secret));
-    assert!(!error.to_string().contains(secret));
+    assert!(
+        !format!("{error:?}").contains(secret),
+        "debug formatting must not expose the validated input",
+    );
+    assert!(
+        !error.to_string().contains(secret),
+        "display formatting must not expose the validated input",
+    );
 }
 
 /// Verifies the pattern error emitted when a match is required.
@@ -338,8 +344,14 @@ fn test_require_match_returns_pattern_error_without_input() {
             expectation: PatternExpectation::Match,
         },
     );
-    assert!(!format!("{error:?}").contains(secret));
-    assert!(!error.to_string().contains(secret));
+    assert!(
+        !format!("{error:?}").contains(secret),
+        "debug formatting must not expose the validated input",
+    );
+    assert!(
+        !error.to_string().contains(secret),
+        "display formatting must not expose the validated input",
+    );
 }
 
 /// Verifies the pattern error emitted when a non-match is required.
@@ -381,5 +393,8 @@ fn test_pattern_methods_preserve_borrowed_str() {
         .require_match("name", &Regex::new("^[a-z]+$").expect("test pattern is valid"))
         .and_then(|matched| matched.require_not_match("name", &Regex::new("^[0-9]+$").expect("test pattern is valid")))
         .expect("the borrowed string satisfies both pattern constraints");
-    assert!(std::ptr::eq(validated, value));
+    assert!(
+        std::ptr::eq(validated, value),
+        "borrowed validation must preserve the original string reference",
+    );
 }

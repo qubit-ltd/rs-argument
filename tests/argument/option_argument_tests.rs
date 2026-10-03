@@ -97,7 +97,10 @@ fn test_validate_if_some_skips_validator_for_none() {
         })
         .expect("missing optional value does not require validation");
     assert_eq!(validated, None);
-    assert!(!validator_called.get());
+    assert!(
+        !validator_called.get(),
+        "a missing optional value must not invoke the validator",
+    );
 }
 
 #[test]
@@ -176,7 +179,10 @@ fn test_validate_some_skips_validator_for_none() {
         })
         .expect("missing optional value does not require validation");
     assert_eq!(validated, None);
-    assert!(!validator_called.get());
+    assert!(
+        !validator_called.get(),
+        "a missing optional value must not invoke the validator",
+    );
 }
 
 /// Verifies a present value invokes the owned validator exactly once.

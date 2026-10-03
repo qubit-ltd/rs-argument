@@ -11,6 +11,15 @@ use crate::argument::ArgumentValue;
 
 /// A comparison between an argument and a captured scalar value.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::{ArgumentValue, ComparisonConstraint};
+///
+/// let constraint = ComparisonConstraint::AtLeast(ArgumentValue::from(10_i32));
+/// assert!(matches!(constraint, ComparisonConstraint::AtLeast(_)));
+/// ```
+///
 /// ```compile_fail
 /// #![deny(unused_must_use)]
 /// use qubit_argument::{ArgumentValue, ComparisonConstraint};

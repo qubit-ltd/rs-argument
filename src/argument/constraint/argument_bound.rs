@@ -11,6 +11,15 @@ use crate::argument::ArgumentValue;
 
 /// One side of a numeric range constraint.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::{ArgumentBound, ArgumentValue};
+///
+/// let bound = ArgumentBound::Included(ArgumentValue::from(5_i32));
+/// assert!(matches!(bound, ArgumentBound::Included(_)));
+/// ```
+///
 /// ```compile_fail
 /// #![deny(unused_must_use)]
 /// use qubit_argument::ArgumentBound;

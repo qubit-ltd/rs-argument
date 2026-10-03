@@ -9,6 +9,15 @@
 
 /// The role of an index in an indexed argument operation.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::IndexRole;
+///
+/// let role = IndexRole::Position;
+/// assert!(matches!(role, IndexRole::Position));
+/// ```
+///
 /// ```compile_fail
 /// #![deny(unused_must_use)]
 /// use qubit_argument::IndexRole;

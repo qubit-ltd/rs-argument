@@ -27,6 +27,15 @@ use crate::argument::internal::Sealed;
 /// [`ArgumentErrorKind::NotANumber`].
 ///
 /// The trait is sealed and implemented only for primitive numeric types.
+///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::NumericArgument;
+///
+/// let value = 5_i32.require_in_range("value", 1..=10).unwrap();
+/// assert_eq!(value, 5);
+/// ```
 pub trait NumericArgument: Sealed + Sized {
     /// Requires this value to equal zero.
     ///
@@ -341,7 +350,7 @@ where
 /// The lower and upper endpoint accessors are each invoked exactly once. The
 /// returned values are reused for constraint construction, validation, and
 /// membership checks.
-#[inline(always)]
+#[inline]
 fn snapshot_range_bounds<T, R>(range: &R) -> (Bound<T>, Bound<T>)
 where
     T: NumericValue,
@@ -372,7 +381,7 @@ where
 ///
 /// The returned constraint preserves inclusive, exclusive, unbounded, and
 /// floating-point bit-pattern details exactly.
-#[inline(always)]
+#[inline]
 fn capture_range_constraint<T>(lower_bound: Bound<T>, upper_bound: Bound<T>) -> RangeConstraint
 where
     T: NumericValue,

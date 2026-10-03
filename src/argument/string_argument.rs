@@ -28,6 +28,15 @@ use crate::argument::internal::Sealed;
 /// [`LengthMetric::UnicodeScalars`] for character-count methods.
 ///
 /// The trait is sealed and implemented only for `String` and `&str`.
+///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::StringArgument;
+///
+/// let value = "hello".require_non_blank("name").unwrap();
+/// assert_eq!(value, "hello");
+/// ```
 pub trait StringArgument: Sealed + Sized {
     /// Requires this string to contain at least one non-whitespace character.
     ///
@@ -111,7 +120,6 @@ impl StringArgument for &str {
     /// Validates Unicode blankness and returns the original borrow.
     ///
     /// `path` identifies a [`ArgumentErrorKind::Blank`] failure.
-    #[inline]
     fn require_non_blank(self, path: &str) -> ArgumentResult<Self> {
         validate_non_blank(self, path)?;
         Ok(self)
@@ -163,7 +171,6 @@ impl StringArgument for &str {
     /// borrow.
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
-    #[inline]
     fn require_char_count(self, path: &str, expected: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -178,7 +185,6 @@ impl StringArgument for &str {
     /// borrow.
     ///
     /// A count below `min` returns [`ArgumentErrorKind::Length`] at `path`.
-    #[inline]
     fn require_char_count_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -193,7 +199,6 @@ impl StringArgument for &str {
     /// borrow.
     ///
     /// A count above `max` returns [`ArgumentErrorKind::Length`] at `path`.
-    #[inline]
     fn require_char_count_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -209,7 +214,6 @@ impl StringArgument for &str {
     ///
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range count returns [`ArgumentErrorKind::Length`].
-    #[inline]
     fn require_char_count_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -225,7 +229,6 @@ impl StringArgument for &str {
     /// A non-match returns [`ArgumentErrorKind::Pattern`] at `path` without
     /// capturing the input string.
     #[cfg(feature = "regex")]
-    #[inline]
     fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self, path, pattern, PatternExpectation::Match)?;
         Ok(self)
@@ -236,7 +239,6 @@ impl StringArgument for &str {
     /// A match returns [`ArgumentErrorKind::Pattern`] at `path` without
     /// capturing the input string.
     #[cfg(feature = "regex")]
-    #[inline]
     fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self, path, pattern, PatternExpectation::NoMatch)?;
         Ok(self)
@@ -247,7 +249,6 @@ impl StringArgument for String {
     /// Validates Unicode blankness and returns the original owned string.
     ///
     /// `path` identifies a [`ArgumentErrorKind::Blank`] failure.
-    #[inline]
     fn require_non_blank(self, path: &str) -> ArgumentResult<Self> {
         validate_non_blank(self.as_str(), path)?;
         Ok(self)
@@ -298,7 +299,6 @@ impl StringArgument for String {
     /// Validates the exact Unicode scalar count and returns the owned string.
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
-    #[inline]
     fn require_char_count(self, path: &str, expected: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -312,7 +312,6 @@ impl StringArgument for String {
     /// Validates the minimum Unicode scalar count and returns the owned string.
     ///
     /// A count below `min` returns [`ArgumentErrorKind::Length`] at `path`.
-    #[inline]
     fn require_char_count_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -326,7 +325,6 @@ impl StringArgument for String {
     /// Validates the maximum Unicode scalar count and returns the owned string.
     ///
     /// A count above `max` returns [`ArgumentErrorKind::Length`] at `path`.
-    #[inline]
     fn require_char_count_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -342,7 +340,6 @@ impl StringArgument for String {
     ///
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range count returns [`ArgumentErrorKind::Length`].
-    #[inline]
     fn require_char_count_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -358,7 +355,6 @@ impl StringArgument for String {
     /// A non-match returns [`ArgumentErrorKind::Pattern`] at `path` without
     /// capturing the input string.
     #[cfg(feature = "regex")]
-    #[inline]
     fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self.as_str(), path, pattern, PatternExpectation::Match)?;
         Ok(self)
@@ -369,7 +365,6 @@ impl StringArgument for String {
     /// A match returns [`ArgumentErrorKind::Pattern`] at `path` without
     /// capturing the input string.
     #[cfg(feature = "regex")]
-    #[inline]
     fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self.as_str(), path, pattern, PatternExpectation::NoMatch)?;
         Ok(self)
@@ -381,7 +376,6 @@ impl StringArgument for String {
 /// `value` is inspected without allocation. The function returns `Ok(())`
 /// when at least one scalar value is not whitespace; otherwise, it returns
 /// [`ArgumentErrorKind::Blank`] at `path` without storing `value`.
-#[inline]
 fn validate_non_blank(value: &str, path: &str) -> ArgumentResult<()> {
     if value.chars().all(char::is_whitespace) {
         Err(ArgumentError::new(path, ArgumentErrorKind::Blank))
@@ -440,7 +434,6 @@ fn validate_length(
 /// [`ArgumentErrorKind::Pattern`] containing only the pattern text and
 /// expectation, never `value`.
 #[cfg(feature = "regex")]
-#[inline]
 fn validate_pattern(value: &str, path: &str, pattern: &Regex, expectation: PatternExpectation) -> ArgumentResult<()> {
     let matches = pattern.is_match(value);
     let is_valid = match expectation {
