@@ -22,6 +22,15 @@ use crate::argument::internal::Sealed;
 /// [`LengthMetric::Elements`].
 ///
 /// The trait is sealed to those library-supported collection forms.
+///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::CollectionArgument;
+///
+/// let values = vec![1, 2, 3].require_len("items", 3).unwrap();
+/// assert_eq!(values, [1, 2, 3]);
+/// ```
 pub trait CollectionArgument: Sealed + Sized {
     /// Requires this collection to contain at least one element.
     ///

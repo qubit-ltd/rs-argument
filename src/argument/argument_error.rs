@@ -28,6 +28,15 @@ use crate::argument::RangeConstraint;
 /// [`Display`] escapes caller-provided fields into a single-line diagnostic;
 /// accessors and [`Debug`] continue to expose the original structured values.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::{ArgumentError, ArgumentErrorKind};
+///
+/// let error = ArgumentError::new("value", ArgumentErrorKind::Missing);
+/// assert_eq!(error.to_string(), "argument 'value' is missing");
+/// ```
+///
 /// ```compile_fail
 /// #![deny(unused_must_use)]
 /// use qubit_argument::{ArgumentError, ArgumentErrorKind};
@@ -37,7 +46,9 @@ use crate::argument::RangeConstraint;
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArgumentError {
+    /// Owns the location of the argument that failed validation.
     path: ArgumentPath,
+    /// Owns the structured reason for the validation failure.
     kind: Box<ArgumentErrorKind>,
 }
 
@@ -55,13 +66,15 @@ impl ArgumentError {
     }
 
     /// Returns the path of the argument that failed validation.
-    #[inline(always)]
+    #[must_use = "the caller should inspect the argument path"]
+    #[inline]
     pub fn path(&self) -> &ArgumentPath {
         &self.path
     }
 
     /// Returns the structured validation failure kind.
-    #[inline(always)]
+    #[must_use = "the caller should inspect the structured error kind"]
+    #[inline]
     pub fn kind(&self) -> &ArgumentErrorKind {
         self.kind.as_ref()
     }

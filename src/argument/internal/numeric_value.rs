@@ -60,7 +60,7 @@ macro_rules! impl_numeric_value_for_integer {
                 /// # Returns
                 ///
                 /// The exact structured integer value.
-                #[inline(always)]
+                #[inline]
                 fn to_argument_value(self) -> ArgumentValue {
                     ArgumentValue::from(self)
                 }
@@ -70,7 +70,7 @@ macro_rules! impl_numeric_value_for_integer {
                 /// # Returns
                 ///
                 /// Always `false`.
-                #[inline(always)]
+                #[inline]
                 fn is_nan(self) -> bool {
                     false
                 }
@@ -98,7 +98,7 @@ impl NumericValue for f32 {
     /// # Returns
     ///
     /// The exact structured floating-point value.
-    #[inline(always)]
+    #[inline]
     fn to_argument_value(self) -> ArgumentValue {
         ArgumentValue::from(self)
     }
@@ -108,7 +108,7 @@ impl NumericValue for f32 {
     /// # Returns
     ///
     /// `true` when this value is NaN; otherwise, `false`.
-    #[inline(always)]
+    #[inline]
     fn is_nan(self) -> bool {
         self.is_nan()
     }
@@ -130,7 +130,7 @@ impl NumericValue for f64 {
     /// # Returns
     ///
     /// The exact structured floating-point value.
-    #[inline(always)]
+    #[inline]
     fn to_argument_value(self) -> ArgumentValue {
         ArgumentValue::from(self)
     }
@@ -140,7 +140,7 @@ impl NumericValue for f64 {
     /// # Returns
     ///
     /// `true` when this value is NaN; otherwise, `false`.
-    #[inline(always)]
+    #[inline]
     fn is_nan(self) -> bool {
         self.is_nan()
     }

@@ -23,6 +23,17 @@ use crate::argument::internal::Sealed;
 /// [`ArgumentValue`] values.
 ///
 /// The trait is sealed and implemented only for [`Duration`].
+///
+/// # Examples
+///
+/// ```
+/// use std::time::Duration;
+///
+/// use qubit_argument::DurationArgument;
+///
+/// let timeout = Duration::from_secs(5).require_positive("timeout").unwrap();
+/// assert_eq!(timeout, Duration::from_secs(5));
+/// ```
 pub trait DurationArgument: Sealed + Sized {
     /// Requires this duration to be strictly greater than zero.
     ///

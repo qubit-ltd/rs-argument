@@ -13,6 +13,15 @@
 /// constraints remain distinguishable across strings and collections.
 /// This enum is non-exhaustive; downstream matches must include a wildcard arm.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::LengthMetric;
+///
+/// let metric = LengthMetric::UnicodeScalars;
+/// assert!(matches!(metric, LengthMetric::UnicodeScalars));
+/// ```
+///
 /// ```compile_fail
 /// use qubit_argument::LengthMetric;
 ///

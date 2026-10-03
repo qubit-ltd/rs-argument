@@ -9,6 +9,15 @@
 
 /// Whether a string is expected to match a pattern.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::PatternExpectation;
+///
+/// let expectation = PatternExpectation::Match;
+/// assert!(matches!(expectation, PatternExpectation::Match));
+/// ```
+///
 /// ```compile_fail
 /// #![deny(unused_must_use)]
 /// use qubit_argument::PatternExpectation;

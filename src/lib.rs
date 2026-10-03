@@ -24,7 +24,9 @@
 //! # Ownership-preserving validation
 //!
 //! ```rust
-//! use qubit_argument::{ArgumentResult, NumericArgument, StringArgument};
+//! use qubit_argument::ArgumentResult;
+//! use qubit_argument::NumericArgument;
+//! use qubit_argument::StringArgument;
 //!
 //! fn validate_user(age: u8, name: String) -> ArgumentResult<(u8, String)> {
 //!     let age = age.require_in_range("age", 0..=150)?;
@@ -45,7 +47,8 @@
 //! without a `map_err` adapter:
 //!
 //! ```rust
-//! use qubit_argument::{ArgumentError, NumericArgument};
+//! use qubit_argument::ArgumentError;
+//! use qubit_argument::NumericArgument;
 //!
 //! #[derive(Debug)]
 //! enum DomainError {
@@ -79,11 +82,9 @@
 //! ```rust
 //! use std::time::Duration;
 //!
-//! use qubit_argument::{
-//!     ArgumentResult,
-//!     ArgumentResultExt,
-//!     DurationArgument,
-//! };
+//! use qubit_argument::ArgumentResult;
+//! use qubit_argument::ArgumentResultExt;
+//! use qubit_argument::DurationArgument;
 //!
 //! fn validate_timeouts(connect: Duration) -> ArgumentResult<()> {
 //!     connect.require_positive("connect")?;

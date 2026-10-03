@@ -23,6 +23,15 @@ use std::time::Duration;
 /// This enum is non-exhaustive. Downstream matches must include a wildcard arm
 /// so future scalar representations can be added without a breaking release.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::ArgumentValue;
+///
+/// let value = ArgumentValue::from(1.5_f32);
+/// assert_eq!(value.to_string(), "1.5");
+/// ```
+///
 /// ```compile_fail
 /// use qubit_argument::ArgumentValue;
 ///
@@ -64,7 +73,7 @@ macro_rules! impl_from_signed_integer {
         $(
             impl From<$source> for ArgumentValue {
                 /// Converts a signed primitive integer without losing its value.
-                #[inline(always)]
+                #[inline]
                 fn from(value: $source) -> Self {
                     Self::Signed(value as i128)
                 }
@@ -78,7 +87,7 @@ macro_rules! impl_from_unsigned_integer {
         $(
             impl From<$source> for ArgumentValue {
                 /// Converts an unsigned primitive integer without losing its value.
-                #[inline(always)]
+                #[inline]
                 fn from(value: $source) -> Self {
                     Self::Unsigned(value as u128)
                 }
@@ -92,7 +101,7 @@ impl_from_unsigned_integer!(u8, u16, u32, u64, u128, usize);
 
 impl From<f32> for ArgumentValue {
     /// Captures the exact IEEE 754 bit pattern of a 32-bit float.
-    #[inline(always)]
+    #[inline]
     fn from(value: f32) -> Self {
         Self::Float32(value.to_bits())
     }
@@ -100,7 +109,7 @@ impl From<f32> for ArgumentValue {
 
 impl From<f64> for ArgumentValue {
     /// Captures the exact IEEE 754 bit pattern of a 64-bit float.
-    #[inline(always)]
+    #[inline]
     fn from(value: f64) -> Self {
         Self::Float64(value.to_bits())
     }
@@ -108,7 +117,7 @@ impl From<f64> for ArgumentValue {
 
 impl From<Duration> for ArgumentValue {
     /// Captures an exact standard-library duration value.
-    #[inline(always)]
+    #[inline]
     fn from(value: Duration) -> Self {
         Self::Duration(value)
     }

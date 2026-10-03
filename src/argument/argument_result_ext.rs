@@ -17,6 +17,19 @@ use crate::argument::internal::Sealed;
 /// supplied parent path while preserving the structured failure kind.
 ///
 /// The trait is sealed and implemented only for [`ArgumentResult`].
+///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::{ArgumentError, ArgumentErrorKind, ArgumentResultExt};
+///
+/// let result: Result<(), _> = Err(ArgumentError::new(
+///     "value",
+///     ArgumentErrorKind::Missing,
+/// ));
+/// let error = result.with_path_prefix("user").unwrap_err();
+/// assert_eq!(error.path().as_str(), "user.value");
+/// ```
 pub trait ArgumentResultExt<T>: Sealed + Sized {
     /// Prepends a parent path to a validation failure.
     ///
@@ -33,7 +46,7 @@ pub trait ArgumentResultExt<T>: Sealed + Sized {
 
 impl<T> ArgumentResultExt<T> for ArgumentResult<T> {
     /// Prefixes only the error branch and leaves success values untouched.
-    #[inline(always)]
+    #[inline]
     fn with_path_prefix(self, prefix: &str) -> ArgumentResult<T> {
         self.map_err(|error| error.with_path_prefix(prefix))
     }

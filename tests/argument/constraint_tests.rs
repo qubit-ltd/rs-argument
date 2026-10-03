@@ -39,40 +39,43 @@ fn test_into_bounds_returns_owned_bounds() {
 /// Verifies that every length constraint variant is available.
 #[test]
 fn test_length_constraint_exposes_all_variants() {
-    assert_eq!(LengthConstraint::Exact(3), LengthConstraint::Exact(3));
-    assert_eq!(LengthConstraint::AtLeast(3), LengthConstraint::AtLeast(3));
-    assert_eq!(LengthConstraint::AtMost(3), LengthConstraint::AtMost(3));
-    assert_eq!(
+    assert!(matches!(LengthConstraint::Exact(3), LengthConstraint::Exact(3)));
+    assert!(matches!(LengthConstraint::AtLeast(3), LengthConstraint::AtLeast(3)));
+    assert!(matches!(LengthConstraint::AtMost(3), LengthConstraint::AtMost(3)));
+    assert!(matches!(
         LengthConstraint::InRange { min: 2, max: 4 },
         LengthConstraint::InRange { min: 2, max: 4 }
-    );
+    ));
 }
 
 /// Verifies that every comparison constraint variant retains its value.
 #[test]
 fn test_comparison_constraint_exposes_all_variants() {
     let value = ArgumentValue::from(7_i32);
-    assert_eq!(
+    assert!(matches!(
         ComparisonConstraint::EqualTo(value),
-        ComparisonConstraint::EqualTo(value)
-    );
-    assert_eq!(
+        ComparisonConstraint::EqualTo(ArgumentValue::Signed(7)),
+    ));
+    assert!(matches!(
         ComparisonConstraint::NotEqualTo(value),
-        ComparisonConstraint::NotEqualTo(value)
-    );
-    assert_eq!(
+        ComparisonConstraint::NotEqualTo(ArgumentValue::Signed(7)),
+    ));
+    assert!(matches!(
         ComparisonConstraint::LessThan(value),
-        ComparisonConstraint::LessThan(value)
-    );
-    assert_eq!(ComparisonConstraint::AtMost(value), ComparisonConstraint::AtMost(value));
-    assert_eq!(
+        ComparisonConstraint::LessThan(ArgumentValue::Signed(7)),
+    ));
+    assert!(matches!(
+        ComparisonConstraint::AtMost(value),
+        ComparisonConstraint::AtMost(ArgumentValue::Signed(7)),
+    ));
+    assert!(matches!(
         ComparisonConstraint::GreaterThan(value),
-        ComparisonConstraint::GreaterThan(value)
-    );
-    assert_eq!(
+        ComparisonConstraint::GreaterThan(ArgumentValue::Signed(7)),
+    ));
+    assert!(matches!(
         ComparisonConstraint::AtLeast(value),
-        ComparisonConstraint::AtLeast(value)
-    );
+        ComparisonConstraint::AtLeast(ArgumentValue::Signed(7)),
+    ));
 }
 
 /// Verifies that index roles distinguish element and position indexes.

@@ -21,6 +21,15 @@ use crate::argument::internal::Sealed;
 /// The trait is sealed: downstream crates can use its methods but cannot add
 /// implementations for other types.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::FloatArgument;
+///
+/// let value = 1.5_f64.require_finite("ratio").unwrap();
+/// assert_eq!(value, 1.5);
+/// ```
+///
 /// ```compile_fail
 /// use qubit_argument::{ArgumentResult, FloatArgument};
 ///

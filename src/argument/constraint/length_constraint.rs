@@ -12,6 +12,15 @@
 /// [`LengthMetric`](super::LengthMetric) identifies the measurement unit in a
 /// structured validation error.
 ///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::LengthConstraint;
+///
+/// let constraint = LengthConstraint::InRange { min: 2, max: 5 };
+/// assert!(matches!(constraint, LengthConstraint::InRange { min: 2, max: 5 }));
+/// ```
+///
 /// ```compile_fail
 /// #![deny(unused_must_use)]
 /// use qubit_argument::LengthConstraint;
