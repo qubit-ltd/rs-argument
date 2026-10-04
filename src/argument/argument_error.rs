@@ -57,6 +57,15 @@ impl ArgumentError {
     ///
     /// `path` is copied only while constructing the error. The supplied
     /// `kind` is retained unchanged.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: The path identifying the argument that failed validation.
+    /// - `kind`: The structured reason for the validation failure.
+    ///
+    /// # Returns
+    ///
+    /// An error that owns the path and failure kind.
     #[inline]
     pub fn new(path: &str, kind: ArgumentErrorKind) -> Self {
         Self {
@@ -66,6 +75,10 @@ impl ArgumentError {
     }
 
     /// Returns the path of the argument that failed validation.
+    ///
+    /// # Returns
+    ///
+    /// The path borrowed from this error.
     #[must_use = "the caller should inspect the argument path"]
     #[inline]
     pub fn path(&self) -> &ArgumentPath {
@@ -73,6 +86,10 @@ impl ArgumentError {
     }
 
     /// Returns the structured validation failure kind.
+    ///
+    /// # Returns
+    ///
+    /// The failure kind borrowed from this error.
     #[must_use = "the caller should inspect the structured error kind"]
     #[inline]
     pub fn kind(&self) -> &ArgumentErrorKind {
@@ -98,6 +115,10 @@ impl ArgumentError {
     ///
     /// The first tuple element is the argument path and the second is the
     /// structured failure kind.
+    ///
+    /// # Returns
+    ///
+    /// The owned argument path and structured failure kind, in that order.
     #[inline]
     pub fn into_parts(self) -> (ArgumentPath, ArgumentErrorKind) {
         let Self { path, kind } = self;

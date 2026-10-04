@@ -71,7 +71,7 @@ fn test_from_wraps_argument_error_with_question_mark() {
     let error = fail_with_missing_argument().expect_err("missing token must fail");
     assert_eq!(
         error,
-        WrappedDomainError::InvalidArgument(ArgumentError::new("token", ArgumentErrorKind::Missing,)),
+        WrappedDomainError::InvalidArgument(ArgumentError::new("token", ArgumentErrorKind::Missing)),
     );
 }
 

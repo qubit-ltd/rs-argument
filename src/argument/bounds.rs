@@ -21,6 +21,19 @@ use crate::argument::IndexRole;
 /// error strings. If it returns `false`, `path`, `code`, and `message` identify
 /// the failed validation rule.
 ///
+/// # Parameters
+///
+/// - `value`: the value to validate and return unchanged on success.
+/// - `path`: the argument path to attach to a validation error.
+/// - `predicate`: a one-shot check that borrows `value`.
+/// - `code`: the custom error code copied into an error if validation fails.
+/// - `message`: the custom error message copied into an error if validation
+///   fails.
+///
+/// # Returns
+///
+/// The original `value` when the predicate succeeds.
+///
 /// # Errors
 ///
 /// Returns [`ArgumentErrorKind::Custom`] when `predicate` returns `false`.
@@ -48,6 +61,17 @@ where
 /// `offset` may equal `total_length` only when `length` is zero. Validation
 /// checks the offset before subtracting it from the total, so it never computes
 /// an unchecked sum of the offset and length.
+///
+/// # Parameters
+///
+/// - `path`: the argument path to attach to a bounds error.
+/// - `offset`: the starting position, which must not exceed `total_length`.
+/// - `length`: the requested span, which must fit after `offset`.
+/// - `total_length`: the total number of units available.
+///
+/// # Returns
+///
+/// `()` when the requested span fits within the total length.
 ///
 /// # Errors
 ///
@@ -83,6 +107,16 @@ pub fn check_bounds(path: &str, offset: usize, length: usize, total_length: usiz
 /// `index` is valid exactly when it is strictly less than `size`. On success,
 /// the validated index is returned unchanged.
 ///
+/// # Parameters
+///
+/// - `path`: the argument path to attach to an index error.
+/// - `index`: the element index to validate.
+/// - `size`: the number of elements available.
+///
+/// # Returns
+///
+/// The validated `index` unchanged.
+///
 /// # Errors
 ///
 /// Returns [`ArgumentErrorKind::Index`] with [`IndexRole::Element`] when
@@ -108,6 +142,16 @@ pub fn check_element_index(path: &str, index: usize, size: usize) -> ArgumentRes
 /// position immediately after the final element. On success, the validated
 /// index is returned unchanged.
 ///
+/// # Parameters
+///
+/// - `path`: the argument path to attach to an index error.
+/// - `index`: the boundary position to validate.
+/// - `size`: the number of elements, and therefore the greatest valid position.
+///
+/// # Returns
+///
+/// The validated `index` unchanged.
+///
 /// # Errors
 ///
 /// Returns [`ArgumentErrorKind::Index`] with [`IndexRole::Position`] when
@@ -132,6 +176,17 @@ pub fn check_position_index(path: &str, index: usize, size: usize) -> ArgumentRe
 /// `start` and `end` are valid when `start <= end <= size`. Equal endpoints
 /// are accepted and produce an empty range. On success, this function returns
 /// the validated `start..end` range.
+///
+/// # Parameters
+///
+/// - `path`: the argument path to attach to an index-range error.
+/// - `start`: the inclusive beginning boundary.
+/// - `end`: the exclusive ending boundary.
+/// - `size`: the number of elements, which bounds both positions.
+///
+/// # Returns
+///
+/// The validated half-open range `start..end`.
 ///
 /// # Errors
 ///

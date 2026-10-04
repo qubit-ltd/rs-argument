@@ -48,6 +48,19 @@ pub trait FloatArgument: Sealed + Sized {
     /// [`ArgumentErrorKind::NotANumber`]; positive or negative infinity returns
     /// [`ArgumentErrorKind::NotFinite`] with the exact floating-point value at
     /// `path`.
+    ///
+    /// # Parameters
+    ///
+    /// * `path` — the argument path to include in any validation error.
+    ///
+    /// # Returns
+    ///
+    /// The original value when it is finite.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::NotANumber`] for NaN, or
+    /// [`ArgumentErrorKind::NotFinite`] for positive or negative infinity.
     fn require_finite(self, path: &str) -> ArgumentResult<Self>;
 }
 

@@ -40,6 +40,18 @@ pub trait DurationArgument: Sealed + Sized {
     /// Success returns the original duration. A zero duration returns
     /// [`ArgumentErrorKind::Comparison`] with a `GreaterThan(Duration::ZERO)`
     /// constraint at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged duration when it is nonzero.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Comparison`] when the duration is zero.
     fn require_positive(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this duration to be strictly less than `bound`.
@@ -47,6 +59,20 @@ pub trait DurationArgument: Sealed + Sized {
     /// Success returns the original duration. An unsatisfied comparison
     /// returns [`ArgumentErrorKind::Comparison`] at `path` with the exact
     /// duration bound.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `bound`: The exclusive upper bound for the duration.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged duration when it is less than `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Comparison`] when the duration is greater
+    /// than or equal to `bound`.
     fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this duration to be less than or equal to `bound`.
@@ -54,6 +80,20 @@ pub trait DurationArgument: Sealed + Sized {
     /// Success returns the original duration. An unsatisfied comparison
     /// returns [`ArgumentErrorKind::Comparison`] at `path` with the exact
     /// duration bound.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `bound`: The inclusive upper bound for the duration.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged duration when it is less than or equal to `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Comparison`] when the duration exceeds
+    /// `bound`.
     fn require_at_most(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this duration to be strictly greater than `bound`.
@@ -61,6 +101,20 @@ pub trait DurationArgument: Sealed + Sized {
     /// Success returns the original duration. An unsatisfied comparison
     /// returns [`ArgumentErrorKind::Comparison`] at `path` with the exact
     /// duration bound.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `bound`: The exclusive lower bound for the duration.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged duration when it is greater than `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Comparison`] when the duration is less
+    /// than or equal to `bound`.
     fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this duration to be greater than or equal to `bound`.
@@ -68,6 +122,20 @@ pub trait DurationArgument: Sealed + Sized {
     /// Success returns the original duration. An unsatisfied comparison
     /// returns [`ArgumentErrorKind::Comparison`] at `path` with the exact
     /// duration bound.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `bound`: The inclusive lower bound for the duration.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged duration when it is greater than or equal to `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Comparison`] when the duration is less
+    /// than `bound`.
     fn require_at_least(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 }
 
@@ -138,6 +206,23 @@ impl DurationArgument for Duration {
 /// `actual` and `bound` are passed to `predicate` exactly once. If the
 /// predicate returns `false`, the error records `actual`, `constraint`, and
 /// `path` without converting the duration to a unitless number.
+///
+/// # Parameters
+///
+/// - `actual`: The duration being validated.
+/// - `path`: The argument path to include in an error.
+/// - `bound`: The duration compared with `actual`.
+/// - `constraint`: The comparison constraint to store if validation fails.
+/// - `predicate`: The comparison to apply to `actual` and `bound`.
+///
+/// # Returns
+///
+/// Returns `actual` unchanged when `predicate` returns `true`.
+///
+/// # Errors
+///
+/// Returns a comparison error containing `actual`, `constraint`, and `path`
+/// when `predicate` returns `false`.
 #[inline]
 fn validate_duration_comparison<F>(
     actual: Duration,

@@ -11,9 +11,14 @@ use std::time::Duration;
 
 use crate::argument::ArgumentError;
 
-/// Prevents downstream crates from implementing validation extension traits.
+/// Restricts validation extension traits to types implemented by this crate.
+///
+/// Downstream crates cannot name this private marker trait, so they cannot
+/// implement it for additional types and thereby opt those types into the
+/// crate's validation extensions.
 pub trait Sealed {}
 
+/// Implements the private marker for each listed primitive type.
 macro_rules! impl_sealed_for_primitive {
     ($($primitive_type:ty),+ $(,)?) => {
         $(

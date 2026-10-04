@@ -27,9 +27,16 @@ fn test_range_constraint_exposes_bounds_by_reference() {
 /// order.
 #[test]
 fn test_range_constraint_into_bounds_preserves_order() {
-    let lower = ArgumentBound::Unbounded;
-    let upper = ArgumentBound::Included(ArgumentValue::from(10_i32));
-    let constraint = RangeConstraint::new(lower.clone(), upper.clone());
+    let constraint = RangeConstraint::new(
+        ArgumentBound::Unbounded,
+        ArgumentBound::Included(ArgumentValue::from(10_i32)),
+    );
 
-    assert_eq!(constraint.into_bounds(), (lower, upper));
+    assert_eq!(
+        constraint.into_bounds(),
+        (
+            ArgumentBound::Unbounded,
+            ArgumentBound::Included(ArgumentValue::from(10_i32)),
+        ),
+    );
 }

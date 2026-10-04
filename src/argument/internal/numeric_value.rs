@@ -21,6 +21,7 @@ pub(in crate::argument) trait NumericValue: Sealed + Copy + PartialOrd {
     /// # Returns
     ///
     /// The type's zero value.
+    #[must_use]
     fn zero() -> Self;
 
     /// Captures this value without losing integer magnitude or floating bits.
@@ -37,6 +38,7 @@ pub(in crate::argument) trait NumericValue: Sealed + Copy + PartialOrd {
     /// # Returns
     ///
     /// `true` for a floating-point NaN; otherwise, `false`.
+    #[must_use]
     fn is_nan(self) -> bool;
 }
 

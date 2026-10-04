@@ -32,7 +32,11 @@ use crate::argument::ArgumentBound;
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RangeConstraint {
+    /// The lower endpoint, including whether it is inclusive, exclusive, or
+    /// absent.
     lower: ArgumentBound,
+    /// The upper endpoint, including whether it is inclusive, exclusive, or
+    /// absent.
     upper: ArgumentBound,
 }
 
@@ -41,12 +45,25 @@ impl RangeConstraint {
     ///
     /// The bounds are retained exactly as supplied and are not ordered or
     /// otherwise validated.
+    ///
+    /// # Parameters
+    ///
+    /// * `lower` - The lower endpoint and its inclusion mode.
+    /// * `upper` - The upper endpoint and its inclusion mode.
+    ///
+    /// # Returns
+    ///
+    /// The range containing the supplied bounds.
     #[inline]
     pub fn new(lower: ArgumentBound, upper: ArgumentBound) -> Self {
         Self { lower, upper }
     }
 
     /// Returns the lower bound of this range.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the lower endpoint and its inclusion mode.
     #[must_use = "the caller should inspect the lower range bound"]
     #[inline]
     pub fn lower(&self) -> &ArgumentBound {
@@ -54,6 +71,10 @@ impl RangeConstraint {
     }
 
     /// Returns the upper bound of this range.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the upper endpoint and its inclusion mode.
     #[must_use = "the caller should inspect the upper range bound"]
     #[inline]
     pub fn upper(&self) -> &ArgumentBound {
@@ -64,6 +85,10 @@ impl RangeConstraint {
     ///
     /// The first tuple element is the lower bound and the second is the upper
     /// bound.
+    ///
+    /// # Returns
+    ///
+    /// The owned lower and upper bounds, in that order.
     #[inline]
     pub fn into_bounds(self) -> (ArgumentBound, ArgumentBound) {
         let Self { lower, upper } = self;
