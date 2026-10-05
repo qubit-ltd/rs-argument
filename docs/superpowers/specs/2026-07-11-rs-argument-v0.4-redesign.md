@@ -347,7 +347,7 @@ cargo test --all-features
 ./.infra/bin/ci-check.sh
 ```
 
-`align-ci.sh` 产生的项目对齐改动属于本次范围。`ci-check.sh` 失败时修复本次重构引入的问题并重新运行，直至完整通过或报告无法在本地解决的外部阻塞。
+`align-ci.sh` 产生的项目对齐改动属于本次范围。`.infra/bin/ci-check.sh` 失败时修复本次重构引入的问题并重新运行，直至完整通过或报告无法在本地解决的外部阻塞。
 
 ## 12. 成功标准
 
@@ -358,5 +358,5 @@ cargo test --all-features
 - 默认构建不编译 regex，开启 feature 后正则 API 可用。
 - 不存在兼容旧 API 的公开 wrapper。
 - 新测试无明显重复，覆盖正常、错误和边界行为。
-- `align-ci.sh` 和 `ci-check.sh` 完整通过。
+- `align-ci.sh` 和 `.infra/bin/ci-check.sh` 完整通过。
 - 本轮不修改任何真实下游仓库。
