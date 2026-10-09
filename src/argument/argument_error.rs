@@ -309,5 +309,9 @@ fn write_range_constraint(formatter: &mut Formatter<'_>, constraint: &RangeConst
     }
 }
 
-/// Result type returned by argument validation operations.
+/// The result of validating an argument, carrying [`ArgumentError`] on failure.
+///
+/// # Type Parameters
+///
+/// - `T`: The value produced when argument validation succeeds.
 pub type ArgumentResult<T> = Result<T, ArgumentError>;

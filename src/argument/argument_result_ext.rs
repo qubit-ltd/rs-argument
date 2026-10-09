@@ -18,6 +18,10 @@ use crate::argument::internal::Sealed;
 ///
 /// The trait is sealed and implemented only for [`ArgumentResult`].
 ///
+/// # Type Parameters
+///
+/// - `T`: The value type carried by a successful argument result.
+///
 /// # Examples
 ///
 /// ```

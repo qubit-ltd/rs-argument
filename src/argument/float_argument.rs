@@ -31,7 +31,8 @@ use crate::argument::internal::Sealed;
 /// ```
 ///
 /// ```compile_fail
-/// use qubit_argument::{ArgumentResult, FloatArgument};
+/// use qubit_argument::ArgumentResult;
+/// use qubit_argument::FloatArgument;
 ///
 /// struct CustomFloat;
 ///
