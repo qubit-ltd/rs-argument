@@ -89,6 +89,7 @@ impl RangeConstraint {
     /// # Returns
     ///
     /// The owned lower and upper bounds, in that order.
+    #[must_use = "the caller should inspect the range bounds"]
     #[inline]
     pub fn into_bounds(self) -> (ArgumentBound, ArgumentBound) {
         let Self { lower, upper } = self;
