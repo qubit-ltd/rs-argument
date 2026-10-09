@@ -7,6 +7,7 @@
 // =============================================================================
 //! Integration test modules for argument validation.
 
+pub(crate) mod argument_error_kind_tests;
 pub(crate) mod argument_error_tests;
 pub(crate) mod argument_path_tests;
 pub(crate) mod argument_result_ext_tests;

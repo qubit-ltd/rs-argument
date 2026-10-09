@@ -7,6 +7,8 @@
 // =============================================================================
 //! Tests for structured argument validation errors.
 
+use std::error::Error;
+
 use qubit_argument::ArgumentBound;
 use qubit_argument::ArgumentError;
 use qubit_argument::ArgumentErrorKind;
@@ -55,7 +57,7 @@ fn test_argument_error_exposes_structured_parts() {
 #[test]
 fn test_argument_error_implements_standard_traits() {
     /// Asserts the standard bounds required of argument errors.
-    fn assert_traits<T: std::error::Error + Send + Sync + 'static>() {}
+    fn assert_traits<T: Error + Send + Sync + 'static>() {}
 
     assert_traits::<ArgumentError>();
     let error = ArgumentError::new("name", ArgumentErrorKind::Blank);

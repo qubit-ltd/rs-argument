@@ -13,9 +13,11 @@ use qubit_argument::LengthMetric;
 #[test]
 fn test_length_metric_distinguishes_measurement_units() {
     let bytes = LengthMetric::Bytes;
+    let copied_bytes = bytes;
     let unicode_scalars = LengthMetric::UnicodeScalars;
     let elements = LengthMetric::Elements;
 
+    assert_eq!(bytes, copied_bytes);
     assert_eq!(bytes, LengthMetric::Bytes);
     assert_ne!(bytes, unicode_scalars);
     assert_ne!(bytes, elements);
