@@ -45,6 +45,11 @@ pub trait ArgumentResultExt<T>: Sealed + Sized {
     ///
     /// The unchanged successful value, or the original validation error with
     /// its path prefixed.
+    ///
+    /// # Errors
+    ///
+    /// Returns the original validation error with `prefix` prepended to its
+    /// path when the result is an error.
     fn with_path_prefix(self, prefix: &str) -> ArgumentResult<T>;
 }
 

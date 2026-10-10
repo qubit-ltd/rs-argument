@@ -19,11 +19,28 @@ use crate::argument::internal::Sealed;
 /// the original option on success.
 ///
 /// The trait is sealed and implemented only for `Option<T>`.
+///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::OptionArgument;
+///
+/// let value = Some(42).validate_some(|value| Ok(value + 1));
+/// assert_eq!(value.unwrap(), Some(43));
+/// ```
 pub trait OptionArgument<T>: Sealed + Sized {
     /// Requires this option to contain a value.
     ///
     /// A present value is moved out and returned without cloning. An absent
     /// value returns [`ArgumentErrorKind::Missing`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: The argument path reported when the option is absent.
+    ///
+    /// # Returns
+    ///
+    /// The contained value, or an error identifying the missing argument.
     fn require_some(self, path: &str) -> ArgumentResult<T>;
 
     /// Validates a present value by temporary borrow.
@@ -33,6 +50,14 @@ pub trait OptionArgument<T>: Sealed + Sized {
     /// value; it introduces no failure kind of its own and propagates any
     /// [`ArgumentErrorKind`] returned by `validator` unchanged. An absent
     /// option is returned without executing `validator`.
+    ///
+    /// # Parameters
+    ///
+    /// - `validator`: A callback that checks a borrowed present value.
+    ///
+    /// # Returns
+    ///
+    /// The original option on success, or the validator's error unchanged.
     fn validate_if_some<F>(self, validator: F) -> ArgumentResult<Self>
     where
         F: FnOnce(&T) -> ArgumentResult<()>;
@@ -44,6 +69,15 @@ pub trait OptionArgument<T>: Sealed + Sized {
     /// is wrapped in [`Some`] and returned; it may transform the value without
     /// requiring [`Clone`] or [`Copy`]. An absent option is returned without
     /// executing `validator`. Validator errors are propagated unchanged.
+    ///
+    /// # Parameters
+    ///
+    /// - `validator`: A callback that consumes and returns the present value.
+    ///
+    /// # Returns
+    ///
+    /// The validated value wrapped in [`Some`], `None` for an absent option,
+    /// or the validator's error unchanged.
     fn validate_some<F>(self, validator: F) -> ArgumentResult<Self>
     where
         F: FnOnce(T) -> ArgumentResult<T>;

@@ -87,6 +87,10 @@ impl ArgumentPath {
 
 impl AsRef<str> for ArgumentPath {
     /// Borrows the stored path as a string slice.
+    ///
+    /// # Returns
+    ///
+    /// The stored path text, borrowed from `self`.
     #[inline]
     fn as_ref(&self) -> &str {
         self.as_str()
@@ -95,6 +99,19 @@ impl AsRef<str> for ArgumentPath {
 
 impl Display for ArgumentPath {
     /// Writes the stored path text without additional decoration.
+    ///
+    /// # Parameters
+    ///
+    /// - `formatter`: The destination that receives the stored path text.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` after writing the text.
+    ///
+    /// # Errors
+    ///
+    /// Returns the formatting error produced by the destination if writing
+    /// the text fails.
     #[inline]
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         formatter.write_str(self.as_str())
