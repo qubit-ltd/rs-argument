@@ -434,7 +434,12 @@ fn validate_length(
 /// [`ArgumentErrorKind::Pattern`] containing only the pattern text and
 /// expectation, never `value`.
 #[cfg(feature = "regex")]
-fn validate_pattern(value: &str, path: &str, pattern: &Regex, expectation: PatternExpectation) -> ArgumentResult<()> {
+fn validate_pattern(
+    value: &str,
+    path: &str,
+    pattern: &Regex,
+    expectation: PatternExpectation,
+) -> ArgumentResult<()> {
     let matches = pattern.is_match(value);
     let is_valid = match expectation {
         PatternExpectation::Match => matches,

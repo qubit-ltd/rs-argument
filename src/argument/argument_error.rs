@@ -10,6 +10,7 @@
 use std::fmt;
 use std::fmt::Display;
 use std::fmt::Formatter;
+use std::error::Error;
 
 use crate::argument::ArgumentBound;
 use crate::argument::ArgumentErrorKind;
@@ -206,7 +207,7 @@ impl Display for ArgumentError {
     }
 }
 
-impl std::error::Error for ArgumentError {}
+impl Error for ArgumentError {}
 
 /// Escapes caller-provided text for a single-line diagnostic.
 ///
