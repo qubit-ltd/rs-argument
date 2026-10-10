@@ -7,10 +7,10 @@
 // =============================================================================
 //! Structured errors produced by argument validation.
 
+use std::error::Error;
 use std::fmt;
 use std::fmt::Display;
 use std::fmt::Formatter;
-use std::error::Error;
 
 use crate::argument::ArgumentBound;
 use crate::argument::ArgumentErrorKind;
