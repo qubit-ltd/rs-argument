@@ -39,43 +39,45 @@ fn test_into_bounds_returns_owned_bounds() {
 /// Verifies that every length constraint variant is available.
 #[test]
 fn test_length_constraint_exposes_all_variants() {
-    assert!(matches!(LengthConstraint::Exact(3), LengthConstraint::Exact(3)));
-    assert!(matches!(LengthConstraint::AtLeast(3), LengthConstraint::AtLeast(3)));
-    assert!(matches!(LengthConstraint::AtMost(3), LengthConstraint::AtMost(3)));
-    assert!(matches!(
-        LengthConstraint::InRange { min: 2, max: 4 },
-        LengthConstraint::InRange { min: 2, max: 4 }
-    ));
+    let exact = LengthConstraint::Exact(3);
+    let minimum = LengthConstraint::AtLeast(3);
+    let maximum = LengthConstraint::AtMost(3);
+    let range = LengthConstraint::InRange { min: 2, max: 4 };
+
+    assert_ne!(exact, minimum);
+    assert_ne!(exact, maximum);
+    assert_ne!(exact, range);
+    assert_ne!(minimum, maximum);
+    assert_ne!(minimum, range);
+    assert_ne!(maximum, range);
 }
 
 /// Verifies that every comparison constraint variant retains its value.
 #[test]
 fn test_comparison_constraint_exposes_all_variants() {
     let value = ArgumentValue::from(7_i32);
-    assert!(matches!(
-        ComparisonConstraint::EqualTo(value),
-        ComparisonConstraint::EqualTo(ArgumentValue::Signed(7)),
-    ));
-    assert!(matches!(
-        ComparisonConstraint::NotEqualTo(value),
-        ComparisonConstraint::NotEqualTo(ArgumentValue::Signed(7)),
-    ));
-    assert!(matches!(
-        ComparisonConstraint::LessThan(value),
-        ComparisonConstraint::LessThan(ArgumentValue::Signed(7)),
-    ));
-    assert!(matches!(
-        ComparisonConstraint::AtMost(value),
-        ComparisonConstraint::AtMost(ArgumentValue::Signed(7)),
-    ));
-    assert!(matches!(
-        ComparisonConstraint::GreaterThan(value),
-        ComparisonConstraint::GreaterThan(ArgumentValue::Signed(7)),
-    ));
-    assert!(matches!(
-        ComparisonConstraint::AtLeast(value),
-        ComparisonConstraint::AtLeast(ArgumentValue::Signed(7)),
-    ));
+    let equal_to = ComparisonConstraint::EqualTo(value);
+    let not_equal_to = ComparisonConstraint::NotEqualTo(value);
+    let less_than = ComparisonConstraint::LessThan(value);
+    let at_most = ComparisonConstraint::AtMost(value);
+    let greater_than = ComparisonConstraint::GreaterThan(value);
+    let at_least = ComparisonConstraint::AtLeast(value);
+
+    assert_ne!(equal_to, not_equal_to);
+    assert_ne!(equal_to, less_than);
+    assert_ne!(equal_to, at_most);
+    assert_ne!(equal_to, greater_than);
+    assert_ne!(equal_to, at_least);
+    assert_ne!(not_equal_to, less_than);
+    assert_ne!(not_equal_to, at_most);
+    assert_ne!(not_equal_to, greater_than);
+    assert_ne!(not_equal_to, at_least);
+    assert_ne!(less_than, at_most);
+    assert_ne!(less_than, greater_than);
+    assert_ne!(less_than, at_least);
+    assert_ne!(at_most, greater_than);
+    assert_ne!(at_most, at_least);
+    assert_ne!(greater_than, at_least);
 }
 
 /// Verifies that index roles distinguish element and position indexes.

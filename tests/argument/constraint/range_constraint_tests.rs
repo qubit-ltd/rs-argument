@@ -14,13 +14,12 @@ use qubit_argument::RangeConstraint;
 /// Verifies that a range constraint exposes its lower and upper bounds.
 #[test]
 fn test_range_constraint_exposes_bounds_by_reference() {
-    let constraint = RangeConstraint::new(
-        ArgumentBound::Included(ArgumentValue::from(1_i32)),
-        ArgumentBound::Excluded(ArgumentValue::from(4_i32)),
-    );
+    let lower = ArgumentBound::Included(ArgumentValue::from(1_i32));
+    let upper = ArgumentBound::Excluded(ArgumentValue::from(4_i32));
+    let constraint = RangeConstraint::new(lower.clone(), upper.clone());
 
-    assert!(matches!(constraint.lower(), ArgumentBound::Included(_)));
-    assert!(matches!(constraint.upper(), ArgumentBound::Excluded(_)));
+    assert_eq!(constraint.lower(), &lower);
+    assert_eq!(constraint.upper(), &upper);
 }
 
 /// Verifies that a range constraint returns its owned bounds in lower-upper
