@@ -27,7 +27,10 @@ fn test_require_non_empty_preserves_borrowed_slice() {
     let values = [1, 2, 3];
     let slice: &[i32] = &values;
     let validated: &[i32] = slice.require_non_empty("values").expect("slice is non-empty");
-    assert!(std::ptr::eq(validated, slice));
+    assert!(
+        std::ptr::eq(validated, slice),
+        "validation must preserve the borrowed slice"
+    );
 }
 
 #[test]
@@ -77,7 +80,10 @@ fn test_require_len_at_least_checks_minimum_length() {
     let validated: &[i32] = slice
         .require_len_at_least("values", 3)
         .expect("slice meets the inclusive minimum");
-    assert!(std::ptr::eq(validated, slice));
+    assert!(
+        std::ptr::eq(validated, slice),
+        "validation must preserve the borrowed slice"
+    );
 
     let error = [1, 2]
         .require_len_at_least("values", 3)
@@ -167,46 +173,85 @@ fn test_vec_supports_all_length_methods() {
             .expect("vector meets the minimum length"),
         vec![1, 2],
     );
-    assert!(vec![1].require_len_at_least("values", 2).is_err());
-    assert!(vec![1, 2].require_len_at_most("values", 1).is_err());
-    assert!(vec![1].require_len_in("values", 2, 3).is_err());
+    assert!(
+        vec![1].require_len_at_least("values", 2).is_err(),
+        "short vector must fail minimum-length validation"
+    );
+    assert!(
+        vec![1, 2].require_len_at_most("values", 1).is_err(),
+        "long vector must fail maximum-length validation"
+    );
+    assert!(
+        vec![1].require_len_in("values", 2, 3).is_err(),
+        "short vector must fail range validation"
+    );
 }
 
 /// Verifies every borrowed-slice length method and its error propagation.
 #[test]
 fn test_borrowed_slice_supports_all_length_methods() {
     let empty: &[i32] = &[];
-    assert!(empty.require_non_empty("values").is_err());
+    assert!(
+        empty.require_non_empty("values").is_err(),
+        "empty slice must fail non-empty validation"
+    );
 
     let values = [1, 2, 3];
     let slice: &[i32] = &values;
-    assert!(std::ptr::eq(
-        slice.require_len("values", 3).expect("slice has the exact length"),
-        slice,
-    ));
-    assert!(slice.require_len("values", 2).is_err());
-    assert!(slice.require_len_at_least("values", 4).is_err());
-    assert!(std::ptr::eq(
-        slice
-            .require_len_at_most("values", 3)
-            .expect("slice meets the maximum length"),
-        slice,
-    ));
-    assert!(slice.require_len_at_most("values", 2).is_err());
-    assert!(std::ptr::eq(
-        slice
-            .require_len_in("values", 2, 3)
-            .expect("slice lies in the inclusive length range"),
-        slice,
-    ));
-    assert!(slice.require_len_in("values", 4, 5).is_err());
+    assert!(
+        std::ptr::eq(
+            slice.require_len("values", 3).expect("slice has the exact length"),
+            slice,
+        ),
+        "successful validation must preserve the borrowed slice"
+    );
+    assert!(
+        slice.require_len("values", 2).is_err(),
+        "wrong exact length must fail validation"
+    );
+    assert!(
+        slice.require_len_at_least("values", 4).is_err(),
+        "short slice must fail minimum-length validation"
+    );
+    assert!(
+        std::ptr::eq(
+            slice
+                .require_len_at_most("values", 3)
+                .expect("slice meets the maximum length"),
+            slice,
+        ),
+        "successful validation must preserve the borrowed slice"
+    );
+    assert!(
+        slice.require_len_at_most("values", 2).is_err(),
+        "long slice must fail maximum-length validation"
+    );
+    assert!(
+        std::ptr::eq(
+            slice
+                .require_len_in("values", 2, 3)
+                .expect("slice lies in the inclusive length range"),
+            slice,
+        ),
+        "successful validation must preserve the borrowed slice"
+    );
+    assert!(
+        slice.require_len_in("values", 4, 5).is_err(),
+        "out-of-range slice must fail validation"
+    );
 }
 
 /// Verifies the remaining empty and successful array validation paths.
 #[test]
 fn test_array_supports_all_collection_paths() {
-    assert!([0_i32; 0].require_non_empty("values").is_err());
-    assert!([1, 2].require_len("values", 1).is_err());
+    assert!(
+        [0_i32; 0].require_non_empty("values").is_err(),
+        "empty array must fail non-empty validation"
+    );
+    assert!(
+        [1, 2].require_len("values", 1).is_err(),
+        "wrong array length must fail validation"
+    );
     assert_eq!(
         [1, 2]
             .require_len_at_least("values", 2)
