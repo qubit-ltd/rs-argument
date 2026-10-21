@@ -38,6 +38,10 @@
       "executable": true,
       "sha256": "0e322756544a21a3be83b2510b39590b008c52604fce0942ad7f1a6e563799a0"
     },
+    ".infra/bin/update-dependencies-by-prefix.sh": {
+      "executable": true,
+      "sha256": "763add0108994a2437663e28039b090852e7e35e22dab71d7b5ebb30da0e7496"
+    },
     ".infra/bootstrap-check.py": {
       "executable": true,
       "sha256": "3a7100044b18e00b2d92835c2a874fede98f0c1d909893f1959b2ff9ff0347a9"
@@ -91,8 +95,8 @@
       "sha256": "d4687f8f57286d023b55185be016306fa9cc536c69fc9d1888316ad078846cfe"
     }
   },
-  "package_sha256": "7b738182cabc9392dbaa3bf98072e2f6defbbbd3317d0e2aa80d157556270d0a",
+  "package_sha256": "438affc61561fc53d2b48086f28df1d4b51a17baa9cacf9af87fe313284dd40e",
   "schema": 1,
   "source_repository": "https://github.com/qubit-ltd/rs-infra-tools.git",
-  "source_revision": "22f5f58a21b4a4f964c8332bdde64b20f6538b8e"
+  "source_revision": "569ffb1acb427cb421574f4a34b70ebd59fe160b"
 }
