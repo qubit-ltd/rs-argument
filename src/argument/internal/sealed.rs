@@ -16,7 +16,9 @@ use crate::argument::ArgumentError;
 /// Downstream crates cannot name this private marker trait, so they cannot
 /// implement it for additional types and thereby opt those types into the
 /// crate's validation extensions.
-pub trait Sealed {}
+pub trait Sealed {
+    // empty
+}
 
 /// Implements the private marker for each listed primitive type.
 macro_rules! impl_sealed_for_primitive {
