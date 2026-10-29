@@ -42,6 +42,18 @@ pub trait NumericArgument: Sealed + Sized {
     /// Success returns the original value without cloning. A nonzero value
     /// returns [`ArgumentErrorKind::Comparison`] with an `EqualTo(0)`
     /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it equals zero.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is nonzero, or `NotANumber` for NaN.
     fn require_zero(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value not to equal zero.
@@ -49,6 +61,18 @@ pub trait NumericArgument: Sealed + Sized {
     /// Success returns the original value without cloning. Zero returns
     /// [`ArgumentErrorKind::Comparison`] with a `NotEqualTo(0)` constraint at
     /// `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is nonzero.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is zero, or `NotANumber` for NaN.
     fn require_non_zero(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be strictly greater than zero.
@@ -57,6 +81,19 @@ pub trait NumericArgument: Sealed + Sized {
     /// positive returns [`ArgumentErrorKind::Comparison`] with a
     /// `GreaterThan(0)` constraint at `path`; NaN returns
     /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is positive.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is not positive, or `NotANumber` for
+    /// NaN.
     fn require_positive(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be greater than or equal to zero.
@@ -64,6 +101,19 @@ pub trait NumericArgument: Sealed + Sized {
     /// Success returns the original value without cloning. A negative value
     /// returns [`ArgumentErrorKind::Comparison`] with an `AtLeast(0)`
     /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is non-negative.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is negative, or `NotANumber` for
+    /// NaN.
     fn require_non_negative(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be strictly less than zero.
@@ -71,6 +121,19 @@ pub trait NumericArgument: Sealed + Sized {
     /// Success returns the original value without cloning. A value that is not
     /// negative returns [`ArgumentErrorKind::Comparison`] with a `LessThan(0)`
     /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is negative.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is not negative, or `NotANumber` for
+    /// NaN.
     fn require_negative(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be less than or equal to zero.
@@ -78,6 +141,19 @@ pub trait NumericArgument: Sealed + Sized {
     /// Success returns the original value without cloning. A positive value
     /// returns [`ArgumentErrorKind::Comparison`] with an `AtMost(0)`
     /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is non-positive.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is positive, or `NotANumber` for
+    /// NaN.
     fn require_non_positive(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this value to be strictly less than `bound`.
@@ -86,6 +162,20 @@ pub trait NumericArgument: Sealed + Sized {
     /// comparison returns [`ArgumentErrorKind::Comparison`] with a `LessThan`
     /// constraint at `path`; a NaN value or bound returns
     /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `bound`: Comparison boundary.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is less than `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the comparison fails, or `NotANumber` when the
+    /// value or bound is NaN.
     fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this value to be less than or equal to `bound`.
@@ -94,6 +184,20 @@ pub trait NumericArgument: Sealed + Sized {
     /// comparison returns [`ArgumentErrorKind::Comparison`] with an `AtMost`
     /// constraint at `path`; a NaN value or bound returns
     /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `bound`: Comparison boundary.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is at most `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the comparison fails, or `NotANumber` when the
+    /// value or bound is NaN.
     fn require_at_most(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this value to be strictly greater than `bound`.
@@ -102,6 +206,20 @@ pub trait NumericArgument: Sealed + Sized {
     /// comparison returns [`ArgumentErrorKind::Comparison`] with a
     /// `GreaterThan` constraint at `path`; a NaN value or bound returns
     /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `bound`: Comparison boundary.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is greater than `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the comparison fails, or `NotANumber` when the
+    /// value or bound is NaN.
     fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this value to be greater than or equal to `bound`.
@@ -110,6 +228,20 @@ pub trait NumericArgument: Sealed + Sized {
     /// comparison returns [`ArgumentErrorKind::Comparison`] with an `AtLeast`
     /// constraint at `path`; a NaN value or bound returns
     /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `bound`: Comparison boundary.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is at least `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the comparison fails, or `NotANumber` when the
+    /// value or bound is NaN.
     fn require_at_least(self, path: &str, bound: Self) -> ArgumentResult<Self>;
 
     /// Requires this value to lie within `range`.
@@ -123,6 +255,20 @@ pub trait NumericArgument: Sealed + Sized {
     /// The range's start and end accessors are each called exactly once, and
     /// all checks use that owned endpoint snapshot.
     /// Successful validation returns the original value without cloning.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `range`: Inclusive, exclusive, or unbounded validation interval.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it satisfies the validated range.
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidRangeConstraint` for an invalid range, `Range` when the
+    /// value is outside it, or `NotANumber` for a NaN value or endpoint.
     fn require_in_range<R>(self, path: &str, range: R) -> ArgumentResult<Self>
     where
         R: RangeBounds<Self>;

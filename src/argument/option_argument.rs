@@ -20,6 +20,10 @@ use crate::argument::internal::Sealed;
 ///
 /// The trait is sealed and implemented only for `Option<T>`.
 ///
+/// # Type Parameters
+///
+/// - `T`: The type of the optional value validated by this trait.
+///
 /// # Examples
 ///
 /// ```
@@ -41,6 +45,10 @@ pub trait OptionArgument<T>: Sealed + Sized {
     /// # Returns
     ///
     /// The contained value, or an error identifying the missing argument.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Missing`] when the option is `None`.
     fn require_some(self, path: &str) -> ArgumentResult<T>;
 
     /// Validates a present value by temporary borrow.
@@ -58,6 +66,11 @@ pub trait OptionArgument<T>: Sealed + Sized {
     /// # Returns
     ///
     /// The original option on success, or the validator's error unchanged.
+    ///
+    /// # Errors
+    ///
+    /// Returns the error produced by `validator` when it rejects a present
+    /// value.
     fn validate_if_some<F>(self, validator: F) -> ArgumentResult<Self>
     where
         F: FnOnce(&T) -> ArgumentResult<()>;
@@ -78,6 +91,11 @@ pub trait OptionArgument<T>: Sealed + Sized {
     ///
     /// The validated value wrapped in [`Some`], `None` for an absent option,
     /// or the validator's error unchanged.
+    ///
+    /// # Errors
+    ///
+    /// Returns the error produced by `validator` when it rejects a present
+    /// value.
     fn validate_some<F>(self, validator: F) -> ArgumentResult<Self>
     where
         F: FnOnce(T) -> ArgumentResult<T>;

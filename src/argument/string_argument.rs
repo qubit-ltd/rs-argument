@@ -43,24 +43,78 @@ pub trait StringArgument: Sealed + Sized {
     /// Success returns the original value without cloning. Empty strings and
     /// strings whose Unicode scalar values are all whitespace return
     /// [`ArgumentErrorKind::Blank`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when it contains a non-whitespace scalar.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Blank`] when the string is empty or
+    /// contains only whitespace.
     fn require_non_blank(self, path: &str) -> ArgumentResult<Self>;
 
     /// Requires this string to contain exactly `expected` UTF-8 bytes.
     ///
     /// Success returns the original value without cloning. A different byte
     /// length returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `expected`: The required UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length equals `expected`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the byte length differs.
     fn require_byte_len(self, path: &str, expected: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at least `min` UTF-8 bytes.
     ///
     /// Success returns the original value without cloning. A smaller byte
     /// length returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The minimum UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length is at least `min`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the byte length is below
+    /// `min`.
     fn require_byte_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at most `max` UTF-8 bytes.
     ///
     /// Success returns the original value without cloning. A larger byte
     /// length returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `max`: The maximum UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length is at most `max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the byte length exceeds
+    /// `max`.
     fn require_byte_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this string's UTF-8 byte length to lie in `min..=max`.
@@ -70,6 +124,22 @@ pub trait StringArgument: Sealed + Sized {
     /// otherwise, an out-of-range length returns
     /// [`ArgumentErrorKind::Length`]. Success returns the original value
     /// without cloning.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The inclusive minimum UTF-8 byte length.
+    /// - `max`: The inclusive maximum UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length lies in `min..=max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::InvalidLengthConstraint`] when `min > max`,
+    /// or [`ArgumentErrorKind::Length`] when the byte length is outside the
+    /// range.
     fn require_byte_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain exactly `expected` Unicode scalar
@@ -77,18 +147,59 @@ pub trait StringArgument: Sealed + Sized {
     ///
     /// Success returns the original value without cloning. A different scalar
     /// count returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `expected`: The required number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count equals `expected`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the scalar count differs.
     fn require_char_count(self, path: &str, expected: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at least `min` Unicode scalar values.
     ///
     /// Success returns the original value without cloning. A smaller scalar
     /// count returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The minimum number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count is at least `min`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the scalar count is below
+    /// `min`.
     fn require_char_count_at_least(self, path: &str, min: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to contain at most `max` Unicode scalar values.
     ///
     /// Success returns the original value without cloning. A larger scalar
     /// count returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `max`: The maximum number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count is at most `max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the scalar count exceeds
+    /// `max`.
     fn require_char_count_at_most(self, path: &str, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this string's Unicode scalar count to lie in `min..=max`.
@@ -97,6 +208,22 @@ pub trait StringArgument: Sealed + Sized {
     /// returns [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`;
     /// otherwise, an out-of-range count returns [`ArgumentErrorKind::Length`].
     /// Success returns the original value without cloning.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The inclusive minimum number of Unicode scalar values.
+    /// - `max`: The inclusive maximum number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count lies in `min..=max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::InvalidLengthConstraint`] when `min > max`,
+    /// or [`ArgumentErrorKind::Length`] when the scalar count is outside the
+    /// range.
     fn require_char_count_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self>;
 
     /// Requires this string to match `pattern`.
@@ -104,6 +231,19 @@ pub trait StringArgument: Sealed + Sized {
     /// Matching uses [`Regex::is_match`] without implicit anchoring. Success
     /// returns the original value without cloning; failure returns
     /// [`ArgumentErrorKind::Pattern`] at `path` without capturing the input.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `pattern`: The regular expression that must match the string.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when `pattern` matches it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` does not match.
     #[cfg(feature = "regex")]
     fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self>;
 
@@ -112,6 +252,19 @@ pub trait StringArgument: Sealed + Sized {
     /// Matching uses [`Regex::is_match`] without implicit anchoring. Success
     /// returns the original value without cloning; failure returns
     /// [`ArgumentErrorKind::Pattern`] at `path` without capturing the input.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `pattern`: The regular expression that must not match the string.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when `pattern` does not match it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` matches.
     #[cfg(feature = "regex")]
     fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self>;
 }
@@ -120,6 +273,19 @@ impl StringArgument for &str {
     /// Validates Unicode blankness and returns the original borrow.
     ///
     /// `path` identifies a [`ArgumentErrorKind::Blank`] failure.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when it contains a non-whitespace scalar.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Blank`] when the string is empty or
+    /// contains only whitespace.
     fn require_non_blank(self, path: &str) -> ArgumentResult<Self> {
         validate_non_blank(self, path)?;
         Ok(self)
@@ -128,6 +294,19 @@ impl StringArgument for &str {
     /// Validates the exact UTF-8 byte length and returns the original borrow.
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `expected`: The required UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length equals `expected`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the byte length differs.
     #[inline]
     fn require_byte_len(self, path: &str, expected: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::Exact(expected), LengthMetric::Bytes)?;
@@ -137,6 +316,20 @@ impl StringArgument for &str {
     /// Validates the minimum UTF-8 byte length and returns the original borrow.
     ///
     /// A value below `min` returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The minimum UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length is at least `min`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the byte length is below
+    /// `min`.
     #[inline]
     fn require_byte_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtLeast(min), LengthMetric::Bytes)?;
@@ -146,6 +339,20 @@ impl StringArgument for &str {
     /// Validates the maximum UTF-8 byte length and returns the original borrow.
     ///
     /// A value above `max` returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `max`: The maximum UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length is at most `max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the byte length exceeds
+    /// `max`.
     #[inline]
     fn require_byte_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtMost(max), LengthMetric::Bytes)?;
@@ -156,6 +363,22 @@ impl StringArgument for &str {
     ///
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range value returns [`ArgumentErrorKind::Length`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The inclusive minimum UTF-8 byte length.
+    /// - `max`: The inclusive maximum UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length lies in `min..=max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::InvalidLengthConstraint`] when `min > max`,
+    /// or [`ArgumentErrorKind::Length`] when the byte length is outside the
+    /// range.
     #[inline]
     fn require_byte_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(
@@ -171,6 +394,19 @@ impl StringArgument for &str {
     /// borrow.
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `expected`: The required number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count equals `expected`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the scalar count differs.
     fn require_char_count(self, path: &str, expected: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -185,6 +421,20 @@ impl StringArgument for &str {
     /// borrow.
     ///
     /// A count below `min` returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The minimum number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count is at least `min`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the scalar count is below
+    /// `min`.
     fn require_char_count_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -199,6 +449,20 @@ impl StringArgument for &str {
     /// borrow.
     ///
     /// A count above `max` returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `max`: The maximum number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count is at most `max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the scalar count exceeds
+    /// `max`.
     fn require_char_count_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -214,6 +478,22 @@ impl StringArgument for &str {
     ///
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range count returns [`ArgumentErrorKind::Length`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The inclusive minimum number of Unicode scalar values.
+    /// - `max`: The inclusive maximum number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count lies in `min..=max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::InvalidLengthConstraint`] when `min > max`,
+    /// or [`ArgumentErrorKind::Length`] when the scalar count is outside the
+    /// range.
     fn require_char_count_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -228,6 +508,19 @@ impl StringArgument for &str {
     ///
     /// A non-match returns [`ArgumentErrorKind::Pattern`] at `path` without
     /// capturing the input string.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `pattern`: The regular expression that must match the string.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when `pattern` matches it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` does not match.
     #[cfg(feature = "regex")]
     fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self, path, pattern, PatternExpectation::Match)?;
@@ -238,6 +531,19 @@ impl StringArgument for &str {
     ///
     /// A match returns [`ArgumentErrorKind::Pattern`] at `path` without
     /// capturing the input string.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `pattern`: The regular expression that must not match the string.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when `pattern` does not match it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` matches.
     #[cfg(feature = "regex")]
     fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self, path, pattern, PatternExpectation::NoMatch)?;
@@ -249,6 +555,19 @@ impl StringArgument for String {
     /// Validates Unicode blankness and returns the original owned string.
     ///
     /// `path` identifies a [`ArgumentErrorKind::Blank`] failure.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when it contains a non-whitespace scalar.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Blank`] when the string is empty or
+    /// contains only whitespace.
     fn require_non_blank(self, path: &str) -> ArgumentResult<Self> {
         validate_non_blank(self.as_str(), path)?;
         Ok(self)
@@ -257,6 +576,19 @@ impl StringArgument for String {
     /// Validates the exact UTF-8 byte length and returns the owned string.
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `expected`: The required UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length equals `expected`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the byte length differs.
     #[inline]
     fn require_byte_len(self, path: &str, expected: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::Exact(expected), LengthMetric::Bytes)?;
@@ -266,6 +598,20 @@ impl StringArgument for String {
     /// Validates the minimum UTF-8 byte length and returns the owned string.
     ///
     /// A value below `min` returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The minimum UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length is at least `min`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the byte length is below
+    /// `min`.
     #[inline]
     fn require_byte_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtLeast(min), LengthMetric::Bytes)?;
@@ -275,6 +621,20 @@ impl StringArgument for String {
     /// Validates the maximum UTF-8 byte length and returns the owned string.
     ///
     /// A value above `max` returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `max`: The maximum UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length is at most `max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the byte length exceeds
+    /// `max`.
     #[inline]
     fn require_byte_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtMost(max), LengthMetric::Bytes)?;
@@ -285,6 +645,22 @@ impl StringArgument for String {
     ///
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range value returns [`ArgumentErrorKind::Length`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The inclusive minimum UTF-8 byte length.
+    /// - `max`: The inclusive maximum UTF-8 byte length.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its byte length lies in `min..=max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::InvalidLengthConstraint`] when `min > max`,
+    /// or [`ArgumentErrorKind::Length`] when the byte length is outside the
+    /// range.
     #[inline]
     fn require_byte_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(
@@ -299,6 +675,19 @@ impl StringArgument for String {
     /// Validates the exact Unicode scalar count and returns the owned string.
     ///
     /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `expected`: The required number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count equals `expected`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the scalar count differs.
     fn require_char_count(self, path: &str, expected: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -312,6 +701,20 @@ impl StringArgument for String {
     /// Validates the minimum Unicode scalar count and returns the owned string.
     ///
     /// A count below `min` returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The minimum number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count is at least `min`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the scalar count is below
+    /// `min`.
     fn require_char_count_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -325,6 +728,20 @@ impl StringArgument for String {
     /// Validates the maximum Unicode scalar count and returns the owned string.
     ///
     /// A count above `max` returns [`ArgumentErrorKind::Length`] at `path`.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `max`: The maximum number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count is at most `max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] when the scalar count exceeds
+    /// `max`.
     fn require_char_count_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -340,6 +757,22 @@ impl StringArgument for String {
     ///
     /// `min > max` returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
     /// `path`; an out-of-range count returns [`ArgumentErrorKind::Length`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `min`: The inclusive minimum number of Unicode scalar values.
+    /// - `max`: The inclusive maximum number of Unicode scalar values.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when its scalar count lies in `min..=max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::InvalidLengthConstraint`] when `min > max`,
+    /// or [`ArgumentErrorKind::Length`] when the scalar count is outside the
+    /// range.
     fn require_char_count_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(
             path,
@@ -354,6 +787,19 @@ impl StringArgument for String {
     ///
     /// A non-match returns [`ArgumentErrorKind::Pattern`] at `path` without
     /// capturing the input string.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `pattern`: The regular expression that must match the string.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when `pattern` matches it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` does not match.
     #[cfg(feature = "regex")]
     fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self.as_str(), path, pattern, PatternExpectation::Match)?;
@@ -364,6 +810,19 @@ impl StringArgument for String {
     ///
     /// A match returns [`ArgumentErrorKind::Pattern`] at `path` without
     /// capturing the input string.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Identifies the argument in a validation error.
+    /// - `pattern`: The regular expression that must not match the string.
+    ///
+    /// # Returns
+    ///
+    /// The original string value when `pattern` does not match it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` matches.
     #[cfg(feature = "regex")]
     fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self.as_str(), path, pattern, PatternExpectation::NoMatch)?;
