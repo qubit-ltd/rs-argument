@@ -33,7 +33,10 @@ use std::fmt::Formatter;
 /// ```
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ArgumentPath(String);
+pub struct ArgumentPath(
+    /// Owned UTF-8 path text, preserved without parsing or normalization.
+    String,
+);
 
 impl ArgumentPath {
     /// Creates an argument path by copying `path` without normalization.
@@ -53,6 +56,10 @@ impl ArgumentPath {
     /// Returns the stored path text.
     ///
     /// The returned string slice remains valid for the lifetime of this path.
+    ///
+    /// # Returns
+    ///
+    /// The stored path text, borrowed from `self` without allocation.
     #[must_use]
     #[inline]
     pub fn as_str(&self) -> &str {

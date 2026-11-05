@@ -21,6 +21,11 @@ use crate::argument::internal::Sealed;
 /// vectors, borrowed slices, and arrays. Length failures carry
 /// [`LengthMetric::Elements`].
 ///
+/// Validation failures return only an error, not the original collection.
+/// Owned vectors and arrays, including their elements, are dropped on failure.
+/// For borrowed slices, the caller retains ownership of the underlying
+/// collection and its elements on both success and failure.
+///
 /// The trait is sealed to those library-supported collection forms.
 ///
 /// # Examples
@@ -122,7 +127,18 @@ pub trait CollectionArgument: Sealed + Sized {
 impl<T> CollectionArgument for Vec<T> {
     /// Validates non-emptiness and returns the original vector.
     ///
-    /// An empty vector returns [`ArgumentErrorKind::Empty`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Empty`] at `path` when the collection is
+    /// empty.
     #[inline]
     fn require_non_empty(self, path: &str) -> ArgumentResult<Self> {
         if self.is_empty() {
@@ -133,7 +149,19 @@ impl<T> CollectionArgument for Vec<T> {
 
     /// Validates the exact length and returns the original vector.
     ///
-    /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `expected`: the required number of elements.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] at `path` when the length differs
+    /// from `expected`.
     #[inline]
     fn require_len(self, path: &str, expected: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::Exact(expected))?;
@@ -142,7 +170,19 @@ impl<T> CollectionArgument for Vec<T> {
 
     /// Validates the minimum length and returns the original vector.
     ///
-    /// A length below `min` returns [`ArgumentErrorKind::Length`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `min`: the minimum number of elements.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] at `path` when the length is
+    /// below `min`.
     #[inline]
     fn require_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtLeast(min))?;
@@ -151,7 +191,19 @@ impl<T> CollectionArgument for Vec<T> {
 
     /// Validates the maximum length and returns the original vector.
     ///
-    /// A length above `max` returns [`ArgumentErrorKind::Length`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `max`: the maximum number of elements.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] at `path` when the length is
+    /// above `max`.
     #[inline]
     fn require_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtMost(max))?;
@@ -160,9 +212,21 @@ impl<T> CollectionArgument for Vec<T> {
 
     /// Validates an inclusive length range and returns the original vector.
     ///
-    /// A reversed range returns
-    /// [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`; an
-    /// out-of-range length returns [`ArgumentErrorKind::Length`].
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `min`: the inclusive lower bound.
+    /// - `max`: the inclusive upper bound.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// The range is validated before the observed length. If `min > max`,
+    /// returns [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`;
+    /// otherwise, an out-of-range length returns [`ArgumentErrorKind::Length`].
     #[inline]
     fn require_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::InRange { min, max })?;
@@ -173,7 +237,18 @@ impl<T> CollectionArgument for Vec<T> {
 impl<T> CollectionArgument for &[T] {
     /// Validates non-emptiness and returns the original borrowed slice.
     ///
-    /// An empty slice returns [`ArgumentErrorKind::Empty`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Empty`] at `path` when the collection is
+    /// empty.
     #[inline]
     fn require_non_empty(self, path: &str) -> ArgumentResult<Self> {
         if self.is_empty() {
@@ -184,7 +259,19 @@ impl<T> CollectionArgument for &[T] {
 
     /// Validates the exact length and returns the original borrowed slice.
     ///
-    /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `expected`: the required number of elements.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] at `path` when the length differs
+    /// from `expected`.
     #[inline]
     fn require_len(self, path: &str, expected: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::Exact(expected))?;
@@ -193,7 +280,19 @@ impl<T> CollectionArgument for &[T] {
 
     /// Validates the minimum length and returns the original borrowed slice.
     ///
-    /// A length below `min` returns [`ArgumentErrorKind::Length`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `min`: the minimum number of elements.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] at `path` when the length is
+    /// below `min`.
     #[inline]
     fn require_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtLeast(min))?;
@@ -202,7 +301,19 @@ impl<T> CollectionArgument for &[T] {
 
     /// Validates the maximum length and returns the original borrowed slice.
     ///
-    /// A length above `max` returns [`ArgumentErrorKind::Length`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `max`: the maximum number of elements.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] at `path` when the length is
+    /// above `max`.
     #[inline]
     fn require_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::AtMost(max))?;
@@ -211,9 +322,21 @@ impl<T> CollectionArgument for &[T] {
 
     /// Validates an inclusive length range and returns the borrowed slice.
     ///
-    /// A reversed range returns
-    /// [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`; an
-    /// out-of-range length returns [`ArgumentErrorKind::Length`].
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `min`: the inclusive lower bound.
+    /// - `max`: the inclusive upper bound.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// The range is validated before the observed length. If `min > max`,
+    /// returns [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`;
+    /// otherwise, an out-of-range length returns [`ArgumentErrorKind::Length`].
     #[inline]
     fn require_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(path, self.len(), LengthConstraint::InRange { min, max })?;
@@ -224,7 +347,18 @@ impl<T> CollectionArgument for &[T] {
 impl<T, const N: usize> CollectionArgument for [T; N] {
     /// Validates non-emptiness and returns the original array.
     ///
-    /// A zero-length array returns [`ArgumentErrorKind::Empty`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Empty`] at `path` when the collection is
+    /// empty.
     #[inline]
     fn require_non_empty(self, path: &str) -> ArgumentResult<Self> {
         if N == 0 {
@@ -235,7 +369,19 @@ impl<T, const N: usize> CollectionArgument for [T; N] {
 
     /// Validates the exact length and returns the original array.
     ///
-    /// A mismatch returns [`ArgumentErrorKind::Length`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `expected`: the required number of elements.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] at `path` when the length differs
+    /// from `expected`.
     #[inline]
     fn require_len(self, path: &str, expected: usize) -> ArgumentResult<Self> {
         validate_length(path, N, LengthConstraint::Exact(expected))?;
@@ -244,7 +390,19 @@ impl<T, const N: usize> CollectionArgument for [T; N] {
 
     /// Validates the minimum length and returns the original array.
     ///
-    /// A length below `min` returns [`ArgumentErrorKind::Length`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `min`: the minimum number of elements.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] at `path` when the length is
+    /// below `min`.
     #[inline]
     fn require_len_at_least(self, path: &str, min: usize) -> ArgumentResult<Self> {
         validate_length(path, N, LengthConstraint::AtLeast(min))?;
@@ -253,7 +411,19 @@ impl<T, const N: usize> CollectionArgument for [T; N] {
 
     /// Validates the maximum length and returns the original array.
     ///
-    /// A length above `max` returns [`ArgumentErrorKind::Length`] at `path`.
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `max`: the maximum number of elements.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ArgumentErrorKind::Length`] at `path` when the length is
+    /// above `max`.
     #[inline]
     fn require_len_at_most(self, path: &str, max: usize) -> ArgumentResult<Self> {
         validate_length(path, N, LengthConstraint::AtMost(max))?;
@@ -262,9 +432,21 @@ impl<T, const N: usize> CollectionArgument for [T; N] {
 
     /// Validates an inclusive length range and returns the original array.
     ///
-    /// A reversed range returns
-    /// [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`; an
-    /// out-of-range length returns [`ArgumentErrorKind::Length`].
+    /// # Parameters
+    ///
+    /// - `path`: identifies the collection in a validation error.
+    /// - `min`: the inclusive lower bound.
+    /// - `max`: the inclusive upper bound.
+    ///
+    /// # Returns
+    ///
+    /// The original collection on success, without cloning its elements.
+    ///
+    /// # Errors
+    ///
+    /// The range is validated before the observed length. If `min > max`,
+    /// returns [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`;
+    /// otherwise, an out-of-range length returns [`ArgumentErrorKind::Length`].
     #[inline]
     fn require_len_in(self, path: &str, min: usize, max: usize) -> ArgumentResult<Self> {
         validate_length(path, N, LengthConstraint::InRange { min, max })?;

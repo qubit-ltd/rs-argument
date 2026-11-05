@@ -59,18 +59,27 @@ pub trait OptionArgument<T>: Sealed + Sized {
     /// [`ArgumentErrorKind`] returned by `validator` unchanged. An absent
     /// option is returned without executing `validator`.
     ///
+    /// # Type Parameters
+    ///
+    /// - `F`: A one-shot validator borrowing the present value.
+    ///
     /// # Parameters
     ///
     /// - `validator`: A callback that checks a borrowed present value.
     ///
     /// # Returns
     ///
-    /// The original option on success, or the validator's error unchanged.
+    /// `Ok(Some(value))` with the original value when present, `Ok(None)` when
+    /// absent, or the validator's error unchanged.
     ///
     /// # Errors
     ///
     /// Returns the error produced by `validator` when it rejects a present
     /// value.
+    ///
+    /// # Panics
+    ///
+    /// Propagates any panic from `validator` when the option is present.
     fn validate_if_some<F>(self, validator: F) -> ArgumentResult<Self>
     where
         F: FnOnce(&T) -> ArgumentResult<()>;
@@ -82,6 +91,10 @@ pub trait OptionArgument<T>: Sealed + Sized {
     /// is wrapped in [`Some`] and returned; it may transform the value without
     /// requiring [`Clone`] or [`Copy`]. An absent option is returned without
     /// executing `validator`. Validator errors are propagated unchanged.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `F`: A one-shot validator consuming and returning the present value.
     ///
     /// # Parameters
     ///
@@ -96,6 +109,10 @@ pub trait OptionArgument<T>: Sealed + Sized {
     ///
     /// Returns the error produced by `validator` when it rejects a present
     /// value.
+    ///
+    /// # Panics
+    ///
+    /// Propagates any panic from `validator` when the option is present.
     fn validate_some<F>(self, validator: F) -> ArgumentResult<Self>
     where
         F: FnOnce(T) -> ArgumentResult<T>;
@@ -106,6 +123,18 @@ impl<T> OptionArgument<T> for Option<T> {
     ///
     /// The contained value is moved without cloning. An absent option returns
     /// [`ArgumentErrorKind::Missing`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: The argument path reported when this option is absent.
+    ///
+    /// # Returns
+    ///
+    /// The owned contained value on success.
+    ///
+    /// # Errors
+    ///
+    /// Returns a missing-argument error at `path` for `None`.
     #[inline]
     fn require_some(self, path: &str) -> ArgumentResult<T> {
         match self {
@@ -118,6 +147,26 @@ impl<T> OptionArgument<T> for Option<T> {
     ///
     /// A validator error is returned unchanged. When this option is absent,
     /// `validator` is not executed.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `F`: A one-shot validator borrowing the present value.
+    ///
+    /// # Parameters
+    ///
+    /// - `validator`: Checks the present value through a shared borrow.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(Some(value))` with the original value, or `Ok(None)` when absent.
+    ///
+    /// # Errors
+    ///
+    /// Returns the validator's error unchanged if validation fails.
+    ///
+    /// # Panics
+    ///
+    /// Propagates any panic from `validator` when the option is present.
     #[inline]
     fn validate_if_some<F>(self, validator: F) -> ArgumentResult<Self>
     where
@@ -133,6 +182,27 @@ impl<T> OptionArgument<T> for Option<T> {
     ///
     /// A validator error is returned unchanged. When this option is absent,
     /// `validator` is not executed.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `F`: A one-shot validator consuming and returning the present value.
+    ///
+    /// # Parameters
+    ///
+    /// - `validator`: Consumes the present value and returns its validated
+    ///   form.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(Some(value))` with the validated value, or `Ok(None)` when absent.
+    ///
+    /// # Errors
+    ///
+    /// Returns the validator's error unchanged if validation fails.
+    ///
+    /// # Panics
+    ///
+    /// Propagates any panic from `validator` when the option is present.
     #[inline]
     fn validate_some<F>(self, validator: F) -> ArgumentResult<Self>
     where

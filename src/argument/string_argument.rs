@@ -10,7 +10,7 @@
 #[cfg(feature = "regex")]
 use regex::Regex;
 
-use crate::argument::ArgumentError;
+#[cfg(doc)]
 use crate::argument::ArgumentErrorKind;
 use crate::argument::ArgumentResult;
 use crate::argument::LengthConstraint;
@@ -18,6 +18,10 @@ use crate::argument::LengthMetric;
 #[cfg(feature = "regex")]
 use crate::argument::PatternExpectation;
 use crate::argument::internal::Sealed;
+use crate::argument::internal::string_validation::validate_length;
+use crate::argument::internal::string_validation::validate_non_blank;
+#[cfg(feature = "regex")]
+use crate::argument::internal::string_validation::validate_pattern;
 
 /// Validates string arguments while preserving ownership or borrowing.
 ///
@@ -204,10 +208,11 @@ pub trait StringArgument: Sealed + Sized {
 
     /// Requires this string's Unicode scalar count to lie in `min..=max`.
     ///
-    /// The range is validated before the character count. If `min > max`, this
-    /// returns [`ArgumentErrorKind::InvalidLengthConstraint`] at `path`;
-    /// otherwise, an out-of-range count returns [`ArgumentErrorKind::Length`].
-    /// Success returns the original value without cloning.
+    /// The scalar count is computed before validating the range. If `min >
+    /// max`, this returns [`ArgumentErrorKind::InvalidLengthConstraint`] at
+    /// `path`; otherwise, an out-of-range count returns
+    /// [`ArgumentErrorKind::Length`]. Success returns the original value
+    /// without cloning.
     ///
     /// # Parameters
     ///
@@ -286,6 +291,7 @@ impl StringArgument for &str {
     ///
     /// Returns [`ArgumentErrorKind::Blank`] when the string is empty or
     /// contains only whitespace.
+    #[inline]
     fn require_non_blank(self, path: &str) -> ArgumentResult<Self> {
         validate_non_blank(self, path)?;
         Ok(self)
@@ -522,6 +528,7 @@ impl StringArgument for &str {
     ///
     /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` does not match.
     #[cfg(feature = "regex")]
+    #[inline]
     fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self, path, pattern, PatternExpectation::Match)?;
         Ok(self)
@@ -545,6 +552,7 @@ impl StringArgument for &str {
     ///
     /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` matches.
     #[cfg(feature = "regex")]
+    #[inline]
     fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self, path, pattern, PatternExpectation::NoMatch)?;
         Ok(self)
@@ -568,6 +576,7 @@ impl StringArgument for String {
     ///
     /// Returns [`ArgumentErrorKind::Blank`] when the string is empty or
     /// contains only whitespace.
+    #[inline]
     fn require_non_blank(self, path: &str) -> ArgumentResult<Self> {
         validate_non_blank(self.as_str(), path)?;
         Ok(self)
@@ -801,6 +810,7 @@ impl StringArgument for String {
     ///
     /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` does not match.
     #[cfg(feature = "regex")]
+    #[inline]
     fn require_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self.as_str(), path, pattern, PatternExpectation::Match)?;
         Ok(self)
@@ -824,90 +834,9 @@ impl StringArgument for String {
     ///
     /// Returns [`ArgumentErrorKind::Pattern`] when `pattern` matches.
     #[cfg(feature = "regex")]
+    #[inline]
     fn require_not_match(self, path: &str, pattern: &Regex) -> ArgumentResult<Self> {
         validate_pattern(self.as_str(), path, pattern, PatternExpectation::NoMatch)?;
         Ok(self)
-    }
-}
-
-/// Validates that `value` contains a non-whitespace Unicode scalar value.
-///
-/// `value` is inspected without allocation. The function returns `Ok(())`
-/// when at least one scalar value is not whitespace; otherwise, it returns
-/// [`ArgumentErrorKind::Blank`] at `path` without storing `value`.
-fn validate_non_blank(value: &str, path: &str) -> ArgumentResult<()> {
-    if value.chars().all(char::is_whitespace) {
-        Err(ArgumentError::new(path, ArgumentErrorKind::Blank))
-    } else {
-        Ok(())
-    }
-}
-
-/// Validates an observed length against a structured length constraint.
-///
-/// `actual` is compared with `constraint`, `metric` records how it was
-/// measured, and `path` identifies any failure. A reversed inclusive range
-/// returns
-/// [`ArgumentErrorKind::InvalidLengthConstraint`] before `actual` is checked.
-/// Any other unsatisfied constraint returns [`ArgumentErrorKind::Length`]; a
-/// satisfied constraint returns `Ok(())`.
-fn validate_length(
-    path: &str,
-    actual: usize,
-    constraint: LengthConstraint,
-    metric: LengthMetric,
-) -> ArgumentResult<()> {
-    if let LengthConstraint::InRange { min, max } = &constraint
-        && min > max
-    {
-        return Err(ArgumentError::new(
-            path,
-            ArgumentErrorKind::InvalidLengthConstraint { constraint, metric },
-        ));
-    }
-
-    let is_valid = match &constraint {
-        LengthConstraint::Exact(expected) => actual == *expected,
-        LengthConstraint::AtLeast(min) => actual >= *min,
-        LengthConstraint::AtMost(max) => actual <= *max,
-        LengthConstraint::InRange { min, max } => actual >= *min && actual <= *max,
-    };
-    if is_valid {
-        Ok(())
-    } else {
-        Err(ArgumentError::new(
-            path,
-            ArgumentErrorKind::Length {
-                actual,
-                constraint,
-                metric,
-            },
-        ))
-    }
-}
-
-/// Validates one regex expectation without retaining the inspected string.
-///
-/// `value` is tested with `pattern` according to `expectation`, and `path`
-/// identifies any failure. Success returns `Ok(())`; failure returns
-/// [`ArgumentErrorKind::Pattern`] containing only the pattern text and
-/// expectation, never `value`.
-#[cfg(feature = "regex")]
-fn validate_pattern(value: &str, path: &str, pattern: &Regex, expectation: PatternExpectation) -> ArgumentResult<()> {
-    let matches = pattern.is_match(value);
-    let is_valid = match expectation {
-        PatternExpectation::Match => matches,
-        PatternExpectation::NoMatch => !matches,
-    };
-    if is_valid {
-        Ok(())
-    } else {
-        Err(ArgumentError::new(
-            path,
-            ArgumentErrorKind::Pattern {
-                pattern: String::from(pattern.as_str()),
-                expectation,
-            },
-        ))
     }
 }

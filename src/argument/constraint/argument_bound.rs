@@ -14,7 +14,8 @@ use crate::argument::ArgumentValue;
 /// # Examples
 ///
 /// ```
-/// use qubit_argument::{ArgumentBound, ArgumentValue};
+/// use qubit_argument::ArgumentBound;
+/// use qubit_argument::ArgumentValue;
 ///
 /// let bound = ArgumentBound::Included(ArgumentValue::from(5_i32));
 /// assert!(matches!(bound, ArgumentBound::Included(_)));
@@ -32,7 +33,14 @@ pub enum ArgumentBound {
     /// Places no limit on this side of the range.
     Unbounded,
     /// Includes the captured endpoint in the range.
-    Included(ArgumentValue),
+    Included(
+        /// The owned scalar endpoint that satisfies this side of the range.
+        ArgumentValue,
+    ),
     /// Excludes the captured endpoint from the range.
-    Excluded(ArgumentValue),
+    Excluded(
+        /// The owned scalar endpoint that does not satisfy this side of the
+        /// range.
+        ArgumentValue,
+    ),
 }

@@ -25,7 +25,9 @@ use crate::argument::internal::Sealed;
 /// # Examples
 ///
 /// ```
-/// use qubit_argument::{ArgumentError, ArgumentErrorKind, ArgumentResultExt};
+/// use qubit_argument::ArgumentError;
+/// use qubit_argument::ArgumentErrorKind;
+/// use qubit_argument::ArgumentResultExt;
 ///
 /// let result: Result<(), _> = Err(ArgumentError::new(
 ///     "value",
@@ -55,6 +57,20 @@ pub trait ArgumentResultExt<T>: Sealed + Sized {
 
 impl<T> ArgumentResultExt<T> for ArgumentResult<T> {
     /// Prefixes only the error branch and leaves success values untouched.
+    ///
+    /// # Parameters
+    ///
+    /// - `prefix`: The parent path to prepend to the validation error's path.
+    ///
+    /// # Returns
+    ///
+    /// The original successful value, or the original error with its path
+    /// prefixed and its structured failure kind preserved.
+    ///
+    /// # Errors
+    ///
+    /// Returns the validation error with the supplied prefix when `self` is
+    /// an error; successful results remain unchanged.
     #[inline]
     fn with_path_prefix(self, prefix: &str) -> ArgumentResult<T> {
         self.map_err(|error| error.with_path_prefix(prefix))

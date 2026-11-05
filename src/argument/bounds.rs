@@ -21,6 +21,11 @@ use crate::argument::IndexRole;
 /// error strings. If it returns `false`, `path`, `code`, and `message` identify
 /// the failed validation rule.
 ///
+/// # Type Parameters
+///
+/// - `T`: the value type, moved into validation and returned on success.
+/// - `F`: a one-shot predicate that checks a shared reference to `T`.
+///
 /// # Parameters
 ///
 /// - `value`: the value to validate and return unchanged on success.
@@ -38,6 +43,10 @@ use crate::argument::IndexRole;
 ///
 /// Returns [`ArgumentErrorKind::Custom`] when `predicate` returns `false`.
 /// The error owns copies of `path`, `code`, and `message`.
+///
+/// # Panics
+///
+/// Propagates any panic raised by the caller-provided `predicate`.
 #[inline]
 pub fn require_that<T, F>(value: T, path: &str, predicate: F, code: &str, message: &str) -> ArgumentResult<T>
 where

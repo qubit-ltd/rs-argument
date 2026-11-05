@@ -27,12 +27,14 @@ use crate::argument::RangeConstraint;
 /// The error owns its argument path and failure kind, allowing downstream
 /// error types to inspect or preserve it without parsing display text.
 /// [`Display`] escapes caller-provided fields into a single-line diagnostic;
-/// accessors and [`Debug`] continue to expose the original structured values.
+/// accessors and [`fmt::Debug`] continue to expose the original structured
+/// values.
 ///
 /// # Examples
 ///
 /// ```
-/// use qubit_argument::{ArgumentError, ArgumentErrorKind};
+/// use qubit_argument::ArgumentError;
+/// use qubit_argument::ArgumentErrorKind;
 ///
 /// let error = ArgumentError::new("value", ArgumentErrorKind::Missing);
 /// assert_eq!(error.to_string(), "argument 'value' is missing");
@@ -40,7 +42,8 @@ use crate::argument::RangeConstraint;
 ///
 /// ```compile_fail
 /// #![deny(unused_must_use)]
-/// use qubit_argument::{ArgumentError, ArgumentErrorKind};
+/// use qubit_argument::ArgumentError;
+/// use qubit_argument::ArgumentErrorKind;
 ///
 /// ArgumentError::new("value", ArgumentErrorKind::Missing);
 /// ```
@@ -120,6 +123,7 @@ impl ArgumentError {
     /// # Returns
     ///
     /// The owned argument path and structured failure kind, in that order.
+    #[must_use = "the caller should inspect the owned path and failure kind"]
     #[inline]
     pub fn into_parts(self) -> (ArgumentPath, ArgumentErrorKind) {
         let Self { path, kind } = self;
@@ -129,6 +133,18 @@ impl ArgumentError {
 
 impl Display for ArgumentError {
     /// Formats a single-line diagnostic entirely from the structured fields.
+    ///
+    /// # Parameters
+    ///
+    /// - `formatter`: The destination for the escaped diagnostic text.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` after writing the complete diagnostic.
+    ///
+    /// # Errors
+    ///
+    /// Returns the destination's formatting error if writing fails.
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         let path = escape_for_display(self.path.as_ref(), Some('\''));
         write!(formatter, "argument '{path}'")?;
@@ -214,6 +230,17 @@ impl Error for ArgumentError {}
 /// The returned string represents `value` with backslashes, carriage returns,
 /// line feeds, tabs, other control characters, and the optional active
 /// `delimiter` escaped. The input remains unchanged.
+///
+/// # Parameters
+///
+/// - `value`: The original text to escape without modifying it.
+/// - `delimiter`: An additional character to escape when `Some`; `None` escapes
+///   only backslashes and control characters.
+///
+/// # Returns
+///
+/// A newly allocated string containing the escaped text.
+#[must_use]
 fn escape_for_display(value: &str, delimiter: Option<char>) -> String {
     let mut escaped = String::with_capacity(value.len());
     for character in value.chars() {
@@ -239,6 +266,15 @@ fn escape_for_display(value: &str, delimiter: Option<char>) -> String {
 ///
 /// `metric` determines whether diagnostics describe UTF-8 byte length,
 /// Unicode scalar count, or collection element count.
+///
+/// # Parameters
+///
+/// - `metric`: The unit used to measure the argument length.
+///
+/// # Returns
+///
+/// A static diagnostic label for the supplied unit.
+#[must_use]
 #[inline]
 fn length_metric_label(metric: &LengthMetric) -> &'static str {
     match metric {
@@ -252,6 +288,19 @@ fn length_metric_label(metric: &LengthMetric) -> &'static str {
 ///
 /// `formatter` receives only text derived from `constraint`. Formatting errors
 /// from the destination are returned unchanged.
+///
+/// # Parameters
+///
+/// - `formatter`: The destination for the constraint description.
+/// - `constraint`: The structured constraint whose bounds are rendered.
+///
+/// # Returns
+///
+/// `Ok(())` after writing the complete constraint description.
+///
+/// # Errors
+///
+/// Returns the destination's formatting error if writing fails.
 fn write_length_constraint(formatter: &mut Formatter<'_>, constraint: &LengthConstraint) -> fmt::Result {
     match constraint {
         LengthConstraint::Exact(expected) => {
@@ -269,6 +318,19 @@ fn write_length_constraint(formatter: &mut Formatter<'_>, constraint: &LengthCon
 ///
 /// `formatter` receives only text derived from `constraint`. Formatting errors
 /// from the destination are returned unchanged.
+///
+/// # Parameters
+///
+/// - `formatter`: The destination for the constraint description.
+/// - `constraint`: The structured constraint whose bounds are rendered.
+///
+/// # Returns
+///
+/// `Ok(())` after writing the complete constraint description.
+///
+/// # Errors
+///
+/// Returns the destination's formatting error if writing fails.
 fn write_comparison_constraint(formatter: &mut Formatter<'_>, constraint: &ComparisonConstraint) -> fmt::Result {
     match constraint {
         ComparisonConstraint::EqualTo(expected) => {
@@ -296,6 +358,19 @@ fn write_comparison_constraint(formatter: &mut Formatter<'_>, constraint: &Compa
 ///
 /// `formatter` receives only text derived from `constraint`. Formatting errors
 /// from the destination are returned unchanged.
+///
+/// # Parameters
+///
+/// - `formatter`: The destination for the constraint description.
+/// - `constraint`: The structured constraint whose bounds are rendered.
+///
+/// # Returns
+///
+/// `Ok(())` after writing the complete constraint description.
+///
+/// # Errors
+///
+/// Returns the destination's formatting error if writing fails.
 fn write_range_constraint(formatter: &mut Formatter<'_>, constraint: &RangeConstraint) -> fmt::Result {
     match constraint.lower() {
         ArgumentBound::Unbounded => formatter.write_str("(-infinity"),
@@ -315,4 +390,17 @@ fn write_range_constraint(formatter: &mut Formatter<'_>, constraint: &RangeConst
 /// # Type Parameters
 ///
 /// - `T`: The value produced when argument validation succeeds.
+///
+/// # Examples
+///
+/// ```
+/// use qubit_argument::ArgumentError;
+/// use qubit_argument::ArgumentErrorKind;
+/// use qubit_argument::ArgumentResult;
+///
+/// let result: ArgumentResult<()> =
+///     Err(ArgumentError::new("value", ArgumentErrorKind::Missing));
+/// let error = result.expect_err("the argument is missing");
+/// assert_eq!(error.to_string(), "argument 'value' is missing");
+/// ```
 pub type ArgumentResult<T> = Result<T, ArgumentError>;

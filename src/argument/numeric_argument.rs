@@ -7,17 +7,20 @@
 // =============================================================================
 //! Ownership-preserving validation for primitive numeric arguments.
 
-use std::ops::Bound;
 use std::ops::RangeBounds;
 
-use crate::argument::ArgumentBound;
 use crate::argument::ArgumentError;
 use crate::argument::ArgumentErrorKind;
 use crate::argument::ArgumentResult;
 use crate::argument::ComparisonConstraint;
-use crate::argument::RangeConstraint;
 use crate::argument::internal::NumericValue;
 use crate::argument::internal::Sealed;
+use crate::argument::internal::capture_range_constraint;
+use crate::argument::internal::range_contains;
+use crate::argument::internal::snapshot_range_bounds;
+use crate::argument::internal::validate_comparison;
+use crate::argument::internal::validate_not_nan;
+use crate::argument::internal::validate_range_structure;
 
 /// Validates primitive numeric arguments while preserving their values.
 ///
@@ -256,6 +259,10 @@ pub trait NumericArgument: Sealed + Sized {
     /// all checks use that owned endpoint snapshot.
     /// Successful validation returns the original value without cloning.
     ///
+    /// # Type Parameters
+    ///
+    /// - `R`: A range exposing bounds of this numeric type.
+    ///
     /// # Parameters
     ///
     /// - `path`: Location used to identify a validation failure.
@@ -278,7 +285,23 @@ impl<T> NumericArgument for T
 where
     T: NumericValue,
 {
-    /// Requires equality with zero and preserves the original value.
+    /// Requires this value to equal zero.
+    ///
+    /// Success returns the original value without cloning. A nonzero value
+    /// returns [`ArgumentErrorKind::Comparison`] with an `EqualTo(0)`
+    /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it equals zero.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is nonzero, or `NotANumber` for NaN.
     #[inline]
     fn require_zero(self, path: &str) -> ArgumentResult<Self> {
         let zero = T::zero();
@@ -291,7 +314,23 @@ where
         )
     }
 
-    /// Requires inequality with zero and preserves the original value.
+    /// Requires this value not to equal zero.
+    ///
+    /// Success returns the original value without cloning. Zero returns
+    /// [`ArgumentErrorKind::Comparison`] with a `NotEqualTo(0)` constraint at
+    /// `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is nonzero.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is zero, or `NotANumber` for NaN.
     #[inline]
     fn require_non_zero(self, path: &str) -> ArgumentResult<Self> {
         let zero = T::zero();
@@ -304,7 +343,25 @@ where
         )
     }
 
-    /// Requires a value strictly greater than zero.
+    /// Requires this value to be strictly greater than zero.
+    ///
+    /// Success returns the original value without cloning. A value that is not
+    /// positive returns [`ArgumentErrorKind::Comparison`] with a
+    /// `GreaterThan(0)` constraint at `path`; NaN returns
+    /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is positive.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is not positive, or `NotANumber` for
+    /// NaN.
     #[inline]
     fn require_positive(self, path: &str) -> ArgumentResult<Self> {
         let zero = T::zero();
@@ -317,7 +374,24 @@ where
         )
     }
 
-    /// Requires a value greater than or equal to zero.
+    /// Requires this value to be greater than or equal to zero.
+    ///
+    /// Success returns the original value without cloning. A negative value
+    /// returns [`ArgumentErrorKind::Comparison`] with an `AtLeast(0)`
+    /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is non-negative.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is negative, or `NotANumber` for
+    /// NaN.
     #[inline]
     fn require_non_negative(self, path: &str) -> ArgumentResult<Self> {
         let zero = T::zero();
@@ -330,7 +404,24 @@ where
         )
     }
 
-    /// Requires a value strictly less than zero.
+    /// Requires this value to be strictly less than zero.
+    ///
+    /// Success returns the original value without cloning. A value that is not
+    /// negative returns [`ArgumentErrorKind::Comparison`] with a `LessThan(0)`
+    /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is negative.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is not negative, or `NotANumber` for
+    /// NaN.
     #[inline]
     fn require_negative(self, path: &str) -> ArgumentResult<Self> {
         let zero = T::zero();
@@ -343,7 +434,24 @@ where
         )
     }
 
-    /// Requires a value less than or equal to zero.
+    /// Requires this value to be less than or equal to zero.
+    ///
+    /// Success returns the original value without cloning. A positive value
+    /// returns [`ArgumentErrorKind::Comparison`] with an `AtMost(0)`
+    /// constraint at `path`; NaN returns [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is non-positive.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the value is positive, or `NotANumber` for
+    /// NaN.
     #[inline]
     fn require_non_positive(self, path: &str) -> ArgumentResult<Self> {
         let zero = T::zero();
@@ -356,7 +464,26 @@ where
         )
     }
 
-    /// Requires a value strictly less than the supplied bound.
+    /// Requires this value to be strictly less than `bound`.
+    ///
+    /// Success returns the original value without cloning. An unsatisfied
+    /// comparison returns [`ArgumentErrorKind::Comparison`] with a `LessThan`
+    /// constraint at `path`; a NaN value or bound returns
+    /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `bound`: Comparison boundary.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is less than `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the comparison fails, or `NotANumber` when the
+    /// value or bound is NaN.
     #[inline]
     fn require_less_than(self, path: &str, bound: Self) -> ArgumentResult<Self> {
         validate_comparison(
@@ -368,7 +495,26 @@ where
         )
     }
 
-    /// Requires a value less than or equal to the supplied bound.
+    /// Requires this value to be less than or equal to `bound`.
+    ///
+    /// Success returns the original value without cloning. An unsatisfied
+    /// comparison returns [`ArgumentErrorKind::Comparison`] with an `AtMost`
+    /// constraint at `path`; a NaN value or bound returns
+    /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `bound`: Comparison boundary.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is at most `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the comparison fails, or `NotANumber` when the
+    /// value or bound is NaN.
     #[inline]
     fn require_at_most(self, path: &str, bound: Self) -> ArgumentResult<Self> {
         validate_comparison(
@@ -380,7 +526,26 @@ where
         )
     }
 
-    /// Requires a value strictly greater than the supplied bound.
+    /// Requires this value to be strictly greater than `bound`.
+    ///
+    /// Success returns the original value without cloning. An unsatisfied
+    /// comparison returns [`ArgumentErrorKind::Comparison`] with a
+    /// `GreaterThan` constraint at `path`; a NaN value or bound returns
+    /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `bound`: Comparison boundary.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is greater than `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the comparison fails, or `NotANumber` when the
+    /// value or bound is NaN.
     #[inline]
     fn require_greater_than(self, path: &str, bound: Self) -> ArgumentResult<Self> {
         validate_comparison(
@@ -392,7 +557,26 @@ where
         )
     }
 
-    /// Requires a value greater than or equal to the supplied bound.
+    /// Requires this value to be greater than or equal to `bound`.
+    ///
+    /// Success returns the original value without cloning. An unsatisfied
+    /// comparison returns [`ArgumentErrorKind::Comparison`] with an `AtLeast`
+    /// constraint at `path`; a NaN value or bound returns
+    /// [`ArgumentErrorKind::NotANumber`].
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `bound`: Comparison boundary.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it is at least `bound`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Comparison` when the comparison fails, or `NotANumber` when the
+    /// value or bound is NaN.
     #[inline]
     fn require_at_least(self, path: &str, bound: Self) -> ArgumentResult<Self> {
         validate_comparison(
@@ -404,7 +588,35 @@ where
         )
     }
 
-    /// Validates the range structure before checking and returning this value.
+    /// Requires this value to lie within `range`.
+    ///
+    /// Standard inclusive, exclusive, and unbounded [`RangeBounds`] are
+    /// supported. The range structure is validated before this value: reversed
+    /// endpoints and equal endpoints with either endpoint excluded return
+    /// [`ArgumentErrorKind::InvalidRangeConstraint`]. NaN endpoints or values
+    /// return [`ArgumentErrorKind::NotANumber`].
+    /// An otherwise out-of-range value returns [`ArgumentErrorKind::Range`].
+    /// The range's start and end accessors are each called exactly once, and
+    /// all checks use that owned endpoint snapshot.
+    /// Successful validation returns the original value without cloning.
+    ///
+    /// # Type Parameters
+    ///
+    /// - `R`: A range exposing bounds of this numeric type.
+    ///
+    /// # Parameters
+    ///
+    /// - `path`: Location used to identify a validation failure.
+    /// - `range`: Inclusive, exclusive, or unbounded validation interval.
+    ///
+    /// # Returns
+    ///
+    /// The unchanged value when it satisfies the validated range.
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidRangeConstraint` for an invalid range, `Range` when the
+    /// value is outside it, or `NotANumber` for a NaN value or endpoint.
     #[inline]
     fn require_in_range<R>(self, path: &str, range: R) -> ArgumentResult<Self>
     where
@@ -426,182 +638,4 @@ where
             ))
         }
     }
-}
-
-/// Rejects a NaN numeric value or constraint at the supplied argument path.
-///
-/// `value` is inspected without normalization. Integer values always succeed;
-/// floating-point NaN values return `ArgumentErrorKind::NotANumber` at `path`.
-#[inline]
-fn validate_not_nan<T>(path: &str, value: T) -> ArgumentResult<()>
-where
-    T: NumericValue,
-{
-    if value.is_nan() {
-        Err(ArgumentError::new(path, ArgumentErrorKind::NotANumber))
-    } else {
-        Ok(())
-    }
-}
-
-/// Applies one comparison and returns the unchanged numeric value on success.
-///
-/// `actual` and `bound` are checked for NaN before `predicate` is evaluated.
-/// If the predicate returns `false`, the error records `actual` and the exact
-/// supplied `constraint` at `path`.
-fn validate_comparison<T, F>(
-    actual: T,
-    path: &str,
-    bound: T,
-    constraint: ComparisonConstraint,
-    predicate: F,
-) -> ArgumentResult<T>
-where
-    T: NumericValue,
-    F: FnOnce(T, T) -> bool,
-{
-    validate_not_nan(path, actual)?;
-    validate_not_nan(path, bound)?;
-    if predicate(actual, bound) {
-        Ok(actual)
-    } else {
-        Err(ArgumentError::new(
-            path,
-            ArgumentErrorKind::Comparison {
-                actual: actual.to_argument_value(),
-                constraint,
-            },
-        ))
-    }
-}
-
-/// Copies a borrowed standard-library bound into an owned bound.
-///
-/// Included and excluded endpoints are copied exactly; an unbounded endpoint
-/// remains unbounded.
-#[inline]
-fn copy_range_bound<T>(bound: Bound<&T>) -> Bound<T>
-where
-    T: NumericValue,
-{
-    match bound {
-        Bound::Unbounded => Bound::Unbounded,
-        Bound::Included(value) => Bound::Included(*value),
-        Bound::Excluded(value) => Bound::Excluded(*value),
-    }
-}
-
-/// Reads each endpoint from `range` once and returns an owned snapshot.
-///
-/// The lower and upper endpoint accessors are each invoked exactly once. The
-/// returned values are reused for constraint construction, validation, and
-/// membership checks.
-#[inline]
-fn snapshot_range_bounds<T, R>(range: &R) -> (Bound<T>, Bound<T>)
-where
-    T: NumericValue,
-    R: RangeBounds<T>,
-{
-    let lower_bound = copy_range_bound(range.start_bound());
-    let upper_bound = copy_range_bound(range.end_bound());
-    (lower_bound, upper_bound)
-}
-
-/// Captures an owned standard-library bound as a structured argument bound.
-///
-/// Included and excluded endpoints are converted without losing numeric bits;
-/// an unbounded endpoint remains unbounded.
-#[inline]
-fn capture_argument_bound<T>(bound: Bound<T>) -> ArgumentBound
-where
-    T: NumericValue,
-{
-    match bound {
-        Bound::Unbounded => ArgumentBound::Unbounded,
-        Bound::Included(value) => ArgumentBound::Included(value.to_argument_value()),
-        Bound::Excluded(value) => ArgumentBound::Excluded(value.to_argument_value()),
-    }
-}
-
-/// Captures both owned endpoints without validating their relationship.
-///
-/// The returned constraint preserves inclusive, exclusive, unbounded, and
-/// floating-point bit-pattern details exactly.
-#[inline]
-fn capture_range_constraint<T>(lower_bound: Bound<T>, upper_bound: Bound<T>) -> RangeConstraint
-where
-    T: NumericValue,
-{
-    RangeConstraint::new(capture_argument_bound(lower_bound), capture_argument_bound(upper_bound))
-}
-
-/// Validates that two snapshotted bounds form a non-empty numeric interval.
-///
-/// Endpoint NaNs return `NotANumber`. Reversed endpoints, or equal endpoints
-/// where either bound is excluded, return `InvalidRangeConstraint` containing
-/// a clone of `constraint`. Unbounded sides require no ordering comparison.
-fn validate_range_structure<T>(
-    path: &str,
-    lower_bound: Bound<T>,
-    upper_bound: Bound<T>,
-    constraint: &RangeConstraint,
-) -> ArgumentResult<()>
-where
-    T: NumericValue,
-{
-    validate_range_bound_not_nan(path, lower_bound)?;
-    validate_range_bound_not_nan(path, upper_bound)?;
-
-    let is_valid = match (lower_bound, upper_bound) {
-        (Bound::Unbounded, _) | (_, Bound::Unbounded) => return Ok(()),
-        (Bound::Included(lower), Bound::Included(upper)) => lower <= upper,
-        (Bound::Included(lower), Bound::Excluded(upper))
-        | (Bound::Excluded(lower), Bound::Included(upper))
-        | (Bound::Excluded(lower), Bound::Excluded(upper)) => lower < upper,
-    };
-    if is_valid {
-        Ok(())
-    } else {
-        Err(ArgumentError::new(
-            path,
-            ArgumentErrorKind::InvalidRangeConstraint {
-                constraint: constraint.clone(),
-            },
-        ))
-    }
-}
-
-/// Rejects a NaN endpoint while accepting unbounded and ordinary endpoints.
-///
-/// A NaN included or excluded endpoint returns `NotANumber` at `path`.
-#[inline]
-fn validate_range_bound_not_nan<T>(path: &str, bound: Bound<T>) -> ArgumentResult<()>
-where
-    T: NumericValue,
-{
-    match bound {
-        Bound::Included(value) | Bound::Excluded(value) => validate_not_nan(path, value),
-        Bound::Unbounded => Ok(()),
-    }
-}
-
-/// Returns whether `actual` satisfies two snapshotted bounds.
-///
-/// This helper assumes the bounds and all values were already checked for NaN.
-/// It uses comparisons only and performs no endpoint arithmetic.
-fn range_contains<T>(lower_bound: Bound<T>, upper_bound: Bound<T>, actual: T) -> bool
-where
-    T: NumericValue,
-{
-    let satisfies_lower = match lower_bound {
-        Bound::Unbounded => true,
-        Bound::Included(lower) => actual >= lower,
-        Bound::Excluded(lower) => actual > lower,
-    };
-    let satisfies_upper = match upper_bound {
-        Bound::Unbounded => true,
-        Bound::Included(upper) => actual <= upper,
-        Bound::Excluded(upper) => actual < upper,
-    };
-    satisfies_lower && satisfies_upper
 }

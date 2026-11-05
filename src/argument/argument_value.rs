@@ -57,15 +57,30 @@ use std::time::Duration;
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgumentValue {
     /// A signed integer represented without loss.
-    Signed(i128),
+    Signed(
+        /// The exact signed integer, widened to 128 bits.
+        i128,
+    ),
     /// An unsigned integer represented without loss.
-    Unsigned(u128),
+    Unsigned(
+        /// The exact unsigned integer, widened to 128 bits.
+        u128,
+    ),
     /// The raw bits of a 32-bit floating-point value.
-    Float32(u32),
+    Float32(
+        /// The IEEE 754 bits, including the sign and any NaN payload.
+        u32,
+    ),
     /// The raw bits of a 64-bit floating-point value.
-    Float64(u64),
+    Float64(
+        /// The IEEE 754 bits, including the sign and any NaN payload.
+        u64,
+    ),
     /// An exact standard-library duration value.
-    Duration(Duration),
+    Duration(
+        /// The exact seconds and nanoseconds of the captured duration.
+        Duration,
+    ),
 }
 
 macro_rules! impl_from_signed_integer {
@@ -73,6 +88,14 @@ macro_rules! impl_from_signed_integer {
         $(
             impl From<$source> for ArgumentValue {
                 /// Converts a signed primitive integer without losing its value.
+                ///
+                /// # Parameters
+                ///
+                /// * `value` - The scalar to capture by value without normalization.
+                ///
+                /// # Returns
+                ///
+                /// The lossless scalar representation of `value`.
                 #[inline]
                 fn from(value: $source) -> Self {
                     Self::Signed(value as i128)
@@ -87,6 +110,14 @@ macro_rules! impl_from_unsigned_integer {
         $(
             impl From<$source> for ArgumentValue {
                 /// Converts an unsigned primitive integer without losing its value.
+                ///
+                /// # Parameters
+                ///
+                /// * `value` - The scalar to capture by value without normalization.
+                ///
+                /// # Returns
+                ///
+                /// The lossless scalar representation of `value`.
                 #[inline]
                 fn from(value: $source) -> Self {
                     Self::Unsigned(value as u128)
@@ -101,6 +132,14 @@ impl_from_unsigned_integer!(u8, u16, u32, u64, u128, usize);
 
 impl From<f32> for ArgumentValue {
     /// Captures the exact IEEE 754 bit pattern of a 32-bit float.
+    ///
+    /// # Parameters
+    ///
+    /// * `value` - The scalar to capture by value without normalization.
+    ///
+    /// # Returns
+    ///
+    /// The lossless scalar representation of `value`.
     #[inline]
     fn from(value: f32) -> Self {
         Self::Float32(value.to_bits())
@@ -109,6 +148,14 @@ impl From<f32> for ArgumentValue {
 
 impl From<f64> for ArgumentValue {
     /// Captures the exact IEEE 754 bit pattern of a 64-bit float.
+    ///
+    /// # Parameters
+    ///
+    /// * `value` - The scalar to capture by value without normalization.
+    ///
+    /// # Returns
+    ///
+    /// The lossless scalar representation of `value`.
     #[inline]
     fn from(value: f64) -> Self {
         Self::Float64(value.to_bits())
@@ -117,6 +164,14 @@ impl From<f64> for ArgumentValue {
 
 impl From<Duration> for ArgumentValue {
     /// Captures an exact standard-library duration value.
+    ///
+    /// # Parameters
+    ///
+    /// * `value` - The scalar to capture by value without normalization.
+    ///
+    /// # Returns
+    ///
+    /// The lossless scalar representation of `value`.
     #[inline]
     fn from(value: Duration) -> Self {
         Self::Duration(value)
@@ -125,6 +180,18 @@ impl From<Duration> for ArgumentValue {
 
 impl Debug for ArgumentValue {
     /// Formats the variant with its reconstructed scalar value.
+    ///
+    /// # Parameters
+    ///
+    /// * `formatter` - The destination receiving the formatted scalar.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` when the scalar has been written successfully.
+    ///
+    /// # Errors
+    ///
+    /// Returns the destination formatter's error if writing fails.
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Signed(value) => formatter.debug_tuple("Signed").field(value).finish(),
@@ -138,6 +205,18 @@ impl Debug for ArgumentValue {
 
 impl Display for ArgumentValue {
     /// Formats the represented scalar value without a variant label.
+    ///
+    /// # Parameters
+    ///
+    /// * `formatter` - The destination receiving the formatted scalar.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` when the scalar has been written successfully.
+    ///
+    /// # Errors
+    ///
+    /// Returns the destination formatter's error if writing fails.
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Signed(value) => Display::fmt(value, formatter),

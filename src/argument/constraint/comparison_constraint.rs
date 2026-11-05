@@ -14,7 +14,8 @@ use crate::argument::ArgumentValue;
 /// # Examples
 ///
 /// ```
-/// use qubit_argument::{ArgumentValue, ComparisonConstraint};
+/// use qubit_argument::ArgumentValue;
+/// use qubit_argument::ComparisonConstraint;
 ///
 /// let constraint = ComparisonConstraint::AtLeast(ArgumentValue::from(10_i32));
 /// assert!(matches!(constraint, ComparisonConstraint::AtLeast(_)));
@@ -22,7 +23,8 @@ use crate::argument::ArgumentValue;
 ///
 /// ```compile_fail
 /// #![deny(unused_must_use)]
-/// use qubit_argument::{ArgumentValue, ComparisonConstraint};
+/// use qubit_argument::ArgumentValue;
+/// use qubit_argument::ComparisonConstraint;
 ///
 /// ComparisonConstraint::EqualTo(ArgumentValue::Signed(1));
 /// ```
@@ -30,15 +32,33 @@ use crate::argument::ArgumentValue;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ComparisonConstraint {
     /// Requires equality with the captured value.
-    EqualTo(ArgumentValue),
+    EqualTo(
+        /// The owned scalar value the argument must equal.
+        ArgumentValue,
+    ),
     /// Requires inequality with the captured value.
-    NotEqualTo(ArgumentValue),
+    NotEqualTo(
+        /// The owned scalar value the argument must differ from.
+        ArgumentValue,
+    ),
     /// Requires a value strictly less than the captured value.
-    LessThan(ArgumentValue),
+    LessThan(
+        /// The owned exclusive upper bound for the argument.
+        ArgumentValue,
+    ),
     /// Requires a value less than or equal to the captured value.
-    AtMost(ArgumentValue),
+    AtMost(
+        /// The owned inclusive upper bound for the argument.
+        ArgumentValue,
+    ),
     /// Requires a value strictly greater than the captured value.
-    GreaterThan(ArgumentValue),
+    GreaterThan(
+        /// The owned exclusive lower bound for the argument.
+        ArgumentValue,
+    ),
     /// Requires a value greater than or equal to the captured value.
-    AtLeast(ArgumentValue),
+    AtLeast(
+        /// The owned inclusive lower bound for the argument.
+        ArgumentValue,
+    ),
 }
