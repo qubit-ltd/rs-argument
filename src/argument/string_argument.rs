@@ -18,10 +18,10 @@ use crate::argument::LengthMetric;
 #[cfg(feature = "regex")]
 use crate::argument::PatternExpectation;
 use crate::argument::internal::Sealed;
-use crate::argument::internal::string_validation::validate_length;
 use crate::argument::internal::string_validation::validate_non_blank;
 #[cfg(feature = "regex")]
 use crate::argument::internal::string_validation::validate_pattern;
+use crate::argument::internal::validate_length;
 
 /// Validates string arguments while preserving ownership or borrowing.
 ///

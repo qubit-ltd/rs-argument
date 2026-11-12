@@ -9,12 +9,14 @@
 
 // Implements shared duration comparisons and structured failure construction.
 pub(super) mod duration_validation;
+mod length_validation;
 mod numeric_validation;
 mod numeric_value;
 mod sealed;
 // Implements shared string validation without retaining inspected inputs.
 pub(super) mod string_validation;
 
+pub(super) use length_validation::validate_length;
 pub(super) use numeric_validation::capture_range_constraint;
 pub(super) use numeric_validation::range_contains;
 pub(super) use numeric_validation::snapshot_range_bounds;
