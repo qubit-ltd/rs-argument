@@ -89,42 +89,15 @@ cargo llvm-cov --html --open --test argument_tests -- argument
 
 ## CI/CD 集成
 
-### GitHub Actions 示例
+本项目通过 [Rust CI](.github/workflows/ci.yml) 接入持续集成。
+其中 `rust-ci` 任务调用共享工作流
+`qubit-ltd/rs-infra-ci/.github/workflows/github-ci.yml@main`。
+当前 CI 配置请以该入口文件为准。
 
-```yaml
-name: Code Coverage
+需要在本地调用项目覆盖率工具时，请从仓库根目录执行：
 
-on:
-  push:
-    branches: [ main, dev ]
-  pull_request:
-    branches: [ main, dev ]
-
-jobs:
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-
-      - name: Install cargo-llvm-cov
-        run: cargo install cargo-llvm-cov
-
-      - name: Generate coverage
-        run: |
-          cd rust-common
-          cargo llvm-cov --lcov --output-path lcov.info
-
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: rust-common/lcov.info
-          flags: qubit-argument
+```bash
+./.infra/bin/coverage.sh
 ```
 
 ## 常见问题

@@ -89,42 +89,16 @@ If you need to modify exclusion rules, please edit the `.llvm-cov.toml` file.
 
 ## CI/CD Integration
 
-### GitHub Actions Example
+The project's CI entry point is [Rust CI](.github/workflows/ci.yml).
+Its `rust-ci` job calls the shared workflow
+`qubit-ltd/rs-infra-ci/.github/workflows/github-ci.yml@main`.
+Refer to that entry point for the current CI configuration.
 
-```yaml
-name: Code Coverage
+To invoke the project coverage tooling locally, run this command from the
+repository root:
 
-on:
-  push:
-    branches: [ main, dev ]
-  pull_request:
-    branches: [ main, dev ]
-
-jobs:
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-
-      - name: Install cargo-llvm-cov
-        run: cargo install cargo-llvm-cov
-
-      - name: Generate coverage
-        run: |
-          cd rust-common
-          cargo llvm-cov --lcov --output-path lcov.info
-
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: rust-common/lcov.info
-          flags: qubit-argument
+```bash
+./.infra/bin/coverage.sh
 ```
 
 ## Common Issues
