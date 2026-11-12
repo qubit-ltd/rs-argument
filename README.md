@@ -32,13 +32,21 @@ arm so new structured cases can be added compatibly.
 The default feature set is empty (`default = []`), so core validation has no
 runtime dependency on the regex engine.
 
+Choose one of the following dependency declarations.
+
 ```toml
 [dependencies]
 qubit-argument = "0.4"
+```
 
-# Enable only when regex validation is needed.
+```toml
+[dependencies]
 qubit-argument = { version = "0.4", features = ["regex"] }
 ```
+
+## User Guide
+
+See the [Argument Validation Guide](src/argument/README.md) for the API tables and error model.
 
 ## Quick Start
 

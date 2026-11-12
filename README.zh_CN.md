@@ -29,13 +29,21 @@ Qubit Argument 提供扩展 trait 和职责单一的检查函数，用于校验�
 默认 feature 集为空（`default = []`），核心校验不会引入正则引擎这一运行时
 依赖。
 
+以下依赖声明二选一。
+
 ```toml
 [dependencies]
 qubit-argument = "0.4"
+```
 
-# 仅在需要正则校验时启用。
+```toml
+[dependencies]
 qubit-argument = { version = "0.4", features = ["regex"] }
 ```
+
+## 用户指南
+
+完整 API 对照表与错误模型请参阅[参数校验指南](src/argument/README.zh_CN.md)。
 
 ## 快速开始
 

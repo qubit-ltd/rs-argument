@@ -196,15 +196,27 @@ fn validate_stack_size(
 
 默认 feature 集为空。仅在确实需要正则校验时启用：
 
+以下依赖声明二选一。
+
 ```toml
 [dependencies]
 qubit-argument = "0.4"
+```
 
-# 仅在需要正则校验时启用。
+```toml
+[dependencies]
 qubit-argument = { version = "0.4", features = ["regex"] }
 ```
 
 ## 验证
+
+在项目根目录运行 TOML 示例解析器（需要 Python 3.11+）：
+
+```bash
+python3 scripts/check-doc-toml.py
+```
+
+随后可运行 Rust 文档检查：
 
 ```bash
 cargo test --doc --no-default-features

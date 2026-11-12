@@ -206,15 +206,27 @@ sensitive data.
 
 The default feature set is empty. Enable regex validation only when needed:
 
+Choose one of the following dependency declarations.
+
 ```toml
 [dependencies]
 qubit-argument = "0.4"
+```
 
-# Enable only when regex validation is needed.
+```toml
+[dependencies]
 qubit-argument = { version = "0.4", features = ["regex"] }
 ```
 
 ## Verification
+
+From the project root, run the TOML example parser (Python 3.11+ is required):
+
+```bash
+python3 scripts/check-doc-toml.py
+```
+
+The Rust documentation checks can then be run with:
 
 ```bash
 cargo test --doc --no-default-features
