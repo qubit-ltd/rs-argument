@@ -174,11 +174,11 @@ where
 ///
 /// # Parameters
 ///
-/// - `bound`: Owned endpoint to convert.
+/// - `bound`: Owned endpoint to represent in an argument constraint.
 ///
 /// # Returns
 ///
-/// The exact structured endpoint, preserving its inclusion mode.
+/// The matching structured endpoint, preserving its inclusion mode.
 #[inline]
 fn capture_argument_bound<T>(bound: Bound<T>) -> ArgumentBound
 where

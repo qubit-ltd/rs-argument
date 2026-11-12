@@ -18,8 +18,16 @@ fn test_range_constraint_exposes_bounds_by_reference() {
     let upper = ArgumentBound::Excluded(ArgumentValue::from(4_i32));
     let constraint = RangeConstraint::new(lower.clone(), upper.clone());
 
-    assert_eq!(constraint.lower(), &lower);
-    assert_eq!(constraint.upper(), &upper);
+    assert_eq!(
+        constraint.lower(),
+        &lower,
+        "the lower bound should match the supplied value",
+    );
+    assert_eq!(
+        constraint.upper(),
+        &upper,
+        "the upper bound should match the supplied value",
+    );
 }
 
 /// Verifies that a range constraint returns its owned bounds in lower-upper
@@ -37,5 +45,6 @@ fn test_range_constraint_into_bounds_preserves_order() {
             ArgumentBound::Unbounded,
             ArgumentBound::Included(ArgumentValue::from(10_i32)),
         ),
+        "owned bounds should retain their lower-upper order",
     );
 }

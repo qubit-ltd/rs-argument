@@ -5,15 +5,15 @@
 //
 //    Licensed under the Apache License, Version 2.0.
 // =============================================================================
-//! Tests for behavior backed by private argument internals.
+//! Tests for behavior backed by internal argument validation support.
 
 use qubit_argument::ArgumentErrorKind;
 use qubit_argument::ArgumentValue;
 use qubit_argument::ComparisonConstraint;
 use qubit_argument::NumericArgument;
 
-/// Verifies that private numeric internals preserve the public integer
-/// validation contract.
+/// Verifies that internal numeric validation support preserves the public
+/// integer validation contract.
 #[test]
 fn test_internal_numeric_support_preserves_integer_contract() {
     let error = 0_i32.require_positive("count").expect_err("zero is not positive");
