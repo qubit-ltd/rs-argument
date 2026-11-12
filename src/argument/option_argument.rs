@@ -14,9 +14,12 @@ use crate::argument::internal::Sealed;
 
 /// Validates optional arguments without requiring their values to be cloned.
 ///
-/// A required value can be extracted with [`Self::require_some`]. Conditional
-/// validation borrows a present value only for the validator call and returns
-/// the original option on success.
+/// A required value can be extracted with [`Self::require_some`].
+/// [`Self::validate_if_some`] temporarily borrows a present value and returns
+/// the original option on success. [`Self::validate_some`] consumes a present
+/// value and rewraps the value returned by the validator, which may transform
+/// it without requiring `Clone` or `Copy`. Both conditional methods skip the
+/// validator for `None` and propagate validator errors unchanged.
 ///
 /// The trait is sealed and implemented only for `Option<T>`.
 ///
